@@ -1,0 +1,1157 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>事件关联详情</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+<script>
+  window._AMapSecurityConfig = { securityJsCode: '' };
+  window.AMAP_CONFIG = {
+    key: '01d6322cc08dafd1800e07b018b06b49',
+    version: '2.0',
+    plugins: ['AMap.Scale', 'AMap.ToolBar']
+  };
+  window.loadAMap = function () {
+    return new Promise(function (resolve, reject) {
+      if (window.AMap) return resolve(window.AMap);
+      var cfg = window.AMAP_CONFIG || {};
+      if (!cfg.key || cfg.key.indexOf('YOUR_') === 0) {
+        var err = new Error('AMap key 未配置');
+        err.code = 'AMAP_NO_KEY';
+        return reject(err);
+      }
+      var src = 'https://webapi.amap.com/maps?v=' + (cfg.version || '2.0') + '&key=' + cfg.key;
+      if (cfg.plugins && cfg.plugins.length) src += '&plugin=' + cfg.plugins.join(',');
+      var s = document.createElement('script');
+      s.type = 'text/javascript'; s.async = true; s.src = src;
+      s.onload = function () { resolve(window.AMap); };
+      s.onerror = function (e) { reject(e); };
+      document.head.appendChild(s);
+    });
+  };
+  function getQueryParam(name) {
+    var m = new RegExp('[?&]' + name + '=([^&#]*)').exec(location.search);
+    return m ? decodeURIComponent(m[1]) : '';
+  }
+</script>
+<style>
+  :root {
+    --ed-bg: #0B1220; --ed-bg-2: #070b14;
+    --ed-surface: rgba(15,23,42,0.92);
+    --ed-surface-2: rgba(21,30,48,0.96);
+    --ed-border: rgba(148,163,184,0.18);
+    --ed-border-2: rgba(148,163,184,0.30);
+    --ed-ink: #e2e8f0; --ed-ink-2: #94a3b8; --ed-ink-3: #64748b;
+    --ed-primary: #38bdf8; --ed-primary-dim: rgba(56,189,248,0.14);
+    --ed-friendly: #4ade80; --ed-enemy: #f87171; --ed-warn: #fb923c; --ed-unknown: #fbbf24;
+    --ed-radius: 10px; --ed-radius-lg: 12px;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0; min-height: 100vh; height: 100%;
+    font-family: "'Segoe UI','PingFang SC','Microsoft YaHei',system-ui,sans-serif";
+    color: var(--ed-ink);
+    background:
+      radial-gradient(1200px 700px at 10% -10%, rgba(56,189,248,0.08), transparent 60%),
+      radial-gradient(900px 600px at 110% 10%, rgba(192,132,252,0.07), transparent 60%),
+      linear-gradient(180deg, var(--ed-bg) 0%, var(--ed-bg-2) 100%);
+    -webkit-font-smoothing: antialiased; overflow: hidden;
+  }
+  .ed-app { display: flex; flex-direction: column; height: 100vh; width: 100%; }
+  .ed-scroll { flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; padding: 14px 16px 20px; }
+  .ed-scroll::-webkit-scrollbar { width: 6px; }
+  .ed-scroll::-webkit-scrollbar-thumb { background: rgba(148,163,184,0.22); border-radius: 3px; }
+
+  /* ====== 顶部基础卡片 ====== */
+  .ed-top-card {
+    background: var(--ed-surface); border: 1px solid var(--ed-border);
+    border-radius: var(--ed-radius-lg); padding: 14px 18px; margin-bottom: 14px;
+    backdrop-filter: blur(10px);
+  }
+  .ed-top-row1 { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  .ed-top-left { flex: 1; min-width: 0; }
+  .ed-title { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
+  .ed-title-text { font-size: 18px; font-weight: 700; color: var(--ed-ink); letter-spacing: 0.3px; }
+  .ed-title-id { font-size: 12px; color: var(--ed-ink-3); font-family: "'JetBrains Mono','Consolas',monospace"; padding: 2px 8px; background: rgba(148,163,184,0.08); border-radius: 4px; border: 1px solid var(--ed-border); }
+  .ed-tags { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .ed-tag {
+    display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px;
+    border-radius: 5px; font-size: 11px; font-weight: 500;
+    border: 1px solid transparent;
+  }
+  .ed-tag-type-air { background: rgba(56,189,248,0.15); color: #38bdf8; border-color: rgba(56,189,248,0.25); }
+  .ed-tag-type-sea { background: rgba(74,222,128,0.15); color: #4ade80; border-color: rgba(74,222,128,0.25); }
+  .ed-tag-type-mixed { background: rgba(251,146,60,0.15); color: #fb923c; border-color: rgba(251,146,60,0.25); }
+  .ed-tag-risk-high { background: rgba(248,113,113,0.15); color: #f87171; border-color: rgba(248,113,113,0.25); }
+  .ed-tag-risk-mid { background: rgba(251,146,60,0.15); color: #fb923c; border-color: rgba(251,146,60,0.25); }
+  .ed-tag-risk-low { background: rgba(251,191,36,0.15); color: #fbbf24; border-color: rgba(251,191,36,0.25); }
+  .ed-tag-risk-safe { background: rgba(74,222,128,0.15); color: #4ade80; border-color: rgba(74,222,128,0.25); }
+  .ed-tag-status-reviewed { background: rgba(74,222,128,0.15); color: #4ade80; border-color: rgba(74,222,128,0.25); }
+  .ed-tag-status-researching { background: rgba(56,189,248,0.15); color: #38bdf8; border-color: rgba(56,189,248,0.25); }
+  .ed-tag-status-pending { background: rgba(251,191,36,0.15); color: #fbbf24; border-color: rgba(251,191,36,0.25); }
+
+  .ed-top-info { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--ed-border); border-radius: 8px; overflow: hidden; border: 1px solid var(--ed-border); margin-top: 12px; }
+  .ed-info-cell { background: var(--ed-surface); padding: 10px 14px; display: flex; flex-direction: column; justify-content: center; }
+  .ed-info-k { font-size: 11px; color: var(--ed-ink-3); letter-spacing: 0.06em; margin-bottom: 4px; }
+  .ed-info-v { font-size: 13px; color: var(--ed-ink); font-family: "'JetBrains Mono','Consolas',monospace"; }
+  .ed-info-v-soft { font-family: inherit; color: var(--ed-ink-2); }
+
+  .ed-conclusion {
+    margin-top: 12px; padding: 10px 14px;
+    background: rgba(56,189,248,0.06); border: 1px solid rgba(56,189,248,0.18);
+    border-radius: 8px;
+  }
+  .ed-conclusion-label { font-size: 11px; color: var(--ed-primary); font-weight: 600; letter-spacing: 0.08em; margin-bottom: 4px; display: flex; align-items: center; gap: 5px; }
+  .ed-conclusion-text { font-size: 13px; color: var(--ed-ink); line-height: 1.6; }
+
+  /* ====== 主体三栏布局 ====== */
+  .ed-main-grid {
+    display: grid; grid-template-columns: 260px 1fr 340px;
+    gap: 12px; align-items: start;
+    margin-bottom: 14px;
+    min-height: 560px;
+  }
+
+  /* 左侧目标列表 */
+  .ed-target-panel {
+    background: var(--ed-surface); border: 1px solid var(--ed-border);
+    border-radius: var(--ed-radius-lg); overflow: hidden;
+    backdrop-filter: blur(10px);
+    display: flex; flex-direction: column; height: 560px;
+  }
+  .ed-panel-head {
+    padding: 10px 14px; border-bottom: 1px solid var(--ed-border);
+    display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;
+  }
+  .ed-panel-title { font-size: 13px; font-weight: 600; color: var(--ed-ink); display: flex; align-items: center; gap: 6px; }
+  .ed-panel-count { font-size: 11px; color: var(--ed-ink-3); padding: 1px 7px; background: rgba(148,163,184,0.1); border-radius: 10px; }
+  .ed-target-list { flex: 1; overflow-y: auto; padding: 6px; }
+  .ed-target-list::-webkit-scrollbar { width: 5px; }
+  .ed-target-list::-webkit-scrollbar-thumb { background: rgba(148,163,184,0.2); border-radius: 3px; }
+  .ed-target-item {
+    padding: 10px 12px; border-radius: 8px; cursor: pointer;
+    border: 1px solid transparent; transition: all .15s;
+    margin-bottom: 4px;
+  }
+  .ed-target-item:hover { background: rgba(56,189,248,0.05); border-color: rgba(56,189,248,0.2); }
+  .ed-target-item.active { background: rgba(56,189,248,0.1); border-color: rgba(56,189,248,0.35); }
+  .ed-target-head { display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-bottom: 5px; }
+  .ed-target-name { font-size: 13px; font-weight: 600; color: var(--ed-ink); display: flex; align-items: center; gap: 5px; }
+  .ed-target-flag { font-size: 14px; }
+  .ed-target-id { font-size: 10px; color: var(--ed-ink-3); font-family: "'JetBrains Mono','Consolas',monospace"; }
+  .ed-target-type { font-size: 11px; color: var(--ed-ink-2); margin-bottom: 6px; }
+  .ed-target-desc { font-size: 11px; color: var(--ed-warn); line-height: 1.5; margin-bottom: 6px; }
+  .ed-target-risk-tags { display: flex; gap: 4px; flex-wrap: wrap; }
+  .ed-target-risk-tag { font-size: 10px; padding: 1px 6px; border-radius: 3px; background: rgba(248,113,113,0.12); color: #fca5a5; border: 1px solid rgba(248,113,113,0.2); }
+
+  /* 中央地图 */
+  .ed-map-panel {
+    background: var(--ed-surface); border: 1px solid var(--ed-border);
+    border-radius: var(--ed-radius-lg); overflow: hidden;
+    backdrop-filter: blur(10px);
+    display: flex; flex-direction: column; height: 560px;
+  }
+  .ed-map-controls {
+    padding: 8px 12px; border-bottom: 1px solid var(--ed-border);
+    display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-shrink: 0;
+    background: var(--ed-surface-2);
+  }
+  .ed-layer-toggles { display: flex; gap: 6px; flex-wrap: wrap; }
+  .ed-layer-toggle {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 4px 9px; border-radius: 5px; font-size: 11px;
+    background: rgba(255,255,255,0.02); border: 1px solid var(--ed-border);
+    color: var(--ed-ink-2); cursor: pointer; transition: all .15s;
+  }
+  .ed-layer-toggle.on { background: var(--ed-primary-dim); border-color: rgba(56,189,248,0.3); color: var(--ed-primary); }
+  .ed-layer-toggle:hover { color: var(--ed-ink); border-color: var(--ed-border-2); }
+  .ed-layer-toggle input { display: none; }
+  .ed-map-layer-switch {
+    display: inline-flex; border: 1px solid var(--ed-border); border-radius: 5px; overflow: hidden;
+  }
+  .ed-map-layer-btn {
+    padding: 4px 10px; font-size: 11px; color: var(--ed-ink-2);
+    cursor: pointer; background: rgba(255,255,255,0.02); transition: all .15s;
+  }
+  .ed-map-layer-btn.on { background: var(--ed-primary-dim); color: var(--ed-primary); }
+  .ed-map-box { flex: 1; min-height: 0; position: relative; background: #0a1628; }
+  .ed-map-box #ed-map { width: 100%; height: 100%; }
+  .ed-playback-bar {
+    padding: 10px 14px; border-top: 1px solid var(--ed-border);
+    background: var(--ed-surface-2); flex-shrink: 0;
+  }
+  .ed-playback-controls { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; flex-wrap: wrap; }
+  .ed-pb-btn {
+    width: 28px; height: 28px; border-radius: 5px;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: rgba(255,255,255,0.03); border: 1px solid var(--ed-border);
+    color: var(--ed-ink-2); cursor: pointer; transition: all .15s; font-size: 13px;
+  }
+  .ed-pb-btn:hover { color: var(--ed-ink); border-color: var(--ed-border-2); }
+  .ed-pb-btn.play { background: var(--ed-primary-dim); color: var(--ed-primary); border-color: rgba(56,189,248,0.3); }
+  .ed-pb-speed {
+    display: inline-flex; border: 1px solid var(--ed-border); border-radius: 5px; overflow: hidden;
+  }
+  .ed-pb-speed-btn {
+    padding: 4px 9px; font-size: 11px; color: var(--ed-ink-2);
+    cursor: pointer; background: rgba(255,255,255,0.02); transition: all .15s;
+  }
+  .ed-pb-speed-btn.on { background: var(--ed-primary-dim); color: var(--ed-primary); }
+  .ed-pb-jump {
+    padding: 4px 10px; font-size: 11px; color: var(--ed-warn);
+    background: rgba(251,146,60,0.08); border: 1px solid rgba(251,146,60,0.25);
+    border-radius: 5px; cursor: pointer; transition: all .15s;
+  }
+  .ed-pb-jump:hover { background: rgba(251,146,60,0.15); }
+  .ed-pb-time { font-size: 11px; color: var(--ed-ink-3); font-family: "'JetBrains Mono','Consolas',monospace"; }
+  .ed-timeline-track {
+    position: relative; height: 20px;
+  }
+  .ed-timeline-line {
+    position: absolute; left: 0; right: 0; top: 9px; height: 2px;
+    background: var(--ed-border); border-radius: 1px;
+  }
+  .ed-timeline-fill {
+    position: absolute; left: 0; top: 0; height: 100%;
+    background: linear-gradient(90deg, var(--ed-primary), rgba(56,189,248,0.5));
+    border-radius: 1px; width: 30%;
+  }
+  .ed-timeline-silence {
+    position: absolute; top: 5px; height: 10px;
+    background: rgba(251,146,60,0.4); border: 1px dashed rgba(251,146,60,0.7);
+    border-radius: 2px;
+  }
+  .ed-timeline-handle {
+    position: absolute; top: 5px; width: 10px; height: 10px;
+    background: var(--ed-primary); border-radius: 50%;
+    box-shadow: 0 0 8px rgba(56,189,248,0.6); left: 30%;
+    transform: translateX(-50%); cursor: grab;
+  }
+
+  /* 右侧证据链时间轴 */
+  .ed-evidence-panel {
+    background: var(--ed-surface); border: 1px solid var(--ed-border);
+    border-radius: var(--ed-radius-lg); overflow: hidden;
+    backdrop-filter: blur(10px);
+    display: flex; flex-direction: column; height: 560px;
+  }
+  .ed-evidence-tabs { display: flex; border-bottom: 1px solid var(--ed-border); flex-shrink: 0; }
+  .ed-ev-tab {
+    flex: 1; padding: 8px 4px; font-size: 10px; text-align: center;
+    color: var(--ed-ink-3); cursor: pointer; transition: all .15s;
+    border-bottom: 2px solid transparent; white-space: nowrap;
+  }
+  .ed-ev-tab:hover { color: var(--ed-ink-2); }
+  .ed-ev-tab.active { color: var(--ed-primary); border-bottom-color: var(--ed-primary); background: var(--ed-primary-dim); }
+  .ed-evidence-list { flex: 1; overflow-y: auto; padding: 10px 12px; }
+  .ed-evidence-list::-webkit-scrollbar { width: 5px; }
+  .ed-evidence-list::-webkit-scrollbar-thumb { background: rgba(148,163,184,0.2); border-radius: 3px; }
+  .ed-timeline-item { padding-left: 22px; position: relative; margin-bottom: 14px; }
+  .ed-timeline-item::before {
+    content: ''; position: absolute; left: 6px; top: 6px; bottom: -8px; width: 1px;
+    background: var(--ed-border);
+  }
+  .ed-timeline-item:last-child::before { display: none; }
+  .ed-tl-dot {
+    position: absolute; left: 0; top: 4px; width: 13px; height: 13px;
+    border-radius: 50%; background: var(--ed-surface);
+    border: 2px solid var(--ed-primary);
+  }
+  .ed-tl-dot.ais { border-color: #4ade80; background: rgba(74,222,128,0.15); }
+  .ed-tl-dot.rf { border-color: #c084fc; background: rgba(192,132,252,0.15); }
+  .ed-tl-dot.adsb { border-color: #f87171; background: rgba(248,113,113,0.15); }
+  .ed-tl-dot.voice { border-color: #38bdf8; background: rgba(56,189,248,0.15); }
+  .ed-tl-dot.osint { border-color: #fb923c; background: rgba(251,146,60,0.15); }
+  .ed-tl-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 4px; }
+  .ed-tl-time { font-size: 10px; color: var(--ed-ink-3); font-family: "'JetBrains Mono','Consolas',monospace"; }
+  .ed-tl-source { font-size: 10px; padding: 1px 7px; border-radius: 3px; }
+  .ed-tl-source.ais { background: rgba(74,222,128,0.12); color: #86efac; }
+  .ed-tl-source.rf { background: rgba(192,132,252,0.12); color: #d8b4fe; }
+  .ed-tl-source.adsb { background: rgba(248,113,113,0.12); color: #fca5a5; }
+  .ed-tl-source.voice { background: rgba(56,189,248,0.12); color: #7dd3fc; }
+  .ed-tl-source.osint { background: rgba(251,146,60,0.12); color: #fdba74; }
+  .ed-tl-status {
+    display: inline-block; font-size: 10px; padding: 1px 7px; border-radius: 3px;
+    margin-bottom: 4px;
+  }
+  .ed-tl-status-normal { background: rgba(74,222,128,0.12); color: #86efac; }
+  .ed-tl-status-silence { background: rgba(248,113,113,0.12); color: #fca5a5; }
+  .ed-tl-status-recover { background: rgba(56,189,248,0.12); color: #7dd3fc; }
+  .ed-tl-content { font-size: 12px; color: var(--ed-ink-2); line-height: 1.6; }
+  .ed-tl-meta { font-size: 10px; color: var(--ed-ink-3); margin-top: 4px; font-family: "'JetBrains Mono','Consolas',monospace"; }
+  .ed-tl-preview {
+    display: inline-flex; align-items: center; gap: 3px; margin-top: 5px;
+    padding: 2px 8px; font-size: 10px; color: var(--ed-primary);
+    background: var(--ed-primary-dim); border: 1px solid rgba(56,189,248,0.2);
+    border-radius: 4px; cursor: pointer; transition: all .15s;
+  }
+  .ed-tl-preview:hover { background: rgba(56,189,248,0.2); }
+  .ed-audio-player {
+    margin-top: 5px; display: flex; align-items: center; gap: 8px;
+    padding: 5px 8px; background: rgba(0,0,0,0.2); border-radius: 5px;
+  }
+  .ed-audio-play {
+    width: 22px; height: 22px; border-radius: 50%;
+    background: var(--ed-primary-dim); color: var(--ed-primary);
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 10px; cursor: pointer; border: 1px solid rgba(56,189,248,0.3);
+  }
+  .ed-audio-progress { flex: 1; height: 3px; background: var(--ed-border); border-radius: 2px; position: relative; }
+  .ed-audio-progress-fill { position: absolute; left: 0; top: 0; height: 100%; width: 40%; background: var(--ed-primary); border-radius: 2px; }
+  .ed-audio-time { font-size: 10px; color: var(--ed-ink-3); font-family: "'JetBrains Mono','Consolas',monospace"; }
+
+  /* ====== 底部研判模块 ====== */
+  .ed-bottom-grid { display: grid; grid-template-columns: 1fr 340px; gap: 12px; }
+  .ed-judge-panel, .ed-forensic-panel {
+    background: var(--ed-surface); border: 1px solid var(--ed-border);
+    border-radius: var(--ed-radius-lg); overflow: hidden;
+    backdrop-filter: blur(10px);
+  }
+  .ed-judge-tags { padding: 12px 16px; }
+  .ed-judge-tag-group { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+  .ed-judge-tag {
+    display: inline-flex; align-items: center; gap: 5px; padding: 6px 12px;
+    border-radius: 6px; font-size: 12px;
+    background: rgba(251,146,60,0.08); color: var(--ed-warn);
+    border: 1px solid rgba(251,146,60,0.2);
+  }
+  .ed-judge-tag i { width: 13px; height: 13px; }
+  .ed-judge-final {
+    padding: 12px 16px; border-top: 1px solid var(--ed-border);
+    background: rgba(248,113,113,0.05);
+  }
+  .ed-judge-final-title {
+    font-size: 12px; font-weight: 600; color: var(--ed-enemy);
+    display: flex; align-items: center; gap: 6px; margin-bottom: 8px;
+  }
+  .ed-judge-final-text { font-size: 13px; color: var(--ed-ink); line-height: 1.7; }
+
+  .ed-forensic-list { padding: 8px 12px 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .ed-forensic-btn {
+    display: flex; flex-direction: column; align-items: flex-start; gap: 4px;
+    padding: 10px 12px; border-radius: 7px;
+    background: rgba(255,255,255,0.02); border: 1px solid var(--ed-border);
+    cursor: pointer; transition: all .15s;
+  }
+  .ed-forensic-btn:hover { background: var(--ed-primary-dim); border-color: rgba(56,189,248,0.3); }
+  .ed-forensic-btn.export {
+    grid-column: span 2; background: linear-gradient(135deg, rgba(56,189,248,0.15), rgba(192,132,252,0.12));
+    border-color: rgba(56,189,248,0.3);
+  }
+  .ed-forensic-btn-row1 { display: flex; align-items: center; gap: 7px; width: 100%; }
+  .ed-forensic-icon {
+    width: 26px; height: 26px; border-radius: 6px;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: var(--ed-primary-dim); color: var(--ed-primary); font-size: 13px;
+    flex-shrink: 0;
+  }
+  .ed-forensic-label { font-size: 12px; font-weight: 500; color: var(--ed-ink); flex: 1; }
+  .ed-forensic-arrow { font-size: 11px; color: var(--ed-ink-3); }
+  .ed-forensic-desc { font-size: 10px; color: var(--ed-ink-3); padding-left: 33px; }
+
+  /* 响应式 */
+  @media (max-width: 1400px) {
+    .ed-main-grid { grid-template-columns: 230px 1fr 310px; }
+  }
+  @media (max-width: 1200px) {
+    .ed-main-grid { grid-template-columns: 1fr; }
+    .ed-target-panel, .ed-map-panel, .ed-evidence-panel { height: auto; min-height: 400px; }
+    .ed-bottom-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="ed-app">
+  <div class="ed-scroll">
+
+    <!-- 1. 顶部基础卡片 -->
+    <div class="ed-top-card">
+      <div class="ed-top-row1">
+        <div class="ed-top-left">
+          <div class="ed-title">
+            <span class="ed-title-text" id="ed-event-title">海上船舶异常聚集</span>
+            <span class="ed-title-id" id="ed-event-id">EVT-2002</span>
+          </div>
+          <div class="ed-tags" id="ed-event-tags">
+            <span class="ed-tag ed-tag-type-mixed">🔗 海空联动</span>
+            <span class="ed-tag ed-tag-risk-high">⚠ 高危</span>
+            <span class="ed-tag ed-tag-status-researching">🔍 研判中</span>
+          </div>
+        </div>
+      </div>
+      <div class="ed-top-info">
+        <div class="ed-info-cell">
+          <div class="ed-info-k">事件地点</div>
+          <div class="ed-info-v ed-info-v-soft" id="ed-event-loc">南海黄岩岛东北海域 · 117.2°E, 15.8°N</div>
+        </div>
+        <div class="ed-info-cell">
+          <div class="ed-info-k">事件时段</div>
+          <div class="ed-info-v" id="ed-event-time">08/15 02:30 — 04:48</div>
+        </div>
+        <div class="ed-info-cell">
+          <div class="ed-info-k">置信度</div>
+          <div class="ed-info-v">82%</div>
+        </div>
+      </div>
+      <div class="ed-conclusion">
+        <div class="ed-conclusion-label"><i data-lucide="lightbulb" style="width:12px;height:12px"></i> 核心研判结论</div>
+        <div class="ed-conclusion-text" id="ed-event-conclusion">
+          多艘外籍货船在南海管控禁航区周边聚集，AIS信号规律性静默（每次约45分钟），射频信号持续留存，ADS-B航空器多次抵近盘旋，综合判定为疑似海上非法过驳作业行为，存在重大安全风险。
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. 三栏主体 -->
+    <div class="ed-main-grid">
+      <!-- 左侧：涉案目标 -->
+      <div class="ed-target-panel">
+        <div class="ed-panel-head">
+          <div class="ed-panel-title"><i data-lucide="ship" style="width:14px;height:14px"></i> 涉案目标</div>
+          <span class="ed-panel-count" id="ed-target-count">4 艘</span>
+        </div>
+        <div class="ed-target-list" id="ed-target-list"></div>
+      </div>
+
+      <!-- 中央：地图 -->
+      <div class="ed-map-panel">
+        <div class="ed-map-controls">
+          <div class="ed-layer-toggles" id="ed-layer-toggles">
+            <label class="ed-layer-toggle on"><input type="checkbox" checked data-layer="ais-normal">AIS正常航迹</label>
+            <label class="ed-layer-toggle on"><input type="checkbox" checked data-layer="ais-silence">AIS静默盲区</label>
+            <label class="ed-layer-toggle on"><input type="checkbox" checked data-layer="forbidden">南海管控禁航区</label>
+            <label class="ed-layer-toggle on"><input type="checkbox" checked data-layer="adsb">ADS-B航迹</label>
+            <label class="ed-layer-toggle"><input type="checkbox" data-layer="rf-heat">射频热力</label>
+          </div>
+          <div class="ed-map-layer-switch" id="ed-map-switch">
+            <div class="ed-map-layer-btn on" data-basemap="sat">卫星影像</div>
+            <div class="ed-map-layer-btn" data-basemap="std">标准地图</div>
+          </div>
+        </div>
+        <div class="ed-map-box">
+          <div id="ed-map"></div>
+        </div>
+        <div class="ed-playback-bar">
+          <div class="ed-playback-controls">
+            <div class="ed-pb-btn" id="ed-pb-reset" title="重置"><i data-lucide="rotate-ccw" style="width:14px;height:14px"></i></div>
+            <div class="ed-pb-btn play" id="ed-pb-play" title="播放/暂停"><i data-lucide="play" style="width:14px;height:14px"></i></div>
+            <div class="ed-pb-speed">
+              <div class="ed-pb-speed-btn" data-speed="1">1x</div>
+              <div class="ed-pb-speed-btn on" data-speed="2">2x</div>
+              <div class="ed-pb-speed-btn" data-speed="4">4x</div>
+            </div>
+            <div class="ed-pb-jump" id="ed-pb-jump"><i data-lucide="zap" style="width:11px;height:11px"></i> 异常时刻定位</div>
+            <div class="ed-pb-time" id="ed-pb-time">08/15 02:30:00 — 03:15:00</div>
+          </div>
+          <div class="ed-timeline-track" id="ed-timeline">
+            <div class="ed-timeline-line">
+              <div class="ed-timeline-fill" id="ed-timeline-fill"></div>
+              <div class="ed-timeline-silence" style="left:28%;width:10%"></div>
+              <div class="ed-timeline-silence" style="left:55%;width:9%"></div>
+            </div>
+            <div class="ed-timeline-handle" id="ed-timeline-handle"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 右侧：证据链时间轴 -->
+      <div class="ed-evidence-panel">
+        <div class="ed-panel-head">
+          <div class="ed-panel-title"><i data-lucide="git-branch" style="width:14px;height:14px"></i> 多源证据链</div>
+        </div>
+        <div class="ed-evidence-tabs" id="ed-ev-tabs">
+          <div class="ed-ev-tab active" data-evtab="all">全部</div>
+          <div class="ed-ev-tab" data-evtab="ais">AIS</div>
+          <div class="ed-ev-tab" data-evtab="rf">射频</div>
+          <div class="ed-ev-tab" data-evtab="adsb">ADS-B</div>
+          <div class="ed-ev-tab" data-evtab="voice">话音</div>
+          <div class="ed-ev-tab" data-evtab="osint">OSINT</div>
+        </div>
+        <div class="ed-evidence-list" id="ed-evidence-list"></div>
+      </div>
+    </div>
+
+    <!-- 3. 底部：研判 + 溯源 -->
+    <div class="ed-bottom-grid">
+      <div class="ed-judge-panel">
+        <div class="ed-panel-head">
+          <div class="ed-panel-title"><i data-lucide="clipboard-check" style="width:14px;height:14px"></i> 异常行为研判</div>
+        </div>
+        <div class="ed-judge-tags">
+          <div class="ed-judge-tag-group" id="ed-judge-tags">
+            <span class="ed-judge-tag"><i data-lucide="check-circle-2" style="color:#4ade80"></i> 双船同步启停AIS</span>
+            <span class="ed-judge-tag"><i data-lucide="check-circle-2" style="color:#4ade80"></i> 规律静默时长（45min区间）</span>
+            <span class="ed-judge-tag"><i data-lucide="check-circle-2" style="color:#4ade80"></i> 敏感海域作业</span>
+            <span class="ed-judge-tag"><i data-lucide="check-circle-2" style="color:#4ade80"></i> 射频信号持续留存</span>
+            <span class="ed-judge-tag"><i data-lucide="check-circle-2" style="color:#4ade80"></i> 吻合海上过驳行为模型</span>
+          </div>
+        </div>
+        <div class="ed-judge-final">
+          <div class="ed-judge-final-title"><i data-lucide="alert-triangle" style="width:14px;height:14px"></i> 最终研判结论</div>
+          <div class="ed-judge-final-text">
+            综合AIS静默模式、射频留存特征、ADS-B航空器配合、VHF通话内容及OSINT情报，本案高度符合<span style="color:var(--ed-enemy);font-weight:600">海上非法过驳作业（影子船队）</span>行为特征。
+            涉案船舶于禁航区边缘采取AIS短时静默（45分钟周期）+ 射频持续开启的规避手法，配合1架次公务航空器抵近观察，完成货物转运后分批次撤离。建议：① 通报海警力量前往事发海域查证；② 对涉案船舶纳入重点监控清单；③ 启动跨国海事协作机制。
+          </div>
+        </div>
+      </div>
+      <div class="ed-forensic-panel">
+        <div class="ed-panel-head">
+          <div class="ed-panel-title"><i data-lucide="folder-search" style="width:14px;height:14px"></i> 溯源取证</div>
+        </div>
+        <div class="ed-forensic-list">
+          <div class="ed-forensic-btn">
+            <div class="ed-forensic-btn-row1">
+              <div class="ed-forensic-icon">📡</div>
+              <div class="ed-forensic-label">AIS原始报文回放</div>
+              <div class="ed-forensic-arrow">→</div>
+            </div>
+            <div class="ed-forensic-desc">查看解码前后原始报文</div>
+          </div>
+          <div class="ed-forensic-btn">
+            <div class="ed-forensic-btn-row1">
+              <div class="ed-forensic-icon">🔥</div>
+              <div class="ed-forensic-label">射频热力截图</div>
+              <div class="ed-forensic-arrow">→</div>
+            </div>
+            <div class="ed-forensic-desc">监测时段信号热力预览</div>
+          </div>
+          <div class="ed-forensic-btn">
+            <div class="ed-forensic-btn-row1">
+              <div class="ed-forensic-icon">✈️</div>
+              <div class="ed-forensic-label">ADS-B航迹存档</div>
+              <div class="ed-forensic-arrow">→</div>
+            </div>
+            <div class="ed-forensic-desc">航空器历史航迹回放</div>
+          </div>
+          <div class="ed-forensic-btn">
+            <div class="ed-forensic-btn-row1">
+              <div class="ed-forensic-icon">🎙</div>
+              <div class="ed-forensic-label">海事话音回放</div>
+              <div class="ed-forensic-arrow">→</div>
+            </div>
+            <div class="ed-forensic-desc">VHF录音及转写文本</div>
+          </div>
+          <div class="ed-forensic-btn">
+            <div class="ed-forensic-btn-row1">
+              <div class="ed-forensic-icon">📋</div>
+              <div class="ed-forensic-label">官方公告原文</div>
+              <div class="ed-forensic-arrow">→</div>
+            </div>
+            <div class="ed-forensic-desc">海事局/民航局通告</div>
+          </div>
+          <div class="ed-forensic-btn">
+            <div class="ed-forensic-btn-row1">
+              <div class="ed-forensic-icon">📰</div>
+              <div class="ed-forensic-label">情报快照预览</div>
+              <div class="ed-forensic-arrow">→</div>
+            </div>
+            <div class="ed-forensic-desc">新闻/社交情报存档</div>
+          </div>
+          <div class="ed-forensic-btn export">
+            <div class="ed-forensic-btn-row1">
+              <div class="ed-forensic-icon">📤</div>
+              <div class="ed-forensic-label">批量导出研判报告</div>
+              <div class="ed-forensic-arrow">PDF / Excel</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+(function() {
+  // ===== Mock 数据 =====
+  var EVENT_MAP = {
+    'EVT-2000': {
+      title: '无人机闯入禁飞区事件', id: 'EVT-2000', type: 'air',
+      typeText: '航空', typeClass: 'air', risk: 'mid', status: 'closed',
+      location: '美济礁北部空域 · 115.9°E, 10.3°N',
+      timeRange: '08/15 10:00 — 10:48',
+      score: 67,
+      conclusion: '不明无人机在美济礁禁飞区上空停留35分钟，飞行轨迹围绕岛礁设施盘旋，疑似侦察活动。随后ADS-B监测到外籍公务机在周边空域配合飞行。',
+      center: [115.9, 10.3],
+      targets: [
+        { type: 'aircraft', flag: '🇺🇸', name: 'MQ-9 Reaper', id: 'ACA78912', subType: '察打一体无人机', desc: '禁飞区上空持续盘旋35分钟', tags: ['空域入侵', '侦察行为'] },
+        { type: 'aircraft', flag: '🇺🇸', name: 'P-8A Poseidon', id: 'ACA10234', subType: '反潜巡逻机', desc: '外围空域同步飞行，疑似协同', tags: ['协同飞行', '外籍军机'] }
+      ]
+    },
+    'EVT-2001': {
+      title: '航空器信号丢失事件', id: 'EVT-2001', type: 'sea',
+      typeText: '船舶', typeClass: 'sea', risk: 'high', status: 'researching',
+      location: '西沙群岛西部海域 · 111.3°E, 16.5°N',
+      timeRange: '08/15 06:20 — 08:10',
+      score: 95,
+      conclusion: '外籍货船在西沙西部海域发生连续3次AIS关机静默，每次间隔约45分钟，与过往影子船队作业模式高度吻合。静默期间射频信号仍可被监测捕获，疑似故意关闭AIS以规避海事追踪。',
+      center: [111.3, 16.5],
+      targets: [
+        { type: 'ship', flag: '🇱🇧', name: 'MV OCEAN LINK', id: 'MMSI 512987000', subType: '散货船 · 巴拿马旗', desc: 'AIS连续关机3次，每次约45分钟', tags: ['AIS静默', '巴拿马旗', '高频关机'] },
+        { type: 'ship', flag: '🇸🇬', name: 'MV PACIFIC STAR', id: 'MMSI 566778899', subType: '油轮 · 新加坡旗', desc: '同时段轨迹异常靠拢0.3海里', tags: ['轨迹异常', '疑似过驳'] },
+        { type: 'ship', flag: '🇭🇰', name: 'MV EASTERN WIND', id: 'MMSI 477998877', subType: '杂货船 · 香港旗', desc: '关机后快速驶离事发海域', tags: ['异常撤离'] }
+      ]
+    },
+    'EVT-2002': {
+      title: '海上船舶异常聚集', id: 'EVT-2002', type: 'mixed',
+      typeText: '海空联动', typeClass: 'mixed', risk: 'high', status: 'researching',
+      location: '南海黄岩岛东北海域 · 117.2°E, 15.8°N',
+      timeRange: '08/15 02:30 — 04:48',
+      score: 82,
+      conclusion: '多艘外籍货船在南海管控禁航区周边聚集，AIS信号规律性静默（每次约45分钟），射频信号持续留存，ADS-B航空器多次抵近盘旋，综合判定为疑似海上非法过驳作业行为，存在重大安全风险。',
+      center: [117.2, 15.8],
+      targets: [
+        { type: 'ship', flag: '🇵🇦', name: 'MV SOUTH WIND', id: 'MMSI 351234567', subType: '散货船 · 巴拿马旗', desc: '管控区边缘反复进出，AIS规律性静默', tags: ['AIS静默', '敏感海域', '规律关机'] },
+        { type: 'ship', flag: '🇱🇷', name: 'MV ATLANTIC HOPE', id: 'MMSI 636012345', subType: '油轮 · 利比里亚旗', desc: '与SOUTH WIND多次短距并行，间距<0.5海里', tags: ['疑似过驳', '异常接近'] },
+        { type: 'ship', flag: '🇲🇭', name: 'MV NORTH STAR', id: 'MMSI 538009999', subType: '杂货船 · 马绍尔旗', desc: '抵达后即关机，2小时后恢复信号', tags: ['AIS静默', '外籍货轮'] },
+        { type: 'aircraft', flag: '🇺🇸', name: 'CL-604 Challenger', id: 'ICAO AE123F', subType: '公务机 · 注册号N888TP', desc: '聚集期间2次抵近盘旋，高度1500ft', tags: ['低空盘旋', '外籍航空器', '疑似监视'] }
+      ]
+    },
+    'EVT-2003': {
+      title: '船舶闯入禁航区事件', id: 'EVT-2003', type: 'mixed',
+      typeText: '海空联动', typeClass: 'mixed', risk: 'mid', status: 'closed',
+      location: '北部湾禁航区 · 108.5°E, 20.1°N',
+      timeRange: '08/15 01:10 — 02:50',
+      score: 72,
+      conclusion: '1艘越南籍渔船闯入北部湾我军演习禁航区，停留时长约90分钟。AIS信号断续，疑似规避行为。我方已通过VHF警告驱离，最终船舶驶离禁航区。',
+      center: [108.5, 20.1],
+      targets: [
+        { type: 'ship', flag: '🇻🇳', name: 'QNg-98234 TS', id: 'MMSI 574009123', subType: '渔船 · 越南籍', desc: '非法闯入军事演习禁航区90分钟', tags: ['非法闯入', '外籍渔船'] },
+        { type: 'ship', flag: '🇨🇳', name: '海警 3301', id: 'MMSI 413123456', subType: '海警执法船', desc: '对闯入船舶实施VHF警告和抵近驱离', tags: ['执法驱离'] },
+        { type: 'aircraft', flag: '🇨🇳', name: 'Y-8 巡逻机', id: 'ICAO 780ABC', subType: '固定翼巡逻机', desc: '禁航区上空巡逻监视', tags: ['巡逻监视'] }
+      ]
+    }
+  };
+
+  var EVIDENCE_TEMPLATES = {
+    'EVT-2002': [
+      // AIS 轨迹
+      { type: 'ais', time: '08/15 02:30:12', status: 'normal', statusText: '正常上报', content: 'MV SOUTH WIND 进入管控区外围，航速12kn，航向215°', meta: 'MMSI 351234567 · LAT 15.782 / LON 117.184' },
+      { type: 'ais', time: '08/15 02:48:05', status: 'silence', statusText: '关机静默', content: 'SOUTH WIND AIS信号突然消失，位置点进入管控禁航区内', meta: '静默时长: 47min · 移动距离估算: 8.2nm' },
+      { type: 'ais', time: '08/15 03:35:18', status: 'recover', statusText: '恢复上线', content: 'SOUTH WIND 恢复AIS，位置偏移管控区东北方向9海里', meta: '航速骤降至 2.1kn · 航向变化 87°' },
+      { type: 'ais', time: '08/15 03:05:44', status: 'silence', statusText: '关机静默', content: 'MV ATLANTIC HOPE 同步关闭AIS，与SOUTH WIND消失时间差<3min', meta: '静默时长: 43min · 双船同步关机' },
+      // RF 射频
+      { type: 'rf', time: '08/15 02:45 — 03:40', statusText: '持续捕获', content: '156.8MHz海事频段捕获到特征频谱，与SOUTH WIND船舶MMSI指纹匹配度93%，尽管AIS关机但射频持续留存', meta: '信号稳定性: 稳定 · 频偏 ±0.2kHz · 信号强度 -47dBm' },
+      { type: 'rf', time: '08/15 03:10 — 03:25', statusText: '信号波动', content: '9.4GHz雷达频段出现间歇性扫描信号，疑似船舶间导航雷达交互，与过驳作业雷达特征高度吻合', meta: '信号稳定性: 波动 · 峰值 -52dBm' },
+      // ADS-B
+      { type: 'adsb', time: '08/15 02:55 — 03:20', statusText: '抵近盘旋', content: 'CL-604公务机从东北方向抵近，高度1500ft，以船舶聚集点为中心完成2次完整盘旋', meta: '航迹覆盖匹配度: 96% · 盘旋半径: 1.2nm' },
+      { type: 'adsb', time: '08/15 04:10', statusText: '飞离区域', content: '公务机爬升至FL320，航向东北方向离场，全程共留空约75分钟', meta: '起飞机场疑似: 克拉克国际机场' },
+      // VHF 话音
+      { type: 'voice', time: '08/15 03:12:48', content: 'VHF Ch16 捕获到疑似船员通话，内容涉及"货物对接""缆绳固定"等关键词', meta: '时长 02:18 · 语言: 英语+东南亚口音', audio: true },
+      { type: 'voice', time: '08/15 03:38:05', content: 'VHF Ch72 捕获到调度指令:"完成后分批次撤离，保持间距2海里以上"', meta: '时长 00:52 · 语言: 英语', audio: true },
+      // OSINT
+      { type: 'osint', osintType: '官方公告', time: '08/14 18:00', content: '海南海事局发布航行警告：南海部分海域8月15日00:00-12:00禁止无关船舶进入', meta: '发布方: 海南海事局 · 文号: 琼航警 0815/26' },
+      { type: 'osint', osintType: '新闻', time: '08/15 05:30', content: '菲律宾某新闻网站报道：近期南海多个海域出现"不明船队聚集"，当地渔民称有外籍货船夜间出没', meta: '来源: Inquirer.net · 热度: 4.2k' },
+      { type: 'osint', osintType: 'X社交', time: '08/15 06:15', content: 'OSINT分析账号@SeaLookup发帖：MV SOUTH WIND (351234567) 历史轨迹显示该船过去6个月在南海出现相同模式行为共7次，疑似"影子船队"成员', meta: '转推: 187 · 话题: #南海 #影子船队' }
+    ]
+  };
+
+  // 为其他事件生成默认证据
+  function genDefaultEvidence(evId) {
+    return [
+      { type: 'ais', time: '08/15 08:00', status: 'normal', statusText: '正常上报', content: '目标船舶AIS信号正常，航速航向无异常', meta: '位置: 115.0°E,15.0°N · 航速: 10kn' },
+      { type: 'rf', time: '08/15 08:05 — 09:00', statusText: '持续捕获', content: '射频信号稳定，与目标船舶指纹匹配', meta: '信号稳定性: 稳定 · 强度: -50dBm' },
+      { type: 'adsb', time: '08/15 08:30', statusText: '巡航中', content: '周边空域无异常航空器活动', meta: '航迹覆盖匹配度: 正常' },
+      { type: 'voice', time: '08/15 09:10', content: 'VHF正常调度通话，未发现异常内容', meta: '时长 01:05 · 语言: 中英混合', audio: true },
+      { type: 'osint', osintType: '官方公告', time: '08/15 07:00', content: '海事局发布常规航行通告', meta: '发布方: 海事局' }
+    ];
+  }
+
+  function getEvidence(evId) {
+    return EVIDENCE_TEMPLATES[evId] || genDefaultEvidence(evId);
+  }
+
+  // ===== 页面初始化 =====
+  var evId = getQueryParam('id') || 'EVT-2002';
+  var evTitle = getQueryParam('title') || '';
+  var evType = getQueryParam('type') || '';
+  var evData = EVENT_MAP[evId] || EVENT_MAP['EVT-2002'];
+
+  function rand(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+
+  // 渲染顶部卡片
+  function renderTopCard() {
+    document.getElementById('ed-event-title').textContent = evTitle || evData.title;
+    document.getElementById('ed-event-id').textContent = evData.id;
+    document.getElementById('ed-event-loc').textContent = evData.location;
+    document.getElementById('ed-event-time').textContent = evData.timeRange;
+    document.getElementById('ed-event-conclusion').textContent = evData.conclusion;
+
+    var riskMap = { high: ['⚠ 高危', 'ed-tag-risk-high'], mid: ['⚡ 中危', 'ed-tag-risk-mid'], low: ['🔶 低危', 'ed-tag-risk-low'], safe: ['✅ 无害', 'ed-tag-risk-safe'] };
+    var statusMap = { reviewed: ['✓ 已复盘', 'ed-tag-status-reviewed'], researching: ['🔍 研判中', 'ed-tag-status-researching'], pending: ['⏳ 待复核', 'ed-tag-status-pending'], open: ['⏳ 待研判', 'ed-tag-status-pending'], closed: ['✓ 已结案', 'ed-tag-status-reviewed'] };
+    var risk = riskMap[evData.risk] || riskMap.mid;
+    var status = statusMap[evData.status] || statusMap.researching;
+    var typeCls = 'ed-tag-type-' + evData.typeClass;
+    var typeIcon = { air: '✈️', sea: '🚢', mixed: '🔗' }[evData.typeClass] || '🔗';
+
+    document.getElementById('ed-event-tags').innerHTML =
+      '<span class="ed-tag ' + typeCls + '">' + typeIcon + ' ' + evData.typeText + '</span>' +
+      '<span class="ed-tag ' + risk[1] + '">' + risk[0] + '</span>' +
+      '<span class="ed-tag ' + status[1] + '">' + status[0] + '</span>' +
+      '<span class="ed-tag" style="background:rgba(148,163,184,0.1);color:var(--ed-ink-2);border-color:var(--ed-border)">置信度 ' + evData.score + '%</span>';
+  }
+
+  // 渲染左侧目标列表
+  function renderTargetList() {
+    var list = document.getElementById('ed-target-list');
+    var targets = evData.targets;
+    document.getElementById('ed-target-count').textContent = targets.length + ' 个';
+    list.innerHTML = targets.map(function(t, idx) {
+      var icon = t.type === 'aircraft' ? '✈️' : '🚢';
+      return '<div class="ed-target-item ' + (idx === 0 ? 'active' : '') + '" data-idx="' + idx + '">' +
+        '<div class="ed-target-head">' +
+          '<div class="ed-target-name"><span class="ed-target-flag">' + t.flag + '</span>' + t.name + '</div>' +
+          '<span class="ed-target-id">' + icon + '</span>' +
+        '</div>' +
+        '<div class="ed-target-id">' + t.id + '</div>' +
+        '<div class="ed-target-type">' + t.subType + '</div>' +
+        '<div class="ed-target-desc">' + t.desc + '</div>' +
+        '<div class="ed-target-risk-tags">' +
+          t.tags.map(function(tg) { return '<span class="ed-target-risk-tag">' + tg + '</span>'; }).join('') +
+        '</div>' +
+      '</div>';
+    }).join('');
+
+    list.querySelectorAll('.ed-target-item').forEach(function(el) {
+      el.addEventListener('click', function() {
+        list.querySelectorAll('.ed-target-item').forEach(function(x) { x.classList.remove('active'); });
+        el.classList.add('active');
+        focusTarget(parseInt(el.getAttribute('data-idx'), 10));
+      });
+    });
+  }
+
+  // 聚焦地图上的目标
+  function focusTarget(idx) {
+    if (!edMap || !edTargets[idx]) return;
+    var t = edTargets[idx];
+    if (t.marker) {
+      edMap.setCenter(t.marker.getPosition());
+      edMap.setZoom(10);
+      t.marker.setAnimation && t.marker.setAnimation('AMAP_ANIMATION_BOUNCE');
+      setTimeout(function() { t.marker.setAnimation && t.marker.setAnimation(null); }, 1500);
+    }
+  }
+
+  // ===== 地图 =====
+  var edMap = null;
+  var edMapLayers = {};
+  var edTargets = [];
+  var playbackState = { playing: false, speed: 2, frame: 0, timer: null };
+
+  function initMap() {
+    return loadAMap().then(function(AMap) {
+      var center = evData.center || [117.2, 15.8];
+      edMap = new AMap.Map('ed-map', {
+        zoom: 9,
+        center: center,
+        viewMode: '2D',
+        layers: [new AMap.TileLayer.Satellite(), new AMap.TileLayer.RoadNet()]
+      });
+      edMap.addControl(new AMap.Scale());
+      edMap.addControl(new AMap.ToolBar({ position: 'RB' }));
+
+      // 存储图层
+      edMapLayers.satLayers = [new AMap.TileLayer.Satellite(), new AMap.TileLayer.RoadNet()];
+      edMapLayers.stdLayers = [new AMap.TileLayer()];
+
+      // 渲染目标和轨迹
+      renderMapTargets();
+      renderForbiddenZone();
+      renderSilenceZones();
+      renderRFHeat();
+
+      if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
+    }).catch(function(err) {
+      console.warn('地图加载失败:', err);
+      // 降级：显示占位
+      var mapEl = document.getElementById('ed-map');
+      if (mapEl) {
+        mapEl.style.background = 'linear-gradient(135deg, #0a1628, #1a2744)';
+        mapEl.style.display = 'flex';
+        mapEl.style.alignItems = 'center';
+        mapEl.style.justifyContent = 'center';
+        mapEl.innerHTML = '<div style="color:var(--ed-ink-3);font-size:13px;text-align:center;padding:20px"><div style="font-size:36px;margin-bottom:10px">🗺</div>地图组件加载中<br><span style="font-size:11px">AMap加载失败，已显示占位视图</span></div>';
+        renderFallbackMapTargets();
+      }
+    });
+  }
+
+  function renderMapTargets() {
+    var AMap = window.AMap;
+    if (!AMap) return;
+    var center = evData.center || [117.2, 15.8];
+    var targets = evData.targets;
+    edTargets = targets.map(function(t, i) {
+      var lng = center[0] + (Math.random() - 0.5) * 0.8;
+      var lat = center[1] + (Math.random() - 0.5) * 0.5;
+      var trackPts = [];
+      var curLng = lng - 0.5, curLat = lat - 0.2;
+      for (var j = 0; j < 25; j++) {
+        curLng += (lng - (lng - 0.5)) / 25 + (Math.random() - 0.5) * 0.02;
+        curLat += (lat - (lat - 0.2)) / 25 + (Math.random() - 0.5) * 0.015;
+        trackPts.push([parseFloat(curLng.toFixed(5)), parseFloat(curLat.toFixed(5))]);
+      }
+      trackPts.push([lng, lat]);
+
+      // 正常航迹
+      var normalPath = trackPts.slice(0, 8).concat(trackPts.slice(14, 18)).concat(trackPts.slice(24));
+      var normalPolyline = new AMap.Polyline({
+        path: normalPath, strokeColor: '#4ade80', strokeWeight: 2.5,
+        strokeOpacity: 0.85, strokeStyle: 'solid', lineJoin: 'round', zIndex: 50
+      });
+      normalPolyline.setMap(edMap);
+
+      // 静默航迹（虚线阴影）
+      var silencePath = trackPts.slice(8, 14);
+      if (silencePath.length >= 2) {
+        var silencePolyline = new AMap.Polyline({
+          path: silencePath, strokeColor: '#fb923c', strokeWeight: 3.5,
+          strokeOpacity: 0.6, strokeStyle: 'dashed', strokeDasharray: [8, 6],
+          lineJoin: 'round', zIndex: 55, showDir: true
+        });
+        silencePolyline.setMap(edMap);
+      }
+      var silencePath2 = trackPts.slice(18, 24);
+      if (silencePath2.length >= 2) {
+        var silencePolyline2 = new AMap.Polyline({
+          path: silencePath2, strokeColor: '#fb923c', strokeWeight: 3.5,
+          strokeOpacity: 0.6, strokeStyle: 'dashed', strokeDasharray: [8, 6],
+          lineJoin: 'round', zIndex: 55, showDir: true
+        });
+        silencePolyline2.setMap(edMap);
+      }
+
+      // ADS-B 航空器航迹（如果是海空联动）
+      if (t.type === 'aircraft') {
+        var airPath = trackPts.map(function(p) { return [p[0] + 0.1, p[1] + 0.08]; });
+        var adsbPolyline = new AMap.Polyline({
+          path: airPath, strokeColor: '#f87171', strokeWeight: 2,
+          strokeOpacity: 0.7, strokeStyle: 'solid', zIndex: 45
+        });
+        adsbPolyline.setMap(edMap);
+      }
+
+      // Marker
+      var isShip = t.type === 'ship';
+      var markerContent = '<div style="font-size:22px;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.5))">' +
+        (isShip ? '🚢' : '✈️') + '</div>';
+      var marker = new AMap.Marker({
+        position: [lng, lat],
+        content: markerContent,
+        offset: new AMap.Pixel(-11, -11),
+        title: t.name + ' (' + t.id + ')',
+        zIndex: 100
+      });
+      marker.setMap(edMap);
+
+      return {
+        data: t, lng: lng, lat: lat,
+        marker: marker,
+        normalPolylines: [normalPolyline],
+        silencePolylines: [silencePolyline, silencePolyline2].filter(Boolean),
+        adsbPolylines: t.type === 'aircraft' ? [adsbPolyline] : []
+      };
+    });
+
+    // 间距标注（相邻船舶）
+    for (var i = 0; i < edTargets.length; i++) {
+      for (var j = i + 1; j < edTargets.length; j++) {
+        var a = edTargets[i], b = edTargets[j];
+        if (a.data.type === 'ship' && b.data.type === 'ship') {
+          var dist = haversineDist(a.lng, a.lat, b.lng, b.lat).toFixed(2);
+          if (dist < 3) {
+            var mid = [(a.lng + b.lng) / 2, (a.lat + b.lat) / 2];
+            var distMarker = new AMap.Marker({
+              position: mid,
+              content: '<div style="background:rgba(251,146,60,0.9);color:#0B1220;padding:1px 6px;border-radius:3px;font-size:10px;font-weight:600;white-space:nowrap;border:1px solid rgba(251,146,60,1)">' + dist + ' nm</div>',
+              offset: new AMap.Pixel(-20, -6), zIndex: 80
+            });
+            distMarker.setMap(edMap);
+          }
+        }
+      }
+    }
+  }
+
+  function haversineDist(lng1, lat1, lng2, lat2) {
+    var R = 3440.065; // 海里
+    var toRad = function(d) { return d * Math.PI / 180; };
+    var dLat = toRad(lat2 - lat1), dLng = toRad(lng2 - lng1);
+    var a = Math.sin(dLat/2)*Math.sin(dLat/2) + Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLng/2)*Math.sin(dLng/2);
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  }
+
+  function renderForbiddenZone() {
+    var AMap = window.AMap;
+    if (!AMap) return;
+    var c = evData.center || [117.2, 15.8];
+    // 绘制禁航区多边形
+    var polygon = new AMap.Polygon({
+      path: [
+        [c[0] - 0.25, c[1] + 0.15], [c[0] + 0.1, c[1] + 0.2],
+        [c[0] + 0.25, c[1] - 0.05], [c[0] + 0.1, c[1] - 0.2],
+        [c[0] - 0.2, c[1] - 0.15], [c[0] - 0.25, c[1] + 0.15]
+      ],
+      strokeColor: '#f87171', strokeWeight: 1.5, strokeOpacity: 0.6,
+      strokeStyle: 'dashed', fillColor: '#f87171', fillOpacity: 0.08, zIndex: 30
+    });
+    polygon.setMap(edMap);
+    var text = new AMap.Text({
+      text: '⚠ 管控禁航区',
+      position: [c[0] - 0.05, c[1] + 0.05],
+      style: { 'color': '#fca5a5', 'background': 'rgba(248,113,113,0.12)', 'border': '1px solid rgba(248,113,113,0.3)', 'padding': '2px 8px', 'border-radius': '4px', 'font-size': '11px', 'font-weight': '600' }
+    });
+    text.setMap(edMap);
+    edMapLayers.forbiddenPolygon = polygon;
+    edMapLayers.forbiddenText = text;
+  }
+
+  function renderSilenceZones() { edMapLayers.silenceRendered = true; }
+  function renderRFHeat() {
+    // 可选：热力点用Marker模拟（实际可以用HeatMap插件）
+    var AMap = window.AMap;
+    if (!AMap) return;
+    var c = evData.center || [117.2, 15.8];
+    var heatMarkers = [];
+    for (var i = 0; i < 12; i++) {
+      var lng = c[0] + (Math.random() - 0.5) * 0.6;
+      var lat = c[1] + (Math.random() - 0.5) * 0.4;
+      var s = 6 + Math.floor(Math.random() * 10);
+      var heat = new AMap.Circle({
+        center: [lng, lat], radius: s * 1852, // 海里转米
+        strokeColor: 'transparent', fillColor: '#c084fc', fillOpacity: 0.12 + Math.random() * 0.1, zIndex: 20
+      });
+      heat.setMap(edMap);
+      heatMarkers.push(heat);
+    }
+    edMapLayers.rfHeats = heatMarkers;
+    // 默认隐藏
+    toggleLayer('rf-heat', false);
+  }
+
+  function renderFallbackMapTargets() {
+    // 降级模式下不需要
+  }
+
+  // 图层切换
+  function toggleLayer(key, show) {
+    if (!edTargets.length) return;
+    if (key === 'ais-normal') {
+      edTargets.forEach(function(t) {
+        t.normalPolylines.forEach(function(p) { show ? p.show() : p.hide(); });
+      });
+    } else if (key === 'ais-silence') {
+      edTargets.forEach(function(t) {
+        t.silencePolylines.forEach(function(p) { show ? p.show() : p.hide(); });
+      });
+    } else if (key === 'forbidden') {
+      if (edMapLayers.forbiddenPolygon) show ? edMapLayers.forbiddenPolygon.show() : edMapLayers.forbiddenPolygon.hide();
+      if (edMapLayers.forbiddenText) show ? edMapLayers.forbiddenText.show() : edMapLayers.forbiddenText.hide();
+    } else if (key === 'adsb') {
+      edTargets.forEach(function(t) {
+        t.adsbPolylines.forEach(function(p) { show ? p.show() : p.hide(); });
+      });
+    } else if (key === 'rf-heat') {
+      (edMapLayers.rfHeats || []).forEach(function(h) { show ? h.show() : h.hide(); });
+    }
+  }
+
+  function switchBasemap(type) {
+    if (!edMap || !window.AMap) return;
+    var layers = type === 'sat' ? edMapLayers.satLayers : edMapLayers.stdLayers;
+    if (layers) edMap.setLayers(layers);
+    document.querySelectorAll('#ed-map-switch .ed-map-layer-btn').forEach(function(b) {
+      b.classList.toggle('on', b.getAttribute('data-basemap') === type);
+    });
+  }
+
+  // ===== 证据链时间轴 =====
+  var activeEvTab = 'all';
+  function renderEvidenceList() {
+    var list = document.getElementById('ed-evidence-list');
+    var data = getEvidence(evData.id);
+    var filtered = activeEvTab === 'all' ? data : data.filter(function(d) { return d.type === activeEvTab; });
+    list.innerHTML = filtered.map(function(ev) {
+      var statusHtml = ev.status ? '<span class="ed-tl-status ed-tl-status-' + ev.status + '">' + ev.statusText + '</span>' :
+                        (ev.statusText ? '<span class="ed-tl-status ed-tl-status-normal">' + ev.statusText + '</span>' : '');
+      var osintTag = ev.type === 'osint' && ev.osintType ? '<span class="ed-tl-source osint">' + ev.osintType + '</span>' : '';
+      var audioHtml = ev.audio ?
+        '<div class="ed-audio-player">' +
+          '<div class="ed-audio-play"><i data-lucide="play" style="width:10px;height:10px"></i></div>' +
+          '<div class="ed-audio-progress"><div class="ed-audio-progress-fill"></div></div>' +
+          '<div class="ed-audio-time">01:23 / 02:18</div>' +
+        '</div>' : '';
+      var previewHtml = ev.type === 'osint' ? '<div class="ed-tl-preview"><i data-lucide="external-link" style="width:10px;height:10px"></i> 查看原文/快照</div>' :
+                         (ev.type !== 'voice' ? '<div class="ed-tl-preview"><i data-lucide="eye" style="width:10px;height:10px"></i> 预览详情</div>' : '');
+      return '<div class="ed-timeline-item">' +
+        '<div class="ed-tl-dot ' + ev.type + '"></div>' +
+        '<div class="ed-tl-head">' +
+          '<span class="ed-tl-time">' + ev.time + '</span>' +
+          (osintTag || '<span class="ed-tl-source ' + ev.type + '">' + sourceLabel(ev.type) + '</span>') +
+        '</div>' +
+        statusHtml +
+        '<div class="ed-tl-content">' + ev.content + '</div>' +
+        (ev.meta ? '<div class="ed-tl-meta">' + ev.meta + '</div>' : '') +
+        audioHtml +
+        previewHtml +
+      '</div>';
+    }).join('');
+    if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
+  }
+  function sourceLabel(t) { return { ais: 'AIS轨迹', rf: '射频频谱', adsb: 'ADS-B航空', voice: '海事VHF', osint: 'OSINT' }[t] || t; }
+
+  // ===== 播放控制 =====
+  function initPlayback() {
+    var playBtn = document.getElementById('ed-pb-play');
+    var resetBtn = document.getElementById('ed-pb-reset');
+    var jumpBtn = document.getElementById('ed-pb-jump');
+
+    playBtn && playBtn.addEventListener('click', function() {
+      playbackState.playing = !playbackState.playing;
+      playBtn.innerHTML = playbackState.playing ?
+        '<i data-lucide="pause" style="width:14px;height:14px"></i>' :
+        '<i data-lucide="play" style="width:14px;height:14px"></i>';
+      if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
+      if (playbackState.playing) startPlayback(); else stopPlayback();
+    });
+    resetBtn && resetBtn.addEventListener('click', function() {
+      stopPlayback(); playbackState.frame = 0; updatePlaybackUI();
+      playbackState.playing = false;
+      if (playBtn) playBtn.innerHTML = '<i data-lucide="play" style="width:14px;height:14px"></i>';
+      if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
+    });
+    jumpBtn && jumpBtn.addEventListener('click', function() {
+      playbackState.frame = 28; updatePlaybackUI();
+    });
+    document.querySelectorAll('.ed-pb-speed-btn').forEach(function(b) {
+      b.addEventListener('click', function() {
+        document.querySelectorAll('.ed-pb-speed-btn').forEach(function(x) { x.classList.remove('on'); });
+        b.classList.add('on');
+        playbackState.speed = parseFloat(b.getAttribute('data-speed'));
+        if (playbackState.playing) { stopPlayback(); startPlayback(); }
+      });
+    });
+  }
+
+  function startPlayback() {
+    stopPlayback();
+    playbackState.timer = setInterval(function() {
+      playbackState.frame += playbackState.speed * 0.5;
+      if (playbackState.frame >= 100) { playbackState.frame = 0; stopPlayback(); playbackState.playing = false;
+        var pb = document.getElementById('ed-pb-play');
+        if (pb) { pb.innerHTML = '<i data-lucide="play" style="width:14px;height:14px"></i>'; if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons(); }
+      }
+      updatePlaybackUI();
+    }, 200);
+  }
+  function stopPlayback() { if (playbackState.timer) { clearInterval(playbackState.timer); playbackState.timer = null; } }
+  function updatePlaybackUI() {
+    var f = Math.min(100, Math.max(0, playbackState.frame));
+    var fill = document.getElementById('ed-timeline-fill');
+    var handle = document.getElementById('ed-timeline-handle');
+    if (fill) fill.style.width = f + '%';
+    if (handle) handle.style.left = f + '%';
+    // 时间显示
+    var startTime = 150; // 分钟偏移 02:30
+    var totalMin = 138;  // 02:30 - 04:48
+    var curMin = Math.floor(startTime + totalMin * f / 100);
+    var h1 = Math.floor(startTime / 60), m1 = startTime % 60;
+    var h2 = Math.floor(curMin / 60) + 0, m2 = curMin % 60;
+    var timeLabel = document.getElementById('ed-pb-time');
+    function pad(n) { return n < 10 ? '0' + n : '' + n; }
+    if (timeLabel) timeLabel.textContent = '08/15 0' + (2+h1) + ':' + pad(m1) + ':00 — 0' + (2+Math.floor(curMin/60)) + ':' + pad(m2) + ':00';
+
+    // 模拟移动marker
+    if (edTargets.length) {
+      edTargets.forEach(function(t, idx) {
+        var pts = [];
+        var c = evData.center || [117.2, 15.8];
+        var lng = c[0] + ((idx % 3) - 1) * 0.25 + Math.sin(f/100 * Math.PI + idx) * 0.05;
+        var lat = c[1] + (idx - 1.5) * 0.15 + Math.cos(f/100 * Math.PI + idx) * 0.03;
+        if (t.marker && window.AMap) t.marker.setPosition([lng, lat]);
+      });
+    }
+  }
+
+  // 时间轴拖拽
+  function initTimelineDrag() {
+    var track = document.getElementById('ed-timeline');
+    var handle = document.getElementById('ed-timeline-handle');
+    if (!track || !handle) return;
+    var dragging = false;
+    handle.addEventListener('mousedown', function(e) { dragging = true; e.preventDefault(); });
+    document.addEventListener('mousemove', function(e) {
+      if (!dragging) return;
+      var rect = track.getBoundingClientRect();
+      var pct = ((e.clientX - rect.left) / rect.width) * 100;
+      playbackState.frame = Math.min(100, Math.max(0, pct));
+      updatePlaybackUI();
+    });
+    document.addEventListener('mouseup', function() { dragging = false; });
+    track.addEventListener('click', function(e) {
+      if (e.target === handle) return;
+      var rect = track.getBoundingClientRect();
+      var pct = ((e.clientX - rect.left) / rect.width) * 100;
+      playbackState.frame = Math.min(100, Math.max(0, pct));
+      updatePlaybackUI();
+    });
+  }
+
+  // ===== 事件绑定 =====
+  function initEvents() {
+    // 图层切换
+    document.querySelectorAll('#ed-layer-toggles .ed-layer-toggle').forEach(function(tg) {
+      tg.addEventListener('click', function(e) {
+        var cb = tg.querySelector('input');
+        if (e.target !== cb) cb.checked = !cb.checked;
+        tg.classList.toggle('on', cb.checked);
+        toggleLayer(cb.getAttribute('data-layer'), cb.checked);
+      });
+    });
+    // 底图切换
+    document.querySelectorAll('#ed-map-switch .ed-map-layer-btn').forEach(function(b) {
+      b.addEventListener('click', function() { switchBasemap(b.getAttribute('data-basemap')); });
+    });
+    // 证据链tab
+    document.querySelectorAll('#ed-ev-tabs .ed-ev-tab').forEach(function(t) {
+      t.addEventListener('click', function() {
+        document.querySelectorAll('#ed-ev-tabs .ed-ev-tab').forEach(function(x) { x.classList.remove('active'); });
+        t.classList.add('active');
+        activeEvTab = t.getAttribute('data-evtab');
+        renderEvidenceList();
+      });
+    });
+    // 取证按钮mock点击
+    document.querySelectorAll('.ed-forensic-btn').forEach(function(b) {
+      b.addEventListener('click', function() {
+        var label = b.querySelector('.ed-forensic-label').textContent;
+        // 简单提示
+        var origStyle = b.style.cssText;
+        b.style.background = 'rgba(56,189,248,0.25)';
+        setTimeout(function() { b.style.cssText = origStyle; }, 300);
+      });
+    });
+    // 研判标签mock点击
+    document.querySelectorAll('.ed-judge-tag').forEach(function(t) {
+      t.style.cursor = 'pointer';
+      t.title = '点击查看详情';
+    });
+  }
+
+  // ===== 启动 =====
+  renderTopCard();
+  renderTargetList();
+  renderEvidenceList();
+  initPlayback();
+  initTimelineDrag();
+  initEvents();
+  initMap().then(function() {
+    if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
+  });
+  if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
+})();
+</script>
+</body>
+</html>

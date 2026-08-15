@@ -1,0 +1,1831 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>目标详情 - 目标监视</title>
+<link rel="stylesheet" href="../colors_and_type.css">
+<script>
+  window._AMapSecurityConfig = { securityJsCode: '' };
+  window.AMAP_CONFIG = {
+    key: '01d6322cc08dafd1800e07b018b06b49',
+    version: '2.0',
+    plugins: []
+  };
+  window.loadAMap = function () {
+    return new Promise(function (resolve, reject) {
+      if (window.AMap) return resolve(window.AMap);
+      var cfg = window.AMAP_CONFIG || {};
+      if (!cfg.key || cfg.key.indexOf('YOUR_') === 0) {
+        var err = new Error('AMap key 未配置');
+        err.code = 'AMAP_NO_KEY';
+        return reject(err);
+      }
+      var src = 'https://webapi.amap.com/maps?v=' + (cfg.version || '2.0') + '&key=' + cfg.key;
+      if (cfg.plugins && cfg.plugins.length) src += '&plugin=' + cfg.plugins.join(',');
+      var s = document.createElement('script');
+      s.type = 'text/javascript'; s.async = true; s.src = src;
+      s.onload = function () { resolve(window.AMap); };
+      s.onerror = function (e) { reject(e); };
+      document.head.appendChild(s);
+    });
+  };
+</script>
+<style>
+  :root {
+    --ts-bg: #0B1220; --ts-bg-2: #070b14;
+    --ts-surface: rgba(15,23,42,0.92);
+    --ts-surface-2: rgba(21,30,48,0.96);
+    --ts-border: rgba(148,163,184,0.18);
+    --ts-border-2: rgba(148,163,184,0.30);
+    --ts-ink: #e2e8f0; --ts-ink-2: #94a3b8; --ts-ink-3: #64748b;
+    --ts-primary: #38bdf8; --ts-primary-dim: rgba(56,189,248,0.14);
+    --ts-ship: #4ade80; --ts-aircraft: #f87171; --ts-satellite: #c084fc; --ts-port: #94a3b8;
+    --ts-warn: #fb923c; --ts-radius: 10px;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0; min-height: 100vh; height: 100%;
+    font-family: "'Segoe UI','PingFang SC','Microsoft YaHei',system-ui,sans-serif";
+    color: var(--ts-ink);
+    background:
+      radial-gradient(1200px 700px at 10% -10%, rgba(56,189,248,0.08), transparent 60%),
+      radial-gradient(900px 600px at 110% 10%, rgba(192,132,252,0.07), transparent 60%),
+      linear-gradient(180deg, var(--ts-bg) 0%, var(--ts-bg-2) 100%);
+    -webkit-font-smoothing: antialiased; overflow-x: hidden;
+  }
+  /* SHIP FULL LAYOUT */
+  body.ship-layout { overflow: hidden; }
+  .ship-app {
+    display: flex; flex-direction: column; height: 100vh; width: 100%; min-height: 0;
+  }
+  .ship-topbar {
+    height: 40px; display: flex; align-items: stretch; justify-content: space-between;
+    background: linear-gradient(180deg, rgba(15,23,42,0.98), rgba(11,18,32,0.98));
+    border-bottom: 1px solid var(--ts-border);
+    padding: 0 6px 0 14px; flex-shrink: 0; gap: 10px;
+  }
+  .ship-topbar-left { display: flex; align-items: stretch; gap: 2px; min-width: 0; }
+  .ship-tab {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 0 14px; height: 100%;
+    font-size: 13px; color: var(--ts-ink-2);
+    cursor: pointer; position: relative;
+    border: 1px solid transparent; border-top: none; border-bottom: none;
+    white-space: nowrap; max-width: 260px;
+  }
+  .ship-tab:hover { color: var(--ts-ink); background: rgba(255,255,255,0.02); }
+  .ship-tab-flag { font-size: 14px; }
+  .ship-tab-close {
+    width: 16px; height: 16px; border-radius: 3px;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 12px; line-height: 1; color: var(--ts-ink-3);
+    opacity: 0; transition: opacity .1s;
+  }
+  .ship-tab:hover .ship-tab-close { opacity: 1; }
+  .ship-tab .ship-tab-close:hover { background: rgba(239,68,68,0.18); color: #fca5a5; }
+  .ship-tab.ship-tab-active {
+    color: var(--ts-ink); background: rgba(56,189,248,0.06);
+  }
+  .ship-tab.ship-tab-active::after {
+    content: ''; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px;
+    background: var(--ts-primary); box-shadow: 0 0 8px rgba(56,189,248,0.5);
+  }
+  .ship-topbar-right { display: flex; align-items: center; gap: 10px; padding-right: 8px; }
+  .topbar-btn {
+    font-size: 12px; padding: 4px 10px; border-radius: 6px;
+    border: 1px solid var(--ts-border);
+    background: rgba(255,255,255,0.02); color: var(--ts-ink-2);
+    cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
+    transition: all .15s;
+  }
+  .topbar-btn:hover { color: var(--ts-ink); border-color: var(--ts-border-2); }
+  .topbar-btn.vip {
+    background: linear-gradient(135deg, rgba(251,146,60,0.25), rgba(239,68,68,0.22));
+    color: #fed7aa; border-color: rgba(251,146,60,0.35);
+  }
+  .topbar-btn.vip:hover { filter: brightness(1.1); }
+  .topbar-avatar {
+    width: 24px; height: 24px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--ts-primary), var(--ts-satellite));
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 11px; color: #0B1220; font-weight: 700;
+    border: 1px solid rgba(255,255,255,0.15);
+  }
+  .ship-scroll {
+    flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden;
+    padding: 16px 20px 20px;
+  }
+  .ship-scroll::-webkit-scrollbar { width: 6px; }
+  .ship-scroll::-webkit-scrollbar-thumb { background: rgba(148,163,184,0.22); border-radius: 3px; }
+  .ship-info {
+    background: var(--ts-surface);
+    border: 1px solid var(--ts-border);
+    border-radius: 12px; overflow: hidden; margin-bottom: 14px;
+    display: flex; flex-direction: row; gap: 0;
+    backdrop-filter: blur(10px);
+  }
+  .ship-info-left {
+    display: flex; flex-direction: row; gap: 16px;
+    padding: 16px; flex-shrink: 0;
+  }
+  .ship-photo {
+    width: 160px; height: 110px; border-radius: 8px; overflow: hidden;
+    background: var(--ts-surface-2);
+    border: 1px solid var(--ts-border-2);
+    position: relative; flex-shrink: 0;
+  }
+  .ship-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .ship-photo-flag {
+    position: absolute; left: 8px; bottom: 8px; font-size: 18px;
+    background: rgba(0,0,0,0.45); padding: 2px 6px; border-radius: 4px;
+    backdrop-filter: blur(4px); border: 1px solid rgba(255,255,255,0.1);
+  }
+  .ship-meta {
+    display: flex; flex-direction: column; justify-content: space-between; min-width: 220px;
+  }
+  .ship-name-line { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .ship-flag-lg {
+    font-size: 22px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--ts-border);
+    border-radius: 6px; padding: 2px 6px;
+  }
+  .ship-name { font-size: 18px; font-weight: 700; color: var(--ts-ink); letter-spacing: 0.3px; }
+  .ship-name-sub { display: inline-flex; align-items: center; gap: 8px; margin-top: 6px; flex-wrap: wrap; }
+  .ship-name-sub .tag {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 2px 8px; border-radius: 5px;
+    font-size: 11px; color: var(--ts-ink-2);
+    background: rgba(148,163,184,0.08);
+    border: 1px solid var(--ts-border);
+  }
+  .ship-name-sub .tag:hover { color: var(--ts-ink); }
+  .ship-name-sub .tag.prime {
+    background: rgba(74,222,128,0.12);
+    color: var(--ts-ship); border-color: rgba(74,222,128,0.28);
+  }
+  .ship-fav-row { display: flex; align-items: center; gap: 8px; margin-top: 8px; font-size: 12px; color: var(--ts-ink-2); }
+  .ship-fav-btn {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 4px 8px; border-radius: 6px;
+    border: 1px solid var(--ts-border);
+    background: rgba(255,255,255,0.02); cursor: pointer; color: var(--ts-ink-2);
+  }
+  .ship-fav-btn:hover { color: var(--ts-warn); border-color: var(--ts-border-2); }
+  .ship-fav-btn.on { color: var(--ts-warn); border-color: rgba(251,146,60,0.3); }
+  .ship-info-right {
+    flex: 1; display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-auto-rows: minmax(52px, auto);
+    gap: 1px; background: var(--ts-border);
+    border-left: 1px solid var(--ts-border);
+    min-width: 0;
+  }
+  .ship-info-cell {
+    background: var(--ts-surface);
+    padding: 10px 16px;
+    display: flex; flex-direction: column; justify-content: center; min-width: 0;
+  }
+  .ship-info-k {
+    font-size: 11px; color: var(--ts-ink-3);
+    letter-spacing: 0.06em; text-transform: uppercase;
+    margin-bottom: 5px;
+  }
+  .ship-info-v {
+    font-size: 13px; color: var(--ts-ink);
+    font-family: "'JetBrains Mono','Consolas',monospace";
+    word-break: break-all;
+  }
+  .ship-info-v.ship-info-v-soft { font-family: inherit; color: var(--ts-ink-2); }
+  .ship-info-v.good { color: var(--ts-ship); }
+  .ship-info-v.neut { color: var(--ts-ink-2); }
+  .ship-info-v.warn { color: var(--ts-warn); }
+
+  .ship-timebar {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px; flex-wrap: wrap; margin-bottom: 14px;
+    background: var(--ts-surface);
+    border: 1px solid var(--ts-border);
+    border-radius: 10px; padding: 10px 14px;
+  }
+  .ship-timebar-left {
+    display: inline-flex; align-items: center; gap: 10px;
+    font-size: 12px; color: var(--ts-ink-2);
+  }
+  .ship-timebar-left .dash { color: var(--ts-ink-3); padding: 0 2px; }
+  .ship-timebar-left b {
+    color: var(--ts-ink);
+    font-family: "'JetBrains Mono','Consolas',monospace";
+    font-weight: 500; letter-spacing: 0.3px;
+  }
+  .ship-timebar-right { display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .ship-time-quick {
+    display: inline-flex; align-items: center; gap: 2px;
+    padding: 3px 8px; border-radius: 5px;
+    font-size: 11px; color: var(--ts-ink-2);
+    background: rgba(255,255,255,0.02);
+    border: 1px solid var(--ts-border);
+    cursor: pointer;
+  }
+  .ship-time-quick:hover { color: var(--ts-ink); border-color: var(--ts-border-2); }
+  .ship-time-quick.on { color: var(--ts-primary); border-color: rgba(56,189,248,0.35); background: var(--ts-primary-dim); }
+
+  .ship-track {
+    background: var(--ts-surface);
+    border: 1px solid var(--ts-border);
+    border-radius: 12px; overflow: hidden;
+    display: flex; flex-direction: column; min-height: 0;
+    height: calc(100vh - 40px - 32px - 158px - 14px - 50px - 14px);
+  }
+  .ship-track-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--ts-border);
+    background: rgba(255,255,255,0.02);
+    flex-shrink: 0;
+  }
+  .ship-track-title {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 13px; font-weight: 600; color: var(--ts-ink);
+  }
+  .ship-track-tools { display: inline-flex; align-items: center; gap: 4px; }
+  .track-tool-btn {
+    width: 28px; height: 28px; border-radius: 6px;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: transparent; color: var(--ts-ink-2);
+    border: 1px solid transparent; cursor: pointer;
+    transition: all .15s;
+  }
+  .track-tool-btn:hover { background: rgba(255,255,255,0.04); color: var(--ts-ink); border-color: var(--ts-border); }
+  .track-tool-btn.active { color: var(--ts-primary); background: var(--ts-primary-dim); border-color: rgba(56,189,248,0.28); }
+  .ship-map-wrap {
+    flex: 1; min-height: 0; position: relative; background: #0a1426;
+  }
+  #shipMap { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; }
+  .ship-map-overlay-play {
+    position: absolute; left: 50%; top: 50%;
+    transform: translate(-50%, -50%);
+    width: 64px; height: 64px; border-radius: 50%;
+    background: rgba(0,0,0,0.55); backdrop-filter: blur(6px);
+    border: 1px solid rgba(255,255,255,0.1);
+    display: flex; align-items: center; justify-content: center;
+    color: #f8fafc; cursor: pointer; z-index: 10;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5), 0 0 0 4px rgba(255,255,255,0.04);
+    transition: transform .15s ease, background .15s ease;
+  }
+  .ship-map-overlay-play:hover {
+    background: rgba(56,189,248,0.75);
+    transform: translate(-50%, -50%) scale(1.06);
+  }
+  .ship-map-overlay-play svg { margin-left: 3px; }
+  .ship-map-overlay-play.pause svg { margin-left: 0; }
+  @keyframes tsShipPulse {
+    0% { transform: scale(0.5); opacity: 0.9; }
+    100% { transform: scale(1.6); opacity: 0; }
+  }
+
+  .ship-player {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 14px;
+    padding: 10px 18px;
+    background: linear-gradient(180deg, rgba(11,18,32,0.9), rgba(7,11,20,0.95));
+    border-top: 1px solid var(--ts-border);
+    height: 58px; flex-shrink: 0;
+  }
+  .player-left, .player-right {
+    display: inline-flex; align-items: center; gap: 10px;
+    color: var(--ts-ink-2);
+    font-family: "'JetBrains Mono','Consolas',monospace";
+    font-size: 12px; letter-spacing: 0.4px;
+  }
+  .player-btn {
+    width: 32px; height: 32px; border-radius: 6px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--ts-border);
+    color: var(--ts-ink);
+    display: inline-flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: all .15s;
+  }
+  .player-btn:hover { background: rgba(56,189,248,0.12); color: var(--ts-primary); border-color: rgba(56,189,248,0.28); }
+  .player-btn.play {
+    width: 34px; height: 34px;
+    background: linear-gradient(135deg, rgba(56,189,248,0.22), rgba(56,189,248,0.08));
+    border-color: rgba(56,189,248,0.38);
+    color: #e0f2fe;
+  }
+  .player-btn.play svg { margin-left: 1px; }
+  .player-center {
+    position: relative; min-width: 0;
+    display: flex; flex-direction: column; justify-content: center;
+    gap: 3px; padding: 0 4px;
+  }
+  .player-wave {
+    width: 100%; height: 28px;
+    position: relative;
+    border-radius: 4px; overflow: hidden;
+    background: rgba(15,23,42,0.5);
+    border: 1px solid var(--ts-border);
+  }
+  .player-wave canvas { width: 100%; height: 100%; display: block; }
+  .player-wave-mask {
+    position: absolute; top: 0; bottom: 0; right: 0;
+    background: rgba(7,11,20,0.58);
+    pointer-events: none;
+  }
+  .player-slider-wrap { position: relative; height: 6px; width: 100%; }
+  .player-slider {
+    position: absolute; inset: 0; height: 6px;
+    -webkit-appearance: none; appearance: none; width: 100%;
+    background: transparent; cursor: pointer; margin: 0; padding: 0;
+  }
+  .player-slider::-webkit-slider-runnable-track {
+    height: 6px; border-radius: 3px;
+    background: linear-gradient(90deg,
+      var(--ts-primary) 0%,
+      var(--ts-primary) var(--pct, 0%),
+      rgba(148,163,184,0.22) var(--pct, 0%),
+      rgba(148,163,184,0.22) 100%);
+  }
+  .player-slider::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none;
+    width: 14px; height: 14px; border-radius: 50%;
+    background: #f8fafc; border: 2px solid var(--ts-primary);
+    box-shadow: 0 0 0 3px rgba(56,189,248,0.25), 0 2px 8px rgba(0,0,0,0.5);
+    margin-top: -4px;
+  }
+  .player-slider::-moz-range-track { height: 6px; border-radius: 3px; background: rgba(148,163,184,0.22); }
+  .player-slider::-moz-range-progress { height: 6px; border-radius: 3px; background: var(--ts-primary); }
+  .player-slider::-moz-range-thumb {
+    width: 14px; height: 14px; border-radius: 50%;
+    background: #f8fafc; border: 2px solid var(--ts-primary);
+  }
+  .player-remain {
+    font-size: 11px; color: var(--ts-ink-3);
+    position: absolute; right: 2px; bottom: -16px;
+    letter-spacing: 0.3px;
+  }
+  .player-speed {
+    position: relative;
+    display: inline-flex; align-items: center;
+    padding: 4px 8px; border-radius: 6px;
+    background: rgba(255,255,255,0.02);
+    border: 1px solid var(--ts-border);
+    cursor: pointer; color: var(--ts-ink); font-size: 12px; user-select: none;
+  }
+  .player-speed:hover { border-color: var(--ts-border-2); color: var(--ts-primary); }
+  .player-speed-menu {
+    position: absolute; bottom: 38px; right: 0;
+    min-width: 90px;
+    background: var(--ts-surface-2);
+    border: 1px solid var(--ts-border-2);
+    border-radius: 8px; padding: 4px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+    z-index: 20; display: none;
+  }
+  .player-speed-menu.open { display: block; }
+  .player-speed-menu-item {
+    padding: 5px 10px; border-radius: 5px;
+    font-size: 12px; color: var(--ts-ink-2);
+    cursor: pointer;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .player-speed-menu-item:hover { background: rgba(255,255,255,0.04); color: var(--ts-ink); }
+  .player-speed-menu-item.on { color: var(--ts-primary); background: var(--ts-primary-dim); }
+  .share-btn-popover {
+    position: absolute; bottom: 38px; right: 0;
+    min-width: 160px;
+    background: var(--ts-surface-2);
+    border: 1px solid var(--ts-border-2);
+    border-radius: 8px; padding: 6px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+    z-index: 20; display: none;
+  }
+  .share-btn-popover.open { display: block; }
+  .share-btn-popover .sbi {
+    padding: 7px 10px; border-radius: 6px;
+    font-size: 12px; color: var(--ts-ink-2); cursor: pointer;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .share-btn-popover .sbi:hover { background: rgba(255,255,255,0.04); color: var(--ts-ink); }
+  .toast {
+    position: fixed; left: 50%; bottom: 100px;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.7);
+    color: #f8fafc; padding: 8px 14px;
+    border-radius: 6px; font-size: 12px;
+    z-index: 999; pointer-events: none;
+    opacity: 0; transition: opacity .2s;
+  }
+  .toast.show { opacity: 1; }
+
+  /* ============ OTHER TYPES (card layout) ============ */
+  .page { max-width: 560px; margin: 0 auto; padding: 24px 16px 80px; }
+  .back-bar {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 16px; font-size: 13px; color: var(--ts-ink-2);
+  }
+  .back-bar a {
+    color: var(--ts-ink-2); text-decoration: none;
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px 10px; border: 1px solid var(--ts-border);
+    border-radius: 8px; background: var(--ts-surface);
+    transition: all .15s ease;
+  }
+  .back-bar a:hover { color: var(--ts-ink); border-color: var(--ts-border-2); }
+  .meta-actions { display: inline-flex; gap: 8px; }
+  .chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px 10px; font-size: 12px; color: var(--ts-ink-2);
+    background: var(--ts-surface); border: 1px solid var(--ts-border); border-radius: 8px;
+  }
+  .chip-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--ts-primary); box-shadow: 0 0 0 3px var(--ts-primary-dim);
+  }
+  .detail-card {
+    background: var(--ts-surface);
+    border: 1px solid var(--ts-border);
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4), 0 1px 0 rgba(255,255,255,0.04) inset;
+    overflow: hidden; backdrop-filter: blur(12px);
+  }
+  .detail-header {
+    padding: 20px 20px 12px;
+    display: flex; flex-direction: column; gap: 10px;
+    border-bottom: 1px solid var(--ts-border);
+  }
+  .detail-title-row { display: flex; align-items: center; gap: 12px; }
+  .detail-avatar {
+    width: 56px; height: 56px; border-radius: 12px; overflow: hidden; flex-shrink: 0;
+    border: 1px solid var(--ts-border-2);
+    background: linear-gradient(135deg, var(--ts-primary-dim), rgba(148,163,184,0.08));
+    display: flex; align-items: center; justify-content: center;
+  }
+  .detail-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .detail-avatar-emoji { font-size: 28px; line-height: 1; }
+  .detail-title-wrap { flex: 1; min-width: 0; }
+  .detail-title { margin: 0; font-size: 22px; font-weight: 700; color: var(--ts-ink); letter-spacing: 0.2px; }
+  .detail-subtitle {
+    margin-top: 6px; font-size: 13px; color: var(--ts-ink-2);
+    display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+  }
+  .detail-sep { opacity: 0.45; color: var(--ts-ink-3); }
+  .detail-type-badge {
+    padding: 3px 10px; border-radius: 999px;
+    font-size: 12px; font-weight: 600; letter-spacing: 0.3px;
+    border: 1px solid transparent; white-space: nowrap;
+  }
+  .badge-ship      { color: var(--ts-ship);      background: rgba(74,222,128,0.14);  border-color: rgba(74,222,128,0.25); }
+  .badge-aircraft  { color: var(--ts-aircraft);  background: rgba(248,113,113,0.14); border-color: rgba(248,113,113,0.25); }
+  .badge-satellite { color: var(--ts-satellite); background: rgba(192,132,252,0.14); border-color: rgba(192,132,252,0.25); }
+  .badge-port      { color: var(--ts-port);      background: rgba(148,163,184,0.14); border-color: rgba(148,163,184,0.25); }
+  .icon-btn {
+    width: 34px; height: 34px; border-radius: 8px;
+    border: 1px solid var(--ts-border);
+    background: rgba(255,255,255,0.02); color: var(--ts-ink-2);
+    cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 15px; transition: all .15s ease;
+  }
+  .icon-btn:hover { color: var(--ts-warn); border-color: var(--ts-border-2); background: var(--ts-surface-2); }
+  .icon-btn.active { color: var(--ts-warn); }
+  .detail-media {
+    position: relative; aspect-ratio: 16 / 9;
+    width: calc(100% - 32px); margin: 12px 16px 4px;
+    border-radius: 12px; overflow: hidden;
+    background: var(--ts-surface-2); border: 1px solid var(--ts-border);
+  }
+  .detail-media img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .detail-media-fallback {
+    width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 64px; color: var(--ts-ink-3);
+    background: linear-gradient(135deg, var(--ts-primary-dim), rgba(148,163,184,0.06));
+  }
+  .detail-media-scrim {
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(0,0,0,0) 40%, rgba(0,0,0,0.6) 100%);
+  }
+  .detail-media-stats {
+    position: absolute; left: 12px; right: 12px; bottom: 12px;
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; z-index: 2;
+  }
+  .detail-media-stat {
+    background: rgba(0,0,0,0.55); backdrop-filter: blur(6px);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 10px; padding: 10px 12px; text-align: center;
+  }
+  .detail-media-stat-val {
+    font-family: "'JetBrains Mono','Consolas',monospace";
+    font-size: 18px; font-weight: 700; color: #f8fafc;
+    letter-spacing: 0.4px; display: block; line-height: 1.1;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.5);
+  }
+  .detail-media-stat-lbl {
+    font-size: 10px; color: rgba(226,232,240,0.65);
+    letter-spacing: 0.6px; text-transform: uppercase;
+    display: block; margin-top: 3px;
+  }
+  .detail-body { padding: 18px 20px 24px; }
+  .section-title {
+    font-size: 12px; font-weight: 700; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--ts-ink-3);
+    margin: 20px 0 10px; padding-bottom: 8px;
+    border-bottom: 1px solid var(--ts-border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .section-title:first-child { margin-top: 4px; }
+  .section-count {
+    font-size: 11px; color: var(--ts-ink-3);
+    letter-spacing: 0.04em; text-transform: none; font-weight: 500;
+  }
+  .field-grid { display: flex; flex-direction: column; }
+  .field-row {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    padding: 10px 2px;
+    border-bottom: 1px dashed rgba(148, 163, 184, 0.10);
+    gap: 16px;
+  }
+  .field-row:last-child { border-bottom: none; }
+  .field-key { font-size: 13px; color: var(--ts-ink-2); min-width: 100px; padding-right: 10px; }
+  .field-val {
+    font-size: 13px; color: var(--ts-ink);
+    font-family: "'JetBrains Mono','Consolas',monospace";
+    text-align: right; word-break: break-all; line-height: 1.5;
+  }
+  .field-val.mono-less { font-family: inherit; }
+  .more-btn {
+    display: block; width: 100%; margin-top: 20px;
+    padding: 14px 18px; border-radius: 12px;
+    border: 1px solid var(--ts-primary);
+    background: linear-gradient(180deg, var(--ts-primary-dim), rgba(56,189,248,0.06));
+    color: var(--ts-primary);
+    font-size: 15px; font-weight: 700; letter-spacing: 0.5px;
+    cursor: pointer; text-align: center; text-decoration: none;
+    transition: all .15s ease;
+  }
+  .more-btn:hover {
+    background: var(--ts-primary-dim);
+    box-shadow: 0 0 0 3px rgba(56,189,248,0.12);
+    transform: translateY(-1px);
+  }
+  .scale-line {
+    margin-top: 18px; padding-top: 12px;
+    border-top: 1px solid var(--ts-border);
+    font-size: 11px; color: var(--ts-ink-3);
+    display: flex; justify-content: flex-end; letter-spacing: 0.2px;
+  }
+  .scale-line b { color: var(--ts-ink-2); font-weight: 600; margin: 0 2px; }
+  .missing { padding: 40px 24px; text-align: center; color: var(--ts-ink-2); }
+  .missing-icon { font-size: 40px; margin-bottom: 10px; }
+  .missing h3 { margin: 6px 0; color: var(--ts-ink); font-size: 16px; }
+  .missing p { margin: 4px 0; font-size: 13px; }
+  .missing a {
+    display: inline-block; margin-top: 14px; padding: 8px 14px;
+    border-radius: 8px; background: var(--ts-primary-dim);
+    color: var(--ts-primary); text-decoration: none;
+    font-size: 13px; border: 1px solid var(--ts-primary);
+  }
+
+  @media (max-width: 1100px) {
+    .ship-info { flex-direction: column; }
+    .ship-info-right { border-left: none; border-top: 1px solid var(--ts-border); }
+  }
+  @media (max-width: 720px) {
+    .ship-info-right { grid-template-columns: repeat(2, 1fr); }
+    .ship-player { grid-template-columns: auto 1fr; }
+    .player-right { grid-column: 1 / -1; justify-content: flex-end; }
+  }
+</style>
+</head>
+<body>
+<div id="app-root"></div>
+
+<script>
+  // ========= Helpers =========
+  function rnd(min, max) { return Math.random() * (max - min) + min; }
+  function rndInt(min, max) { return Math.floor(rnd(min, max + 1)); }
+  function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+  function genId(prefix, n) {
+    var s = ''; var hex = '0123456789ABCDEF';
+    for (var i = 0; i < 4; i++) s += hex[Math.floor(Math.random() * 16)];
+    return prefix + '-' + s + (n < 10 ? '0' + n : n);
+  }
+  function genTrack(centerLng, centerLat, steps, jitter) {
+    var pts = []; var lng = centerLng, lat = centerLat;
+    var dLng = rnd(-0.05, 0.05), dLat = rnd(-0.05, 0.05);
+    for (var i = 0; i < steps; i++) {
+      pts.push([lng, lat]);
+      lng += dLng + rnd(-jitter, jitter);
+      lat += dLat + rnd(-jitter, jitter);
+      dLng *= 0.96; dLat *= 0.96;
+    }
+    return pts;
+  }
+  function escapeHtml(str) {
+    var div = document.createElement('div');
+    div.appendChild(document.createTextNode(String(str == null ? '' : str)));
+    return div.innerHTML;
+  }
+  function getQueryParam(key) {
+    var qs = (window.location.search || '').replace(/^\?/, '');
+    if (!qs) return '';
+    var pairs = qs.split('&');
+    for (var i = 0; i < pairs.length; i++) {
+      var p = pairs[i].split('=');
+      if (decodeURIComponent(p[0] || '') === key) return decodeURIComponent(p[1] || '');
+    }
+    return '';
+  }
+  function formatDuration(seconds) {
+    seconds = Math.max(0, Math.floor(seconds));
+    var h = Math.floor(seconds / 3600);
+    var m = Math.floor((seconds % 3600) / 60);
+    var s = seconds % 60;
+    if (h > 0) return h + ':' + String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+    return m + ':' + String(s).padStart(2, '0');
+  }
+  function formatDateTime(d) {
+    function z(n, w) { w = w || 2; return String(n).padStart(w, '0'); }
+    return d.getFullYear() + '-' + z(d.getMonth()+1) + '-' + z(d.getDate()) +
+      ' ' + z(d.getHours()) + ':' + z(d.getMinutes()) + ':' + z(d.getSeconds());
+  }
+  function showToast(msg) {
+    var t = document.createElement('div');
+    t.className = 'toast'; t.textContent = msg;
+    document.body.appendChild(t);
+    requestAnimationFrame(function () { t.classList.add('show'); });
+    setTimeout(function () {
+      t.classList.remove('show');
+      setTimeout(function () { t.remove(); }, 300);
+    }, 1500);
+  }
+
+  // ========= Tactical data (prefer localStorage snapshot) =========
+  function generateTacticalDataFallback() {
+    var data = { ship: [], aircraft: [], satellite: [], port: [] };
+    var shipAreas = [
+      { c: [121.5, 31.0], n: '东海' }, { c: [114.3, 22.0], n: '南海' },
+      { c: [122.4, 36.0], n: '黄海' }, { c: [119.0, 25.5], n: '台湾海峡' },
+      { c: [109.5, 18.2], n: '北部湾' }
+    ];
+    var shipTypes = ['货船', '集装箱船', '油轮', '散货船', '客船', '军舰', '研究/勘测船'];
+    for (var i = 0; i < 20; i++) {
+      var a = pick(shipAreas);
+      var lng = a.c[0] + rnd(-3, 3), lat = a.c[1] + rnd(-1.5, 1.5);
+      var shipType = pick(shipTypes);
+      data.ship.push({
+        id: genId('SHP', i + 1), name: '远洋' + (1000 + i), type: shipType,
+        pos: [lng, lat], heading: rnd(0, 360), speed: rnd(8, 22),
+        track: genTrack(lng, lat, 40, 0.02),
+        englishName: 'OCEAN VOYAGER ' + (1000 + i), nickname: '-',
+        mmsi: '369' + rndInt(100000, 999999), imo: '9' + rndInt(1000000, 9999999),
+        callSign: pick(['BOSON', 'NLORt', '3FRI', 'A8K2', 'BOSN', 'D5IPS4', 'VRVQ8']),
+        shipType: shipType, length: rndInt(120, 365), width: rndInt(18, 50), height: rndInt(10, 25),
+        draught: rnd(5, 18).toFixed(2),
+        departureTime: '2025-06-0' + rndInt(1,9) + ' 08:' + String(rndInt(10,59)).padStart(2,'0') + ':00',
+        arrivalTime: '2025-06-' + rndInt(10,30) + ' 18:' + String(rndInt(10,59)).padStart(2,'0') + ':00',
+        headingRate: rnd(-5, 5).toFixed(2),
+        sailingStatus: pick(['航行中', '航行中', '停泊中', '抛锚中']),
+        serviceStatus: '在役',
+        owner: pick(['Antico Marine Ltd', 'Ocean Star Shipping', '中远海运集装箱', '马士基航运', 'MSC地中海航运']),
+        route: pick(['欧洲-东亚', '东亚-美西', '中东-东亚', '地中海-北欧', '南美-欧洲']),
+        flag: pick(['🇧🇸', '🇵🇦', '🇨🇳', '🇲🇭', '🇭🇰', '🇸🇬', '🇲🇹']),
+        flagCountry: pick(['巴哈马', '巴拿马', '中国', '马绍尔群岛', '中国香港', '新加坡', '马耳他']),
+        builtYear: rndInt(1990, 2024),
+        grossTonnage: rndInt(1000, 99999),
+        deadWeight: rndInt(5000, 150000),
+        dataUpdateTime: '2025-06-' + String(rndInt(1,10)).padStart(2,'0') + ' ' + String(rndInt(0,23)).padStart(2,'0') + ':' + String(rndInt(0,59)).padStart(2,'0') + ':00'
+      });
+    }
+    var acAreas = [
+      { c: [116.4, 39.9], n: '华北' }, { c: [121.5, 31.0], n: '华东' },
+      { c: [113.3, 23.1], n: '华南' }, { c: [104.1, 30.7], n: '西南' },
+      { c: [87.6, 43.8], n: '西北' }
+    ];
+    var acTypes = ['战斗机', '侦察机', '运输机', '民航', '加油机', '预警机'];
+    var acModels = ['K35R', 'B737', 'A320', 'J-20', 'H-60', 'Y-20'];
+    var airlines = ['中国国际航空', '东方航空', '南方航空', 'United States Air Force', 'PLAAF'];
+    for (var j = 0; j < 20; j++) {
+      var b = pick(acAreas);
+      var lng2 = b.c[0] + rnd(-4, 4), lat2 = b.c[1] + rnd(-3, 3);
+      var acType = pick(acTypes);
+      var acModel = pick(acModels);
+      data.aircraft.push({
+        id: genId('AIR', j + 1), name: '航班' + (3000 + j), type: acType,
+        pos: [lng2, lat2], heading: rnd(0, 360), speed: rnd(400, 900), altitude: rnd(3000, 12000),
+        track: genTrack(lng2, lat2, 40, 0.05),
+        registration: String(rndInt(60000, 69999)),
+        model: acModel, icao: 'AE' + rndInt(10000, 99999),
+        flightNumber: pick(['ATOM', 'CCA', 'CES', 'CSN']) + rndInt(10, 99),
+        aircraftType: acType, airline: pick(airlines),
+        airlineIcao: pick(['CCA', 'CES', 'CSN', 'AAL', 'PLAF']),
+        departureTime: '2025-06-0' + rndInt(1,9) + ' ' + String(rndInt(0,23)).padStart(2,'0') + ':' + String(rndInt(0,59)).padStart(2,'0') + ':00',
+        arrivalTime: '2025-06-1' + rndInt(0,9) + ' ' + String(rndInt(0,23)).padStart(2,'0') + ':' + String(rndInt(0,59)).padStart(2,'0') + ':00',
+        landingTime: rndInt(15, 60) + '分钟',
+        distance: rndInt(500, 4000) + 'km',
+        status: pick(['飞行中', '爬升中', '下降中', '巡航中']),
+        dataUpdateTime: '2025-06-' + String(rndInt(1,10)).padStart(2,'0') + ' ' + String(rndInt(0,23)).padStart(2,'0') + ':' + String(rndInt(0,59)).padStart(2,'0') + ':00',
+        followView: Math.random() > 0.5
+      });
+    }
+    var satTypes = ['遥感', '通信', '导航', '气象', '侦察', '商业'];
+    var satConstellations = ['Starlink', '北斗', 'Galileo', 'GLONASS', 'Intelsat'];
+    var satCompanies = ['SpaceX', '中国航天', 'ESA', 'Roscosmos', 'Intelsat'];
+    var countries = ['美国', '中国', '俄罗斯', '欧盟', '日本', '印度'];
+    var satPayloads = ['Ku/Ka-band payload', '可见光相机', 'SAR雷达', '导航信号载荷', '气象传感器'];
+    var launchSites = ['美国佛罗里达州卡纳维拉尔角', '中国酒泉卫星发射中心', '俄罗斯拜科努尔', '日本种子岛', '印度萨蒂什·达万'];
+    for (var k = 0; k < 20; k++) {
+      var satType = pick(satTypes);
+      var launchYear = rndInt(2015, 2024);
+      data.satellite.push({
+        id: genId('SAT', k + 1), name: 'Star-' + (100 + k), type: satType,
+        pos: [rnd(70, 140), rnd(15, 55)],
+        heading: rnd(0, 360), speed: rnd(6.5, 7.9), altitude: rnd(400, 1200),
+        satelliteNumber: rndInt(10000, 99999),
+        internationalNumber: (2020 + rndInt(0,5)) + '-' + String(rndInt(1,999)).padStart(3,'0') + 'AU',
+        catalogNumber: rndInt(10000, 99999),
+        country: pick(countries), satelliteType: satType,
+        usage: pick(['卫星通信', '地球观测', '卫星导航', '气象监测', '军事侦察']),
+        status: pick(['运行中', '在轨测试', '故障']),
+        launchTime: launchYear + '-' + String(rndInt(1,12)).padStart(2,'0') + '-' + String(rndInt(1,28)).padStart(2,'0'),
+        launchSite: pick(launchSites),
+        constellation: pick(satConstellations), company: pick(satCompanies),
+        payloadType: pick(['有效负载', '科学载荷', '军事载荷']), payload: pick(satPayloads),
+        orbitHeight: rnd(400, 1200).toFixed(1) + 'km',
+        orbitInclination: rnd(15, 98).toFixed(4),
+        eccentricity: rnd(0, 0.1).toFixed(7),
+        ascendingNode: rnd(0, 360).toFixed(4),
+        meanAnomaly: rnd(0, 360).toFixed(4),
+        perigeeDistance: rnd(400, 2000).toFixed(4),
+        revolutionsPerDay: rnd(14, 16).toFixed(8),
+        revolutionsSinceLaunch: rndInt(5000, 50000),
+        tleUpdateTime: '2024-06-' + String(rndInt(1,30)).padStart(2,'0') + ' ' + String(rndInt(0,23)).padStart(2,'0') + ':' + String(rndInt(0,59)).padStart(2,'0') + ':' + String(rndInt(0,59)).padStart(2,'0'),
+        nickname: '-', age: rndInt(1, 10) + '年'
+      });
+    }
+    var portList = [
+      { n: '上海港', p: [121.49, 31.23], c: '中国', r: '华东', code: 'CNSHA', cap: '4000万TEU', depth: '15m' },
+      { n: '宁波舟山港', p: [122.10, 30.00], c: '中国', r: '华东', code: 'CNNGB', cap: '3000万TEU', depth: '17m' },
+      { n: '深圳港', p: [113.88, 22.48], c: '中国', r: '华南', code: 'CNSZN', cap: '2500万TEU', depth: '16m' },
+      { n: '广州港', p: [113.51, 23.07], c: '中国', r: '华南', code: 'CNGZG', cap: '2000万TEU', depth: '15m' },
+      { n: '青岛港', p: [120.38, 36.07], c: '中国', r: '华北', code: 'CNTAO', cap: '1800万TEU', depth: '17m' },
+      { n: '天津港', p: [117.78, 39.02], c: '中国', r: '华北', code: 'CNTSN', cap: '1500万TEU', depth: '16m' },
+      { n: '大连港', p: [121.62, 38.92], c: '中国', r: '东北', code: 'CNDLC', cap: '1200万TEU', depth: '18m' },
+      { n: '厦门港', p: [118.08, 24.48], c: '中国', r: '华南', code: 'CNXMN', cap: '1000万TEU', depth: '15m' },
+      { n: '营口港', p: [122.23, 40.00], c: '中国', r: '东北', code: 'CNYKI', cap: '800万TEU', depth: '12m' },
+      { n: '日照港', p: [119.52, 35.38], c: '中国', r: '华东', code: 'CNRZH', cap: '900万TEU', depth: '15m' },
+      { n: '烟台港', p: [121.39, 37.55], c: '中国', r: '华东', code: 'CNYTI', cap: '700万TEU', depth: '14m' },
+      { n: '福州港', p: [119.30, 26.08], c: '中国', r: '华南', code: 'CNFZG', cap: '600万TEU', depth: '13m' },
+      { n: '珠海港', p: [113.27, 22.25], c: '中国', r: '华南', code: 'CNZUH', cap: '500万TEU', depth: '14m' },
+      { n: '东莞港', p: [113.72, 22.87], c: '中国', r: '华南', code: 'CNDGG', cap: '400万TEU', depth: '13m' },
+      { n: '唐山港', p: [118.98, 39.00], c: '中国', r: '华北', code: 'CNTSG', cap: '1100万TEU', depth: '15m' },
+      { n: '连云港', p: [119.46, 34.75], c: '中国', r: '华东', code: 'CNLYG', cap: '800万TEU', depth: '15m' },
+      { n: '湛江港', p: [110.40, 21.18], c: '中国', r: '华南', code: 'CNZJG', cap: '700万TEU', depth: '14m' },
+      { n: '海口港', p: [110.32, 20.05], c: '中国', r: '华南', code: 'CNHKG', cap: '300万TEU', depth: '12m' },
+      { n: '三亚港', p: [109.51, 18.25], c: '中国', r: '华南', code: 'CNSYX', cap: '200万TEU', depth: '12m' },
+      { n: '防城港', p: [108.35, 21.69], c: '中国', r: '华南', code: 'CNFCG', cap: '250万TEU', depth: '13m' }
+    ];
+    portList.forEach(function (pt, idx) {
+      data.port.push({
+        id: 'PRT-' + (idx < 9 ? '0' + (idx + 1) : (idx + 1)),
+        name: pt.n, type: '港口', pos: pt.p,
+        country: pt.c, region: pt.r, code: pt.code,
+        capacity: pt.cap, waterDepth: pt.depth,
+        berths: rndInt(5, 25), cranes: rndInt(2, 20),
+        operator: pick(['上港集团', '宁波舟山港', '招商局港口', '中远海运', '地方港务集团']),
+        establishedYear: String(rndInt(1840, 2000)),
+        annualThroughput: rndInt(100, 4000) + '万吨',
+        status: '运营中'
+      });
+    });
+    return data;
+  }
+  function getTacticalData() {
+    try {
+      var raw = window.localStorage.getItem('ts_tac_data_v1');
+      if (raw) {
+        var parsed = JSON.parse(raw);
+        if (parsed && (parsed.ship || parsed.aircraft || parsed.satellite || parsed.port)) return parsed;
+      }
+    } catch (e) {}
+    var fallback = generateTacticalDataFallback();
+    try { window.localStorage.setItem('ts_tac_data_v1', JSON.stringify(fallback)); } catch (e) {}
+    return fallback;
+  }
+  function findTarget(data, type, id) {
+    var pool = data && data[type];
+    if (!Array.isArray(pool)) return null;
+    for (var i = 0; i < pool.length; i++) {
+      if (pool[i] && pool[i].id === id) return pool[i];
+    }
+    return pool[0] || null;
+  }
+
+  var TYPE_IMAGES = { ship: '/assets/ship.jpg', aircraft: '/assets/aircraft.jpg', satellite: '/assets/satellite.jpg' };
+  var TYPE_LABEL = { ship: '船舶', aircraft: '飞机', satellite: '卫星', port: '港口' };
+  var TYPE_EMOJI = { ship: '🚢', aircraft: '✈️', satellite: '🛰️', port: '⚓' };
+
+  // ========= Generic render for non-ship targets =========
+  function getDisplayFields(type, item) {
+    var sections = [];
+    if (type === 'ship') {
+      sections.push({
+        title: '属性',
+        rows: [
+          ['船舶昵称', item.nickname || '-'], ['英文名称', item.englishName || '-'],
+          ['MMSI', item.mmsi || '-'], ['IMO', item.imo || '-'], ['呼号', item.callSign || '-'],
+          ['船舶类型', item.shipType || item.type || '-'],
+          ['船舶长度', item.length ? (item.length + 'm') : '-'],
+          ['船舶宽度', item.width ? (item.width + 'm') : '-'],
+          ['船舶高度', item.height ? (item.height + 'm') : '-'],
+          ['航行状态', item.sailingStatus || '-'], ['服务状态', item.serviceStatus || '-'],
+          ['实际出发时间', item.departureTime || '-'], ['预计到达时间', item.arrivalTime || '-'],
+          ['转向率', (item.headingRate != null ? (item.headingRate + '°/h') : '-')],
+          ['数据更新时间', item.dataUpdateTime || '-']
+        ]
+      });
+    } else if (type === 'aircraft') {
+      sections.push({
+        title: '导航',
+        rows: [
+          ['实际出发时间', item.departureTime || '-'], ['预计到达时间', item.arrivalTime || '-'],
+          ['预计着陆所需时间', item.landingTime || '-'], ['距离目的地', item.distance || '-'],
+          ['经纬度', (item.pos ? item.pos[0].toFixed(4) + ', ' + item.pos[1].toFixed(5) : '-')],
+          ['飞机状态', item.status || '-'], ['数据更新时间', item.dataUpdateTime || '-']
+        ]
+      });
+      sections.push({
+        title: '属性',
+        rows: [
+          ['飞机昵称', '-'], ['ICAO', item.icao || '-'], ['航班编号', item.flightNumber || '-'],
+          ['注册编号', item.registration || '-'], ['飞机型号', item.model || '-'],
+          ['飞机类型', item.aircraftType || item.type || '-'], ['航空公司', item.airline || '-'],
+          ['航向ICAO', item.airlineIcao || '-'],
+          ['当前高度', item.altitude != null ? (item.altitude.toFixed(0) + 'm') : '-'],
+          ['当前速度', item.speed != null ? (item.speed.toFixed(0) + 'km/h') : '-'],
+          ['航向', item.heading != null ? (item.heading.toFixed(0) + '°') : '-']
+        ]
+      });
+    } else if (type === 'satellite') {
+      sections.push({
+        title: '定位',
+        rows: [
+          ['高度', item.orbitHeight || (item.altitude != null ? (item.altitude.toFixed(0) + 'km') : '-')],
+          ['轨道交角', item.orbitInclination || '-'],
+          ['轨道偏心率', item.eccentricity || '-'], ['升交点赤经', item.ascendingNode || '-'],
+          ['平近点角', item.meanAnomaly || '-'], ['近地点距', item.perigeeDistance || '-'],
+          ['每天环绕地球数', item.revolutionsPerDay || '-'],
+          ['发射以来飞行圈数', item.revolutionsSinceLaunch || '-'],
+          ['TLE 更新时间', item.tleUpdateTime || '-']
+        ]
+      });
+      sections.push({
+        title: '数据',
+        rows: [
+          ['卫星编号', item.satelliteNumber || '-'], ['国际编号', item.internationalNumber || '-'],
+          ['卫星名称', item.name || '-'], ['卫星昵称', item.nickname || '-'],
+          ['星历编号', item.catalogNumber || '-'], ['所属国家', item.country || '-'],
+          ['卫星类型', item.satelliteType || item.type || '-'], ['卫星用途', item.usage || '-'],
+          ['卫星状态', item.status || '-'], ['发射时间', item.launchTime || '-'],
+          ['发射场名称', item.launchSite || '-'], ['所属星座', item.constellation || '-'],
+          ['所属公司', item.company || '-'], ['空间物体类型', item.payloadType || '-'],
+          ['卫星载荷', item.payload || '-']
+        ]
+      });
+    } else if (type === 'port') {
+      sections.push({
+        title: '港口信息',
+        rows: [
+          ['港口代码', item.code || '-'], ['所属国家', item.country || '-'],
+          ['所在区域', item.region || '-'], ['运营状态', item.status || '-'],
+          ['水深', item.waterDepth || '-'], ['泊位数', item.berths != null ? (item.berths + '个') : '-'],
+          ['起重设备', item.cranes != null ? (item.cranes + '台') : '-'],
+          ['年吞吐量', item.annualThroughput || '-']
+        ]
+      });
+      sections.push({
+        title: '属性',
+        rows: [
+          ['港口名称', item.name || '-'], ['运营方', item.operator || '-'],
+          ['建立年份', item.establishedYear || '-'], ['港口类型', item.type || '-'],
+          ['容量', item.capacity || '-'],
+          ['地理位置', (item.pos ? item.pos[0].toFixed(4) + ', ' + item.pos[1].toFixed(4) : '-')]
+        ]
+      });
+    }
+    return sections;
+  }
+  function getHeroStats(type, item) {
+    if (type === 'ship') return [
+      { val: (item.speed != null ? item.speed.toFixed(1) + 'kn' : '-'), lbl: '航速' },
+      { val: (item.length ? item.length + 'm' : '-'), lbl: '船长' },
+      { val: (item.heading != null ? item.heading.toFixed(0) + '°' : '-'), lbl: '航向' }
+    ];
+    if (type === 'aircraft') return [
+      { val: (item.speed != null ? item.speed.toFixed(0) + 'km/h' : '-'), lbl: '空速' },
+      { val: (item.altitude != null ? item.altitude.toFixed(0) + 'm' : '-'), lbl: '高度' },
+      { val: (item.heading != null ? item.heading.toFixed(0) + '°' : '-'), lbl: '航向' }
+    ];
+    if (type === 'satellite') return [
+      { val: (item.orbitHeight || '-'), lbl: '轨道高' },
+      { val: (item.speed != null ? item.speed.toFixed(1) + 'km/s' : '-'), lbl: '速度' },
+      { val: (item.orbitInclination != null ? item.orbitInclination + '°' : '-'), lbl: '倾角' }
+    ];
+    return [
+      { val: (item.capacity || '-'), lbl: '容量' },
+      { val: (item.waterDepth || '-'), lbl: '水深' },
+      { val: (item.berths ? item.berths + '泊位' : '-'), lbl: '泊位数' }
+    ];
+  }
+  function getHeaderMeta(type, item) {
+    if (type === 'ship') return ['MMSI: ' + (item.mmsi || '-'), 'IMO: ' + (item.imo || '-'), '类型: ' + (item.shipType || item.type || '-')];
+    if (type === 'aircraft') return ['注册编号: ' + (item.registration || '-'), '型号: ' + (item.model || '-'), '航班: ' + (item.flightNumber || '-')];
+    if (type === 'satellite') return ['卫星编号: ' + (item.satelliteNumber || '-'), '国际编号: ' + (item.internationalNumber || '-'), '状态: ' + (item.status || '-')];
+    return ['代码: ' + (item.code || '-'), '国家: ' + (item.country || '-'), '区域: ' + (item.region || '-')];
+  }
+  function renderGenericCard(type, item, root) {
+    if (!item) {
+      root.innerHTML =
+        '<div class="page"><div class="back-bar"><a href="index.html">返回全球态势</a><div class="meta-actions"><span class="chip"><span class="chip-dot"></span><span>未匹配到目标</span></span></div></div>' +
+        '<div class="detail-card"><div class="missing"><div class="missing-icon">🚢</div><h3>目标未找到</h3><p>请先在全球态势页面点击目标，再打开详情。</p><a href="index.html">返回全球态势</a></div></div></div>';
+      return;
+    }
+    var img = TYPE_IMAGES[type];
+    var typeEmoji = TYPE_EMOJI[type] || '📡';
+    var typeLabel = TYPE_LABEL[type] || type;
+    var displayName = type === 'satellite'
+      ? 'Starlink V1.0-L6-' + (item.id ? item.id.slice(-2) : '01')
+      : (item.name || '未命名目标');
+    var headerMeta = getHeaderMeta(type, item);
+    var heroStats = getHeroStats(type, item);
+    var sections = getDisplayFields(type, item);
+    var totalFields = sections.reduce(function (a, s) { return a + s.rows.length; }, 0);
+
+    var html = '';
+    html += '<div class="page">';
+    html += '  <div class="back-bar"><a href="index.html">返回全球态势</a><div class="meta-actions"><span class="chip"><span class="chip-dot"></span><span>' + escapeHtml(typeLabel) + ' · 共 ' + totalFields + ' 项字段</span></span></div></div>';
+    html += '  <div class="detail-card">';
+    html += '<div class="detail-header"><div class="detail-title-row">';
+    if (img) {
+      html += '<div class="detail-avatar"><img src="' + img + '" alt="' + escapeHtml(typeLabel) + '" onerror="this.remove();this.parentNode.insertAdjacentHTML(\'beforeend\',\'<span class=detail-avatar-emoji>' + typeEmoji + '</span>\')"></div>';
+    } else {
+      html += '<div class="detail-avatar"><span class="detail-avatar-emoji">' + typeEmoji + '</span></div>';
+    }
+    html += '<div class="detail-title-wrap"><div style="display:flex;align-items:center;gap:10px;">';
+    html += '<h1 class="detail-title">' + escapeHtml(displayName) + '</h1>';
+    html += '<span class="detail-type-badge badge-' + escapeHtml(type) + '">' + escapeHtml(typeLabel) + '</span>';
+    html += '</div><div class="detail-subtitle">';
+    headerMeta.forEach(function (p, i) {
+      if (i > 0) html += '<span class="detail-sep">|</span>';
+      html += '<span>' + escapeHtml(p) + '</span>';
+    });
+    html += '</div></div>';
+    html += '<button class="icon-btn" id="btn-fav" title="收藏">';
+    html += '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>';
+    html += '</div></div>';
+    html += '<div class="detail-media">';
+    if (img) {
+      html += '<img src="' + img + '" alt="' + escapeHtml(displayName) + '" onerror="this.style.display=\'none\'">';
+    }
+    html += '<div class="detail-media-scrim"></div>';
+    html += '<div class="detail-media-stats">';
+    heroStats.forEach(function (s) {
+      html += '<div class="detail-media-stat"><span class="detail-media-stat-val">' + escapeHtml(s.val) + '</span><span class="detail-media-stat-lbl">' + escapeHtml(s.lbl) + '</span></div>';
+    });
+    html += '</div></div>';
+    html += '<div class="detail-body">';
+    sections.forEach(function (sec) {
+      html += '<div class="section-title"><span>' + escapeHtml(sec.title) + '</span><span class="section-count">' + sec.rows.length + ' 项</span></div>';
+      html += '<div class="field-grid">';
+      sec.rows.forEach(function (row) {
+        html += '<div class="field-row"><span class="field-key">' + escapeHtml(row[0]) + '</span><span class="field-val mono-less">' + escapeHtml(String(row[1] == null ? '-' : row[1])) + '</span></div>';
+      });
+      html += '</div>';
+    });
+    html += '<button class="more-btn" id="btn-more-data" type="button">查看更多数据</button>';
+    html += '<div class="scale-line">缩放级别：<b>1</b>-<b>8</b> <span style="margin:0 6px;opacity:.35;">000</span> 000</div>';
+    html += '</div>';
+    html += '</div></div>';
+    root.innerHTML = html;
+
+    var fav = document.getElementById('btn-fav');
+    if (fav) {
+      fav.addEventListener('click', function () {
+        fav.classList.toggle('active');
+        fav.innerHTML = fav.classList.contains('active')
+          ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>'
+          : '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>';
+      });
+    }
+    var more = document.getElementById('btn-more-data');
+    if (more) {
+      more.addEventListener('click', function () {
+        more.textContent = '正在加载完整档案…';
+        setTimeout(function () {
+          more.textContent = '已经是最新数据 ✓';
+          setTimeout(function () { more.textContent = '查看更多数据'; }, 1500);
+        }, 600);
+      });
+    }
+    document.title = (displayName || '目标详情') + ' - 目标监视';
+  }
+
+  // ========= SHIP DETAIL LAYOUT (with map + player) =========
+  var SHIP_PLAY = null;
+
+  function buildShipInfoCells(item) {
+    return [
+      ['船舶宽度',  (item.width ? item.width + 'm' : '-'), null],
+      ['船身高度',  (item.height ? item.height + 'm' : '-'), null],
+      ['船舶类型',  item.shipType || item.type || '-', null],
+      ['呼号',      item.callSign || '-', null],
+      ['吃水深度',  (item.draught ? item.draught + 'm' : '-'), null],
+      ['船只类型',  (item.shipType === '军舰' ? '军舰' : '民用'), (item.shipType === '军舰' ? 'warn' : 'neut')],
+      ['所属者',    item.owner || '-', 'soft'],
+      ['所属航线',  item.route || '-', 'soft'],
+      ['航线类型',  (item.route && /^(欧|地中海|美|南美|中东)/.test(item.route)) ? '洲际' : '区域', null],
+      ['建造年份',  item.builtYear || '-', null],
+      ['总吨位',    item.grossTonnage || '-', null],
+      ['载重吨',    item.deadWeight ? (item.deadWeight + ' DWT') : '-', null]
+    ];
+  }
+
+  function renderShipLayout(type, item, root) {
+    if (!item) {
+      root.innerHTML =
+        '<div class="page"><div class="back-bar"><a href="index.html">返回全球态势</a><div class="meta-actions"><span class="chip"><span class="chip-dot"></span><span>未匹配到目标</span></span></div></div>' +
+        '<div class="detail-card"><div class="missing"><div class="missing-icon">🚢</div><h3>船舶未找到</h3><p>请先在全球态势页面点击船舶目标，再打开详情。</p><a href="index.html">返回全球态势</a></div></div></div>';
+      return;
+    }
+    document.body.classList.add('ship-layout');
+    var img = TYPE_IMAGES.ship;
+    var displayName = (item.englishName || item.name || '船舶').toUpperCase();
+    var shipFlag = item.flag || '🇧🇸';
+    document.title = displayName + ' - 目标监视';
+
+    var infoCells = buildShipInfoCells(item);
+    var tEnd = new Date();
+    var tStart = new Date(tEnd.getTime() - 7 * 24 * 3600 * 1000);
+
+    var html = '';
+    html += '<div class="ship-app">';
+    // Top bar
+    html += '<div class="ship-topbar">';
+    html += '  <div class="ship-topbar-left">';
+    html += '    <div class="ship-tab"><span>🏠</span><span>主页</span></div>';
+    html += '    <div class="ship-tab"><span>📡</span><span>态势</span></div>';
+    html += '    <div class="ship-tab"><span>🌍</span><span>全球态势感知</span></div>';
+    html += '    <div class="ship-tab ship-tab-active">';
+    html += '      <span class="ship-tab-flag">' + shipFlag + '</span>';
+    html += '      <span style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + escapeHtml(displayName) + '</span>';
+    html += '      <span class="ship-tab-close" id="ship-tab-close" title="关闭详情">✕</span>';
+    html += '    </div>';
+    html += '  </div>';
+    html += '  <div class="ship-topbar-right">';
+    html += '    <button class="topbar-btn" id="ship-top-close">✕ 关闭目标</button>';
+    html += '  </div>';
+    html += '</div>';
+    // Scroll body
+    html += '<div class="ship-scroll">';
+    html += '  <div class="ship-info">';
+    html += '    <div class="ship-info-left">';
+    html += '      <div class="ship-photo">';
+    if (img) html += '  <img src="' + img + '" alt="' + escapeHtml(displayName) + '" onerror="this.remove()">';
+    html += '      <span class="ship-photo-flag">' + shipFlag + '</span>';
+    html += '      </div>';
+    html += '      <div class="ship-meta">';
+    html += '        <div>';
+    html += '          <div class="ship-name-line">';
+    html += '            <span class="ship-flag-lg">' + shipFlag + '</span>';
+    html += '            <span class="ship-name">' + escapeHtml(displayName) + '</span>';
+    html += '          </div>';
+    html += '          <div class="ship-name-sub">';
+    html += '            <span class="tag prime">🌏 主营</span>';
+    html += '            <span class="tag">🔥 态势</span>';
+    html += '            <span class="tag">🗺 全球态势感知</span>';
+    html += '            <span class="tag">⚓ 航行: ' + escapeHtml(item.sailingStatus || '-') + '</span>';
+    html += '          </div>';
+    html += '        </div>';
+    html += '        <div class="ship-fav-row">';
+    html += '          <button class="ship-fav-btn" id="ship-fav-btn">☆ 收藏</button>';
+    html += '          <span>IMO ' + escapeHtml(item.imo || '-') + '</span>';
+    html += '          <span>●</span>';
+    html += '          <span>MMSI ' + escapeHtml(item.mmsi || '-') + '</span>';
+    html += '        </div>';
+    html += '      </div>';
+    html += '    </div>';
+    html += '    <div class="ship-info-right">';
+    infoCells.forEach(function (c) {
+      var softCls = (c[2] === 'soft') ? ' ship-info-v-soft' : '';
+      var toneCls = (c[2] && c[2] !== 'soft') ? (' ' + c[2]) : '';
+      html += '<div class="ship-info-cell">';
+      html += '  <span class="ship-info-k">' + escapeHtml(c[0]) + '</span>';
+      html += '  <span class="ship-info-v' + softCls + toneCls + '">' + escapeHtml(String(c[1] == null ? '-' : c[1])) + '</span>';
+      html += '</div>';
+    });
+    html += '    </div>';
+    html += '  </div>';
+    // Timebar
+    html += '  <div class="ship-timebar">';
+    html += '    <div class="ship-timebar-left">';
+    html += '      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>';
+    html += '      <b id="t-start">' + formatDateTime(tStart) + '</b>';
+    html += '      <span class="dash">→</span>';
+    html += '      <b id="t-end">' + formatDateTime(tEnd) + '</b>';
+    html += '    </div>';
+    html += '    <div class="ship-timebar-right">';
+    html += '      <button class="ship-time-quick" data-range="1">近1天</button>';
+    html += '      <button class="ship-time-quick on" data-range="7">近7天</button>';
+    html += '      <button class="ship-time-quick" data-range="30">近30天</button>';
+    html += '      <button class="ship-time-quick" data-range="90">近90天</button>';
+    html += '    </div>';
+    html += '  </div>';
+    // Track section
+    html += '  <div class="ship-track">';
+    html += '    <div class="ship-track-header">';
+    html += '      <div class="ship-track-title">';
+    html += '        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>';
+    html += '        <span>历史轨迹</span>';
+    html += '      </div>';
+    html += '      <div class="ship-track-tools">';
+    html += '        <button class="track-tool-btn" id="tool-download" title="下载轨迹">';
+    html += '          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>';
+    html += '        </button>';
+    html += '        <button class="track-tool-btn active" id="tool-satellite" title="卫星图层">';
+    html += '          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>';
+    html += '        </button>';
+    html += '        <button class="track-tool-btn" id="tool-zoom-in" title="放大">';
+    html += '          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>';
+    html += '        </button>';
+    html += '        <button class="track-tool-btn" id="tool-zoom-out" title="缩小">';
+    html += '          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="11" x2="14" y2="11"/></svg>';
+    html += '        </button>';
+    html += '      </div>';
+    html += '    </div>';
+    html += '    <div class="ship-map-wrap" id="shipMapWrap">';
+    html += '      <div id="shipMap"></div>';
+    html += '      <div class="ship-map-overlay-play" id="shipBigPlay" title="播放/暂停">';
+    html += '        <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 3 20 12 6 21 6 3"/></svg>';
+    html += '      </div>';
+    html += '    </div>';
+    // Player
+    html += '    <div class="ship-player">';
+    html += '      <div class="player-left">';
+    html += '        <button class="player-btn" id="btn-step-back" title="后退10秒">';
+    html += '          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 19 2 12 11 5 11 19"/><polygon points="22 19 13 12 22 5 22 19"/></svg>';
+    html += '        </button>';
+    html += '        <button class="player-btn play" id="btn-play" title="播放/暂停">';
+    html += '          <svg id="icon-play" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 3 20 12 6 21 6 3"/></svg>';
+    html += '        </button>';
+    html += '        <button class="player-btn" id="btn-step-fwd" title="前进10秒">';
+    html += '          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 19 22 12 13 5 13 19"/><polygon points="2 19 11 12 2 5 2 19"/></svg>';
+    html += '        </button>';
+    html += '        <span id="player-pos">0:21</span>';
+    html += '        <span style="color: var(--ts-ink-3);">/</span>';
+    html += '        <span id="player-total">2:35</span>';
+    html += '      </div>';
+    html += '      <div class="player-center">';
+    html += '        <div class="player-wave">';
+    html += '          <canvas id="playerWaveCanvas" width="800" height="28"></canvas>';
+    html += '          <div class="player-wave-mask" id="waveMask" style="width:86.2%"></div>';
+    html += '        </div>';
+    html += '        <div class="player-slider-wrap">';
+    html += '          <input class="player-slider" id="playerSlider" type="range" min="0" max="1000" value="138" style="--pct:13.8%">';
+    html += '          <div class="player-remain" id="playerRemain">剩余时间 2m14s</div>';
+    html += '        </div>';
+    html += '      </div>';
+    html += '      <div class="player-right" style="position:relative;">';
+    html += '        <span id="player-speed-btn" class="player-speed">1.0x ▾</span>';
+    html += '        <div class="player-speed-menu" id="player-speed-menu">';
+    html += '          <div class="player-speed-menu-item" data-rate="0.5">0.5 x <span></span></div>';
+    html += '          <div class="player-speed-menu-item" data-rate="0.75">0.75 x <span></span></div>';
+    html += '          <div class="player-speed-menu-item on" data-rate="1">1.0 x <span>✓</span></div>';
+    html += '          <div class="player-speed-menu-item" data-rate="1.5">1.5 x <span></span></div>';
+    html += '          <div class="player-speed-menu-item" data-rate="2">2.0 x <span></span></div>';
+    html += '          <div class="player-speed-menu-item" data-rate="4">4.0 x <span></span></div>';
+    html += '        </div>';
+    html += '        <button class="player-btn" id="btn-mute" title="静音">';
+    html += '          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>';
+    html += '        </button>';
+    html += '        <button class="player-btn" id="btn-fullscreen" title="全屏">';
+    html += '          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>';
+    html += '        </button>';
+    html += '        <button class="player-btn" id="btn-share" title="分享">';
+    html += '          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>';
+    html += '        </button>';
+    html += '        <div class="share-btn-popover" id="share-popover">';
+    html += '          <div class="sbi" data-share="copy">📋 复制链接</div>';
+    html += '          <div class="sbi" data-share="print">🖨 打印/导出PDF</div>';
+    html += '          <div class="sbi" data-share="kml">📥 导出轨迹 KML</div>';
+    html += '        </div>';
+    html += '      </div>';
+    html += '    </div>';
+    html += '  </div>';
+    html += '</div>';
+    html += '</div>';
+
+    root.innerHTML = html;
+    setTimeout(function () { bootstrapShipPage(type, item, tStart, tEnd); }, 0);
+  }
+
+  function tryCloseDetail() {
+    try {
+      if (window.parent && window.parent !== window && typeof window.parent.closeDynamicTab === 'function') {
+        var type = getQueryParam('type');
+        var id = getQueryParam('id');
+        window.parent.closeDynamicTab(type, id);
+        return;
+      }
+    } catch (e) {}
+    if (window.history.length > 1) window.history.back();
+    else { try { window.close(); } catch (e) {} }
+  }
+
+  function bootstrapShipPage(type, item, tStart, tEnd) {
+    var tcClose = document.getElementById('ship-tab-close');
+    var topClose = document.getElementById('ship-top-close');
+    if (tcClose) tcClose.addEventListener('click', tryCloseDetail);
+    if (topClose) topClose.addEventListener('click', tryCloseDetail);
+
+    var favBtn = document.getElementById('ship-fav-btn');
+    if (favBtn) {
+      favBtn.addEventListener('click', function () {
+        var on = favBtn.classList.toggle('on');
+        favBtn.innerHTML = on ? '★ 已收藏' : '☆ 收藏';
+      });
+    }
+
+    var quickBtns = document.querySelectorAll('.ship-time-quick');
+    quickBtns.forEach(function (q) {
+      q.addEventListener('click', function () {
+        quickBtns.forEach(function (x) { x.classList.remove('on'); });
+        q.classList.add('on');
+        var days = parseInt(q.getAttribute('data-range'), 10) || 7;
+        var e = new Date();
+        var s = new Date(e.getTime() - days * 24 * 3600 * 1000);
+        var ts = document.getElementById('t-start');
+        var te = document.getElementById('t-end');
+        if (ts) ts.textContent = formatDateTime(s);
+        if (te) te.textContent = formatDateTime(e);
+        regeneratePlayTrackForDays(item, days);
+      });
+    });
+
+    var toolSat = document.getElementById('tool-satellite');
+    if (toolSat) {
+      toolSat.addEventListener('click', function () {
+        if (!SHIP_PLAY || !SHIP_PLAY.map) return;
+        toolSat.classList.toggle('active');
+        var isSat = toolSat.classList.contains('active');
+        var AMap = window.AMap; if (!AMap) return;
+        if (isSat) {
+          SHIP_PLAY.map.setLayers([SHIP_PLAY.satLayer, SHIP_PLAY.roadLayer]);
+        } else {
+          SHIP_PLAY.map.setLayers([new AMap.TileLayer()]);
+        }
+      });
+    }
+    var downloadBtn = document.getElementById('tool-download');
+    if (downloadBtn) {
+      downloadBtn.addEventListener('click', function () {
+        if (!SHIP_PLAY || !SHIP_PLAY.fullTrack || !SHIP_PLAY.fullTrack.length) return;
+        var lines = ['Latitude,Longitude,Speed_knots,Heading_deg'];
+        SHIP_PLAY.fullTrack.forEach(function (pt, idx) {
+          lines.push(
+            pt[1].toFixed(6) + ',' + pt[0].toFixed(6) + ',' +
+            ((item.speed || 10) + Math.sin(idx / 3) * 3).toFixed(2) + ',' +
+            ((item.heading || 0) + idx * 3).toFixed(1)
+          );
+        });
+        var blob = new Blob([lines.join('\n')], { type: 'text/csv' });
+        var a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = (item.name || 'track') + '.csv';
+        a.click();
+      });
+    }
+    var zoomIn = document.getElementById('tool-zoom-in');
+    var zoomOut = document.getElementById('tool-zoom-out');
+    if (zoomIn) zoomIn.addEventListener('click', function () { if (SHIP_PLAY && SHIP_PLAY.map) SHIP_PLAY.map.zoomIn(); });
+    if (zoomOut) zoomOut.addEventListener('click', function () { if (SHIP_PLAY && SHIP_PLAY.map) SHIP_PLAY.map.zoomOut(); });
+
+    initPlayerUI(item);
+
+    loadAMap().then(function (AMap) {
+      initShipTrackMap(AMap, item);
+      drawPlayerWaveform(item);
+    }).catch(function (e) {
+      var mw = document.getElementById('shipMapWrap');
+      if (mw) {
+        mw.innerHTML = '<div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--ts-ink-2);text-align:center;padding:20px;">' +
+          '<div style="font-size:34px;margin-bottom:10px;">🗺️</div>' +
+          '<div style="font-size:14px;color:var(--ts-ink);margin-bottom:4px;">高德地图加载失败</div>' +
+          '<div style="font-size:12px;">' + escapeHtml(String(e && e.message || e)) + '</div>' +
+          '</div>';
+      }
+      drawPlayerWaveform(item);
+    });
+  }
+
+  // ========= Track sampling + playback =========
+  function resampleTrack(points, samples) {
+    if (!points || points.length === 0) return [];
+    if (points.length === 1) {
+      var arr = [];
+      for (var i = 0; i < samples; i++) arr.push([points[0][0], points[0][1]]);
+      return arr;
+    }
+    var segLens = []; var total = 0;
+    for (var i = 1; i < points.length; i++) {
+      var dx = points[i][0] - points[i-1][0];
+      var dy = points[i][1] - points[i-1][1];
+      var d = Math.sqrt(dx*dx + dy*dy);
+      segLens.push(d); total += d;
+    }
+    if (total === 0) {
+      var arr2 = [];
+      for (var j = 0; j < samples; j++) arr2.push([points[0][0], points[0][1]]);
+      return arr2;
+    }
+    var cum = [0];
+    for (var k = 0; k < segLens.length; k++) cum.push(cum[k] + segLens[k]);
+    var out = [];
+    for (var s = 0; s < samples; s++) {
+      var target = (s / (samples - 1)) * total;
+      var seg = 0;
+      while (seg < segLens.length && cum[seg+1] < target) seg++;
+      if (seg >= segLens.length) {
+        out.push([points[points.length-1][0], points[points.length-1][1]]);
+        continue;
+      }
+      var localT = (target - cum[seg]) / (segLens[seg] || 1);
+      var x = points[seg][0] + (points[seg+1][0] - points[seg][0]) * localT;
+      var y = points[seg][1] + (points[seg+1][1] - points[seg][1]) * localT;
+      out.push([x, y]);
+    }
+    return out;
+  }
+
+  function regeneratePlayTrackForDays(item, days) {
+    var base = (item.track && item.track.length) ? item.track.slice() : [item.pos || [121.5, 31.0]];
+    var steps = Math.round(base.length * (days / 7)) + 8;
+    steps = Math.min(120, Math.max(20, steps));
+    var jitter = 0.015 + Math.min(0.12, days * 0.002);
+    var center = base[Math.floor(base.length / 2)];
+    var lng = center[0], lat = center[1];
+    var newPts = [];
+    var dLng = (Math.random() - 0.5) * 0.08;
+    var dLat = (Math.random() - 0.5) * 0.08;
+    for (var i = 0; i < steps; i++) {
+      newPts.push([lng, lat]);
+      lng += dLng + (Math.random() - 0.5) * jitter;
+      lat += dLat + (Math.random() - 0.5) * jitter;
+      dLng *= 0.98; dLat *= 0.98;
+    }
+    if (!SHIP_PLAY) SHIP_PLAY = {};
+    SHIP_PLAY.fullTrack = newPts;
+    SHIP_PLAY.samples = resampleTrack(newPts, 1001);
+    SHIP_PLAY.progress = 0;
+    SHIP_PLAY.playing = false;
+    SHIP_PLAY.lastTs = 0;
+    updateBigPlayBtn();
+    updatePlayerUIProgress();
+    renderFullTrack();
+    moveMarkerToT(0);
+  }
+
+  function renderFullTrack() {
+    if (!SHIP_PLAY || !SHIP_PLAY.ghostLine || !SHIP_PLAY.fullTrack) return;
+    SHIP_PLAY.ghostLine.setPath(SHIP_PLAY.fullTrack);
+    try {
+      var AMap = window.AMap;
+      var trackRaw = SHIP_PLAY.fullTrack;
+      if (AMap && SHIP_PLAY.map && trackRaw.length > 1) {
+        var lngs = trackRaw.map(function (p) { return p[0]; });
+        var lats = trackRaw.map(function (p) { return p[1]; });
+        var b = new AMap.Bounds(
+          [Math.min.apply(null, lngs) - 0.05, Math.min.apply(null, lats) - 0.05],
+          [Math.max.apply(null, lngs) + 0.05, Math.max.apply(null, lats) + 0.05]
+        );
+        SHIP_PLAY.map.setBounds(b, true, [30, 30, 30, 30]);
+      }
+    } catch (e) {}
+  }
+
+  function getPointAtT(t) {
+    if (!SHIP_PLAY || !SHIP_PLAY.samples || !SHIP_PLAY.samples.length) return null;
+    var n = SHIP_PLAY.samples.length;
+    var idx = Math.max(0, Math.min(n - 1, Math.round(t * (n - 1))));
+    return SHIP_PLAY.samples[idx];
+  }
+  function headingBetween(a, b) {
+    if (!a || !b) return 0;
+    var dx = b[0] - a[0];
+    var dy = b[1] - a[1];
+    if (dx === 0 && dy === 0) return 0;
+    var rad = Math.atan2(dx, dy);
+    var deg = rad * 180 / Math.PI;
+    return (deg + 360) % 360;
+  }
+
+  function moveMarkerToT(t) {
+    if (!SHIP_PLAY) return;
+    t = Math.max(0, Math.min(1, t));
+    var p = getPointAtT(t);
+    if (!p) return;
+    var pPrev = getPointAtT(Math.max(0, t - 0.002));
+    var hdg = headingBetween(pPrev, p);
+    if (SHIP_PLAY.shipMarker) {
+      SHIP_PLAY.shipMarker.setPosition(p);
+      try {
+        var dom = SHIP_PLAY.shipMarker.getDom();
+        if (dom) {
+          var inner = dom.firstElementChild || dom;
+          if (inner) inner.style.transform = 'rotate(' + hdg.toFixed(1) + 'deg)';
+        }
+      } catch (e) {}
+    }
+    if (SHIP_PLAY.playLine && SHIP_PLAY.samples) {
+      var n = SHIP_PLAY.samples.length;
+      var endIdx = Math.max(1, Math.round(t * (n - 1)));
+      SHIP_PLAY.playLine.setPath(SHIP_PLAY.samples.slice(0, endIdx + 1));
+    }
+    if (SHIP_PLAY.autoFollow && SHIP_PLAY.map) {
+      try { SHIP_PLAY.map.panTo(p); } catch (e) {}
+    }
+  }
+
+  function initShipTrackMap(AMap, item) {
+    var mapEl = document.getElementById('shipMap');
+    if (!mapEl) return;
+    var trackRaw = (item.track && item.track.length) ? item.track.slice() : [item.pos || [121.5, 31.0]];
+    while (trackRaw.length < 30) trackRaw = trackRaw.concat(trackRaw.slice(0, 20));
+
+    var center = trackRaw[Math.floor(trackRaw.length / 2)];
+    var sat = new AMap.TileLayer.Satellite();
+    var road = new AMap.TileLayer.RoadNet();
+    var map = new AMap.Map('shipMap', {
+      viewMode: '2D',
+      mapStyle: 'amap://styles/normal',
+      layers: [sat, road],
+      zoom: 9,
+      center: center,
+      resizeEnable: true
+    });
+    if (map.FeatureLayer) {
+      try { map.setFeatures(['bg', 'road']); } catch (e) {}
+    }
+    var ghostLine = new AMap.Polyline({
+      path: trackRaw,
+      strokeColor: '#fb923c',
+      strokeWeight: 4,
+      strokeOpacity: 0.32,
+      strokeStyle: 'dashed',
+      lineJoin: 'round',
+      lineCap: 'round',
+      zIndex: 10
+    });
+    var playLine = new AMap.Polyline({
+      path: [trackRaw[0], trackRaw[0]],
+      strokeColor: '#fb923c',
+      strokeWeight: 6,
+      strokeOpacity: 0.95,
+      lineJoin: 'round',
+      lineCap: 'round',
+      zIndex: 20
+    });
+    var shipMarker = new AMap.Marker({
+      position: trackRaw[0],
+      anchor: 'center',
+      zIndex: 99,
+      angle: (item.heading || 0),
+      content:
+        '<div style="position:relative;width:40px;height:40px;display:flex;align-items:center;justify-content:center;">' +
+          '<div style="position:absolute;inset:-6px;border-radius:50%;border:2px solid rgba(74,222,128,0.55);box-shadow:0 0 18px rgba(74,222,128,0.45);"></div>' +
+          '<div style="position:absolute;width:52px;height:52px;border-radius:50%;background:radial-gradient(circle,rgba(74,222,128,0.35) 0%,transparent 70%);animation:tsShipPulse 2.2s ease-out infinite;"></div>' +
+          '<svg viewBox="0 0 34 34" width="30" height="30" xmlns="http://www.w3.org/2000/svg" style="filter:drop-shadow(0 2px 6px rgba(0,0,0,0.5));">' +
+            '<defs><linearGradient id="svG1" x1="0" y1="0" x2="0" y2="1">' +
+              '<stop offset="0%" stop-color="#86efac"/><stop offset="55%" stop-color="#22c55e"/><stop offset="100%" stop-color="#15803d"/></linearGradient>' +
+              '<linearGradient id="svG2" x1="0" y1="0" x2="0" y2="1">' +
+              '<stop offset="0%" stop-color="#fde68a"/><stop offset="100%" stop-color="#f59e0b"/></linearGradient></defs>' +
+            '<path d="M17 3 L25 12 L27 26 L22 28 L17 29 L12 28 L7 26 L9 12 Z" fill="url(#svG1)" stroke="#064e3b" stroke-width="0.7"/>' +
+            '<rect x="14" y="9" width="6" height="8" fill="url(#svG2)" stroke="#92400e" stroke-width="0.5"/>' +
+            '<circle cx="17" cy="20" r="1.1" fill="#064e3b"/>' +
+          '</svg>' +
+        '</div>'
+    });
+    ghostLine.setMap(map);
+    playLine.setMap(map);
+    shipMarker.setMap(map);
+
+    setTimeout(function () {
+      try {
+        if (trackRaw.length > 1) {
+          var lngs = trackRaw.map(function (p) { return p[0]; });
+          var lats = trackRaw.map(function (p) { return p[1]; });
+          var b = new AMap.Bounds(
+            [Math.min.apply(null, lngs) - 0.05, Math.min.apply(null, lats) - 0.05],
+            [Math.max.apply(null, lngs) + 0.05, Math.max.apply(null, lats) + 0.05]
+          );
+          map.setBounds(b, true, [30, 30, 30, 30]);
+        }
+      } catch (e) {}
+    }, 100);
+
+    if (!SHIP_PLAY) SHIP_PLAY = {};
+    SHIP_PLAY.map = map;
+    SHIP_PLAY.satLayer = sat;
+    SHIP_PLAY.roadLayer = road;
+    SHIP_PLAY.fullTrack = trackRaw.slice();
+    SHIP_PLAY.ghostLine = ghostLine;
+    SHIP_PLAY.playLine = playLine;
+    SHIP_PLAY.shipMarker = shipMarker;
+    SHIP_PLAY.samples = resampleTrack(trackRaw, 1001);
+    SHIP_PLAY.progress = 0.138;   // like screenshot
+    SHIP_PLAY.playing = false;
+    SHIP_PLAY.lastTs = 0;
+    SHIP_PLAY.playbackDurationSec = 155; // 2m35s
+    SHIP_PLAY.rate = 1.0;
+    SHIP_PLAY.muted = false;
+    SHIP_PLAY.autoFollow = true;
+
+    moveMarkerToT(SHIP_PLAY.progress);
+    updatePlayerUIProgress();
+    updateBigPlayBtn();
+  }
+
+  // ========= Player UI =========
+  function updateBigPlayBtn() {
+    var bigPlay = document.getElementById('shipBigPlay');
+    var iconPlay = document.getElementById('icon-play');
+    var isPlaying = SHIP_PLAY && SHIP_PLAY.playing;
+    if (bigPlay) {
+      bigPlay.classList.toggle('pause', !!isPlaying);
+      if (isPlaying) {
+        bigPlay.innerHTML = '<svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>';
+      } else {
+        bigPlay.innerHTML = '<svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 3 20 12 6 21 6 3"/></svg>';
+      }
+    }
+    if (iconPlay) {
+      iconPlay.innerHTML = isPlaying
+        ? '<rect x="6" y="4" width="4" height="16" fill="currentColor"/><rect x="14" y="4" width="4" height="16" fill="currentColor"/>'
+        : '<polygon points="6 3 20 12 6 21 6 3" fill="currentColor"/>';
+    }
+  }
+  function updatePlayerUIProgress() {
+    if (!SHIP_PLAY) return;
+    var totalSec = SHIP_PLAY.playbackDurationSec || 155;
+    var curSec = Math.floor(totalSec * SHIP_PLAY.progress);
+    var posEl = document.getElementById('player-pos');
+    var totEl = document.getElementById('player-total');
+    var remEl = document.getElementById('playerRemain');
+    var slider = document.getElementById('playerSlider');
+    var wm = document.getElementById('waveMask');
+    if (posEl) posEl.textContent = formatDuration(curSec);
+    if (totEl) totEl.textContent = formatDuration(totalSec);
+    if (remEl) {
+      var remain = Math.max(0, totalSec - curSec);
+      var m = Math.floor(remain / 60);
+      var s = remain % 60;
+      remEl.textContent = '剩余时间 ' + m + 'm' + String(s).padStart(2, '0') + 's';
+    }
+    var pct = Math.max(0, Math.min(100, SHIP_PLAY.progress * 100));
+    if (slider) {
+      if (!SHIP_PLAY.userScrubbing) slider.value = String(Math.round(SHIP_PLAY.progress * 1000));
+      slider.style.setProperty('--pct', pct.toFixed(2) + '%');
+    }
+    if (wm) wm.style.width = (100 - pct).toFixed(3) + '%';
+  }
+  function startPlayLoop() {
+    if (!SHIP_PLAY) return;
+    function tick(ts) {
+      if (!SHIP_PLAY || !SHIP_PLAY.playing) return;
+      if (SHIP_PLAY.lastTs === 0) SHIP_PLAY.lastTs = ts;
+      var dt = (ts - SHIP_PLAY.lastTs) / 1000;
+      SHIP_PLAY.lastTs = ts;
+      var totalSec = SHIP_PLAY.playbackDurationSec || 155;
+      var deltaT = (dt * (SHIP_PLAY.rate || 1)) / totalSec;
+      SHIP_PLAY.progress = Math.max(0, Math.min(1, SHIP_PLAY.progress + deltaT));
+      if (SHIP_PLAY.progress >= 1) {
+        SHIP_PLAY.playing = false;
+        SHIP_PLAY.progress = 1;
+        moveMarkerToT(1);
+        updateBigPlayBtn();
+        updatePlayerUIProgress();
+        return;
+      }
+      moveMarkerToT(SHIP_PLAY.progress);
+      updatePlayerUIProgress();
+      requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  }
+  function drawPlayerWaveform(item) {
+    var cv = document.getElementById('playerWaveCanvas');
+    if (!cv) return;
+    var rect = cv.getBoundingClientRect();
+    var dpr = window.devicePixelRatio || 1;
+    cv.width = Math.max(300, Math.floor(rect.width * dpr));
+    cv.height = Math.floor(28 * dpr);
+    var ctx = cv.getContext('2d');
+    ctx.clearRect(0, 0, cv.width, cv.height);
+    ctx.save();
+    ctx.scale(dpr, dpr);
+    var W = rect.width;
+    var H = 28;
+    var bars = 180;
+    var barW = (W / bars);
+    var baseSpeed = (item.speed || 12);
+    for (var i = 0; i < bars; i++) {
+      var t = i / (bars - 1);
+      // 3 harmonics wave, with envelope to mimic screenshot waveform
+      var amp = 0.55 +
+        0.35 * Math.sin(t * 2 * Math.PI * 2.3 + 1.1) +
+        0.12 * Math.sin(t * 2 * Math.PI * 6.7 + 0.4) +
+        0.08 * Math.sin(t * 2 * Math.PI * 13.2);
+      amp = Math.max(0.2, Math.min(1, amp));
+      // baseline drift
+      var drift = 0.08 * Math.sin(t * 2 * Math.PI * 0.6);
+      amp = Math.max(0.1, amp + drift);
+      var h = amp * (H * 0.86);
+      var x = i * barW;
+      var yTop = (H - h) / 2;
+      var grd = ctx.createLinearGradient(0, yTop, 0, yTop + h);
+      grd.addColorStop(0, 'rgba(56,189,248,0.95)');
+      grd.addColorStop(0.5, 'rgba(129,140,248,0.95)');
+      grd.addColorStop(1, 'rgba(192,132,252,0.95)');
+      ctx.fillStyle = grd;
+      // Thin bars
+      var bw = Math.max(1, barW * 0.66);
+      ctx.fillRect(x, yTop, bw, h);
+      // center reference line
+      ctx.fillStyle = 'rgba(255,255,255,0.06)';
+      ctx.fillRect(0, H / 2 - 0.4, W, 0.8);
+    }
+    // Simulate a vertical "needle" current-time mark by drawing marker
+    ctx.restore();
+  }
+
+  function initPlayerUI(item) {
+    var playBtn = document.getElementById('btn-play');
+    var bigPlay = document.getElementById('shipBigPlay');
+    function togglePlay() {
+      if (!SHIP_PLAY) return;
+      SHIP_PLAY.playing = !SHIP_PLAY.playing;
+      SHIP_PLAY.lastTs = 0;
+      updateBigPlayBtn();
+      if (SHIP_PLAY.playing) startPlayLoop();
+    }
+    if (playBtn) playBtn.addEventListener('click', togglePlay);
+    if (bigPlay) bigPlay.addEventListener('click', togglePlay);
+
+    function step(deltaSec) {
+      if (!SHIP_PLAY || !SHIP_PLAY.playbackDurationSec) return;
+      SHIP_PLAY.progress = Math.max(0, Math.min(1, SHIP_PLAY.progress + deltaSec / SHIP_PLAY.playbackDurationSec));
+      moveMarkerToT(SHIP_PLAY.progress);
+      updatePlayerUIProgress();
+    }
+    var stepB = document.getElementById('btn-step-back');
+    var stepF = document.getElementById('btn-step-fwd');
+    if (stepB) stepB.addEventListener('click', function () { step(-10); });
+    if (stepF) stepF.addEventListener('click', function () { step(10); });
+
+    var slider = document.getElementById('playerSlider');
+    if (slider) {
+      slider.addEventListener('input', function () {
+        if (!SHIP_PLAY) return;
+        var v = parseInt(slider.value, 10);
+        SHIP_PLAY.progress = Math.max(0, Math.min(1, v / 1000));
+        moveMarkerToT(SHIP_PLAY.progress);
+        updatePlayerUIProgress();
+      });
+      slider.addEventListener('mousedown', function () { if (SHIP_PLAY) SHIP_PLAY.userScrubbing = true; });
+      slider.addEventListener('mouseup',   function () { if (SHIP_PLAY) SHIP_PLAY.userScrubbing = false; });
+      slider.addEventListener('touchstart',function () { if (SHIP_PLAY) SHIP_PLAY.userScrubbing = true; });
+      slider.addEventListener('touchend',  function () { if (SHIP_PLAY) SHIP_PLAY.userScrubbing = false; });
+    }
+
+    var speedBtn = document.getElementById('player-speed-btn');
+    var speedMenu = document.getElementById('player-speed-menu');
+    var shareBtn = document.getElementById('btn-share');
+    var sharePopover = document.getElementById('share-popover');
+    function closePopovers(keep) {
+      if (speedMenu && keep !== 'speed') speedMenu.classList.remove('open');
+      if (sharePopover && keep !== 'share') sharePopover.classList.remove('open');
+    }
+    if (speedBtn && speedMenu) {
+      speedBtn.addEventListener('click', function (ev) {
+        ev.stopPropagation();
+        var isOpen = speedMenu.classList.toggle('open');
+        if (isOpen) closePopovers('speed');
+      });
+      speedMenu.addEventListener('click', function (ev) {
+        var target = ev.target && ev.target.closest && ev.target.closest('.player-speed-menu-item');
+        if (!target) return;
+        var rate = parseFloat(target.getAttribute('data-rate')) || 1;
+        if (SHIP_PLAY) SHIP_PLAY.rate = rate;
+        speedMenu.querySelectorAll('.player-speed-menu-item').forEach(function (it) {
+          var on = parseFloat(it.getAttribute('data-rate')) === rate;
+          it.classList.toggle('on', on);
+          var sp = it.querySelector('span:last-child');
+          if (sp) sp.textContent = on ? '✓' : '';
+        });
+        speedBtn.textContent = (rate === Math.round(rate) ? (rate + '.0') : String(rate)) + 'x ▾';
+        speedMenu.classList.remove('open');
+      });
+    }
+    var muteBtn = document.getElementById('btn-mute');
+    if (muteBtn) {
+      muteBtn.addEventListener('click', function () {
+        if (!SHIP_PLAY) SHIP_PLAY = {};
+        SHIP_PLAY.muted = !SHIP_PLAY.muted;
+        muteBtn.style.color = SHIP_PLAY.muted ? 'var(--ts-warn)' : '';
+        muteBtn.style.borderColor = SHIP_PLAY.muted ? 'rgba(251,146,60,0.35)' : '';
+        if (SHIP_PLAY.muted) showToast('已静音'); else showToast('已开启声音');
+      });
+    }
+    var fsBtn = document.getElementById('btn-fullscreen');
+    if (fsBtn) {
+      fsBtn.addEventListener('click', function () {
+        var el = document.documentElement;
+        var isFs = document.fullscreenElement || document.webkitFullscreenElement;
+        try {
+          if (isFs) {
+            (document.exitFullscreen || document.webkitExitFullscreen || function () {}).call(document);
+          } else {
+            (el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen || function () {}).call(el);
+          }
+        } catch (e) { showToast('当前环境不支持全屏'); }
+      });
+    }
+    if (shareBtn && sharePopover) {
+      shareBtn.addEventListener('click', function (ev) {
+        ev.stopPropagation();
+        var isOpen = sharePopover.classList.toggle('open');
+        if (isOpen) closePopovers('share');
+      });
+      sharePopover.addEventListener('click', function (ev) {
+        var sbi = ev.target && ev.target.closest && ev.target.closest('.sbi');
+        if (!sbi) return;
+        var kind = sbi.getAttribute('data-share');
+        if (kind === 'copy') {
+          var url = window.location.href;
+          var done = function () { sharePopover.classList.remove('open'); showToast('链接已复制'); };
+          try {
+            if (navigator.clipboard) {
+              navigator.clipboard.writeText(url).then(done, function () {
+                var i = document.createElement('input');
+                i.value = url; document.body.appendChild(i); i.select();
+                try { document.execCommand('copy'); } catch (e) {}
+                i.remove(); done();
+              });
+            } else {
+              var i = document.createElement('input');
+              i.value = url; document.body.appendChild(i); i.select();
+              try { document.execCommand('copy'); } catch (e) {}
+              i.remove(); done();
+            }
+          } catch (e) { done(); }
+        } else if (kind === 'print') {
+          try { window.print(); } catch (e) { showToast('无法打印'); }
+        } else if (kind === 'kml') {
+          if (!SHIP_PLAY || !SHIP_PLAY.fullTrack) { showToast('暂无轨迹可导出'); return; }
+          var coordStr = SHIP_PLAY.fullTrack.map(function (p) { return p[0] + ',' + p[1] + ',0'; }).join('\n');
+          var kml = '<?xml version="1.0" encoding="UTF-8"?>\n<kml xmlns="http://www.opengis.net/kml/2.2"><Document><name>' +
+            escapeHtml(item.name || 'Track') + '</name><Placemark><LineString><tessellate>1</tessellate><coordinates>\n' +
+            coordStr + '\n</coordinates></LineString></Placemark></Document></kml>';
+          var blob2 = new Blob([kml], { type: 'application/vnd.google-earth.kml+xml' });
+          var a2 = document.createElement('a');
+          a2.href = URL.createObjectURL(blob2);
+          a2.download = (item.name || 'track') + '.kml';
+          a2.click();
+          sharePopover.classList.remove('open');
+          showToast('KML 已导出');
+        }
+      });
+    }
+    document.addEventListener('click', function () { closePopovers(null); });
+  }
+
+  // ========= Page entry =========
+  (function pageInit() {
+    var root = document.getElementById('app-root');
+    var type = getQueryParam('type') || 'ship';
+    var id = getQueryParam('id') || '';
+    var data = getTacticalData();
+    var item = findTarget(data, type, id);
+
+    if (type === 'ship' && item) {
+      renderShipLayout(type, item, root);
+    } else {
+      renderGenericCard(type, item, root);
+    }
+  })();
+</script>
+</body>
+</html>

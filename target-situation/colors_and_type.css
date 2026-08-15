@@ -1,0 +1,97 @@
+:root {
+  --gsa-bg: #152030;
+  --gsa-bg-elevated: #1c2a3d;
+  --gsa-surface: rgba(28, 42, 61, 0.78);
+  --gsa-surface-solid: #1c2a3d;
+  --gsa-surface-hover: rgba(38, 56, 80, 0.86);
+  --gsa-ink: #e8eaed;
+  --gsa-ink-2: rgba(232, 234, 237, 0.72);
+  --gsa-ink-3: rgba(232, 234, 237, 0.48);
+  --gsa-line: rgba(255, 255, 255, 0.10);
+  --gsa-border: rgba(255, 255, 255, 0.12);
+
+  --gsa-primary: #38bdf8;
+  --gsa-primary-ink: #0b1220;
+  --gsa-primary-dim: rgba(56, 189, 248, 0.16);
+
+  --gsa-friendly: #4ade80;
+  --gsa-enemy: #f87171;
+  --gsa-unknown: #fbbf24;
+  --gsa-satellite: #c084fc;
+  --gsa-missile: #fb923c;
+  --gsa-port: #94a3b8;
+  --gsa-airport: #94a3b8;
+  --gsa-base: #94a3b8;
+  --gsa-ground-station: #94a3b8;
+  --gsa-launch-site: #94a3b8;
+
+  --gsa-state-success: #4ade80;
+  --gsa-state-warning: #fbbf24;
+  --gsa-state-error: #f87171;
+  --gsa-state-info: #38bdf8;
+
+  --gsa-threat-low: #4ade80;
+  --gsa-threat-medium: #fbbf24;
+  --gsa-threat-high: #fb923c;
+  --gsa-threat-critical: #f87171;
+
+  --gsa-radius-sm: 2px;
+  --gsa-radius-md: 8px;
+  --gsa-radius-lg: 12px;
+
+  --gsa-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.16), 0 1px 1px rgba(0, 0, 0, 0.10);
+  --gsa-shadow-md: 0 8px 24px -8px rgba(0, 0, 0, 0.36);
+
+  --gsa-font-title: Inter, "Noto Sans SC", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+  --gsa-font-body: Inter, "Noto Sans SC", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+  --gsa-font-mono: "SF Mono", "Fira Code", "Source Code Pro", Consolas, monospace;
+
+  --gsa-backdrop: blur(12px) saturate(140%);
+
+  /* Semantic aliases required by head contract */
+  --gsa-background: var(--gsa-bg);
+  --gsa-foreground: var(--gsa-ink);
+  --gsa-card: var(--gsa-surface-solid);
+  --gsa-card-foreground: var(--gsa-ink);
+  --gsa-popover: var(--gsa-surface-solid);
+  --gsa-popover-foreground: var(--gsa-ink);
+  --gsa-muted: rgba(255, 255, 255, 0.08);
+  --gsa-muted-foreground: var(--gsa-ink-2);
+  --gsa-border: var(--gsa-border);
+  --gsa-input: var(--gsa-surface-solid);
+  --gsa-ring: var(--gsa-primary);
+  --gsa-radius-small: var(--gsa-radius-sm);
+  --gsa-radius-medium: var(--gsa-radius-md);
+  --gsa-radius-large: var(--gsa-radius-lg);
+}
+
+.dark {
+  --gsa-background: var(--gsa-bg);
+  --gsa-foreground: var(--gsa-ink);
+  --gsa-card: var(--gsa-surface-solid);
+  --gsa-card-foreground: var(--gsa-ink);
+  --gsa-popover: var(--gsa-surface-solid);
+  --gsa-popover-foreground: var(--gsa-ink);
+  --gsa-muted: rgba(255, 255, 255, 0.08);
+  --gsa-muted-foreground: var(--gsa-ink-2);
+  --gsa-border: rgba(255, 255, 255, 0.12);
+  --gsa-input: var(--gsa-surface-solid);
+  --gsa-ring: var(--gsa-primary);
+}
+
+.gsa-title {
+  font-family: var(--gsa-font-title);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.gsa-body {
+  font-family: var(--gsa-font-body);
+  font-weight: 400;
+  line-height: 1.55;
+}
+
+.gsa-mono {
+  font-family: var(--gsa-font-mono);
+  font-variant-numeric: tabular-nums;
+}
