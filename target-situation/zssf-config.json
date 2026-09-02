@@ -1,11 +1,12 @@
 {
   "_comment": "zssf 走私识别算法配置 - 静默行为检测参数(可随时调整优化)",
   "_alias": "zssf",
-  "_version": "1.0",
+  "_version": "1.1",
   "params": {
     "coastlineDistanceKm": 5,
     "silenceDurationMin": 45,
     "restartDisplacementKm": 10,
+    "minPortDistanceKm": 3,
     "silenceTimeWindow": {
       "start": "18:00",
       "end": "06:00"
@@ -15,6 +16,7 @@
     "coastlineDistanceKm": "船舶静默开始位置距离海岸线的最小距离(KM), 超过此值才算离岸静默",
     "silenceTimeWindow": "船舶开始静默的时间区间, 用于过滤特定时段",
     "silenceDurationMin": "静默(无AIS信号)最短时长(分钟), 超过此值才算静默",
-    "restartDisplacementKm": "静默后第一次恢复AIS的位置与静默开始位置的最大距离(KM), 小于此值说明船舶未显著移动"
+    "restartDisplacementKm": "静默后第一次恢复AIS的位置与静默开始位置的最大距离(KM), 小于此值说明船舶未显著移动",
+    "minPortDistanceKm": "船舶静默开始位置距离最近码头的最小距离(KM), 超过此值说明船舶远离码头/海上可疑静默"
   }
 }

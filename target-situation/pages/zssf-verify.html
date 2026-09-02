@@ -314,6 +314,11 @@
     <span class="hint">KM(千米)</span>
   </div>
   <div class="cfg-item">
+    <label>距最近码头</label>
+    <input type="number" id="cfg-port" min="0" step="1" value="3">
+    <span class="hint">KM(&gt;)</span>
+  </div>
+  <div class="cfg-item">
     <label>时间窗起</label>
     <input type="text" id="cfg-tstart" value="18:00">
   </div>
@@ -421,6 +426,7 @@
       document.getElementById('cfg-coast').value = p.coastlineDistanceKm;
       document.getElementById('cfg-duration').value = p.silenceDurationMin;
       document.getElementById('cfg-displacement').value = p.restartDisplacementKm;
+      document.getElementById('cfg-port').value = p.minPortDistanceKm != null ? p.minPortDistanceKm : 3;
       document.getElementById('cfg-tstart').value = p.silenceTimeWindow.start;
       document.getElementById('cfg-tend').value = p.silenceTimeWindow.end;
     }).catch(function(e){ console.error('config error', e); });
@@ -431,6 +437,7 @@
       coastlineDistanceKm: parseFloat(document.getElementById('cfg-coast').value),
       silenceDurationMin: parseFloat(document.getElementById('cfg-duration').value),
       restartDisplacementKm: parseFloat(document.getElementById('cfg-displacement').value),
+      minPortDistanceKm: parseFloat(document.getElementById('cfg-port').value),
       silenceTimeWindow: {
         start: document.getElementById('cfg-tstart').value,
         end: document.getElementById('cfg-tend').value
@@ -476,6 +483,7 @@
       coastlineDistanceKm: parseFloat(document.getElementById('cfg-coast').value),
       silenceDurationMin: parseFloat(document.getElementById('cfg-duration').value),
       restartDisplacementKm: parseFloat(document.getElementById('cfg-displacement').value),
+      minPortDistanceKm: parseFloat(document.getElementById('cfg-port').value),
       silenceTimeWindow: {
         start: document.getElementById('cfg-tstart').value,
         end: document.getElementById('cfg-tend').value
@@ -537,6 +545,7 @@
           var dur = parseFloat(r.silent_duration_min)||0;
           var coast = parseFloat(r.coastline_distance_km)||0;
           var disp = parseFloat(r.displacement_km)||0;
+          var port = r.nearest_port_distance_km != null ? parseFloat(r.nearest_port_distance_km) : null;
           return '<div class="list-item" data-idx="' + idx + '" onclick="selectResult(' + idx + ')">' +
             '<div class="li-head">' +
               '<span class="li-mmsi">' + r.mmsi + '</span>' +
@@ -545,6 +554,7 @@
             '</div>' +
             '<div class="li-meta">' +
               '<span>距岸 <b>' + coast.toFixed(2) + 'KM</b></span>' +
+              (port != null ? '<span>距码头 <b>' + port.toFixed(2) + 'KM</b></span>' : '') +
               '<span>位移 <b>' + disp.toFixed(2) + 'KM</b></span>' +
               '<span>' + fmtTime(r.silent_start_time) + '</span>' +
             '</div>' +
@@ -692,12 +702,19 @@
     var dur = parseFloat(r.silent_duration_min)||0;
     var coast = parseFloat(r.coastline_distance_km)||0;
     var disp = parseFloat(r.displacement_km)||0;
+    var port = r.nearest_port_distance_km != null ? parseFloat(r.nearest_port_distance_km) : null;
+    var portName = r.nearest_port_name || '';
+    var portRow = port != null
+      ? '<div class="dc-row"><span class="k">距码头</span><span class="v" style="color:var(--primary)">' + port.toFixed(2) + ' KM</span></div>' +
+        (portName ? '<div class="dc-row"><span class="k">最近码头</span><span class="v">' + escHtml(portName) + '</span></div>' : '')
+      : '';
     card.innerHTML =
       '<div class="dc-title"><span>' + r.mmsi + ' · ' + escHtml(r.vessel_name||'-') + '</span></div>' +
       '<div class="dc-row"><span class="k">静默开</span><span class="v">' + fmtTime(r.silent_start_time) + '</span></div>' +
       '<div class="dc-row"><span class="k">静默结束</span><span class="v">' + fmtTime(r.silent_end_time) + '</span></div>' +
       '<div class="dc-row"><span class="k">静默时长</span><span class="v" style="color:var(--warn)">' + dur.toFixed(1) + ' 分钟</span></div>' +
       '<div class="dc-row"><span class="k">距岸距离</span><span class="v" style="color:var(--danger)">' + coast.toFixed(2) + ' KM</span></div>' +
+      portRow +
       '<div class="dc-row"><span class="k">恢复位移</span><span class="v">' + disp.toFixed(2) + ' KM</span></div>' +
       '<div class="dc-row"><span class="k">速度前→</span><span class="v">' + (r.sog_before==null?'-':r.sog_before) + ' ' + (r.sog_after==null?'-':r.sog_after) + ' kn</span></div>' +
       '<div class="dc-row"><span class="k">船旗</span><span class="v">' + escHtml(r.flag_country_cn||'-') + '</span></div>' +

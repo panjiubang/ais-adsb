@@ -27,6 +27,7 @@ const DB_CONFIG = {
 // ====== 配置文件加载 ======
 const CONFIG_PATH = path.join(__dirname, 'zssf-config.json');
 const COASTLINE_PATH = path.join(__dirname, 'coastline-gz.json');
+const PORTS_PATH = path.join(__dirname, 'ports.json');
 
 function loadConfig() {
   const raw = fs.readFileSync(CONFIG_PATH, 'utf8');
@@ -37,6 +38,17 @@ function loadCoastline() {
   const raw = fs.readFileSync(COASTLINE_PATH, 'utf8');
   const data = JSON.parse(raw);
   return data.segments;
+}
+
+function loadPorts() {
+  if (!fs.existsSync(PORTS_PATH)) {
+    console.warn('[zssf] ports.json 不存在, 码头距离过滤不生效');
+    return [];
+  }
+  const raw = fs.readFileSync(PORTS_PATH, 'utf8');
+  const data = JSON.parse(raw);
+  console.log('[zssf] 已加载 %d 个码头/港口点', (data.ports || []).length);
+  return data.ports || [];
 }
 
 // ====== 地理计算工具 ======
@@ -98,6 +110,24 @@ function distanceToCoastline(lng, lat, coastSegments) {
   return minDist;
 }
 
+/**
+ * 计算点到最近码头/港口的距离(KM)
+ * ports: [{name, lng, lat, type}, ...]
+ * 返回 { distKm, nearest }
+ */
+function distanceToNearestPort(lng, lat, ports) {
+  if (!ports || ports.length === 0) return { distKm: Infinity, nearest: null };
+  let minDist = Infinity, nearest = null;
+  for (const p of ports) {
+    const d = haversineKm(lng, lat, p.lng, p.lat);
+    if (d < minDist) {
+      minDist = d;
+      nearest = p;
+    }
+  }
+  return { distKm: minDist, nearest };
+}
+
 // ====== 时间工具 ======
 
 function parseTime(ts) {
@@ -142,6 +172,8 @@ async function ensureTable(conn) {
       silent_end_lng   DECIMAL(11,6)                   COMMENT '静默结束位置经度',
       silent_end_lat   DECIMAL(11,6)                   COMMENT '静默结束位置纬度',
       coastline_distance_km DECIMAL(10,2)              COMMENT '静默开始位置距海岸线距离(KM)',
+      nearest_port_distance_km DECIMAL(10,2)            COMMENT '静默开始位置距最近码头距离(KM)',
+      nearest_port_name VARCHAR(200)                    COMMENT '最近码头名称',
       displacement_km  DECIMAL(10,2)                    COMMENT '静默后位移距离(KM)',
       sog_before       DOUBLE                           COMMENT '静默前速度(节)',
       sog_after        DOUBLE                           COMMENT '静默后速度(节)',
@@ -156,9 +188,23 @@ async function ensureTable(conn) {
       create_time      DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '入库时间',
       INDEX idx_mmsi (mmsi),
       INDEX idx_silent_time (silent_start_time),
-      INDEX idx_coastline_dist (coastline_distance_km)
+      INDEX idx_coastline_dist (coastline_distance_km),
+      INDEX idx_port_dist (nearest_port_distance_km)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='zssf走私识别-船舶静默行为检测结果表'
   `);
+  // 兼容: 老表没有新字段时自动 ALTER
+  const [cols] = await conn.query(
+    `SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS
+     WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'risk_zousi'`
+  );
+  const colSet = new Set(cols.map(c => c.COLUMN_NAME));
+  if (!colSet.has('nearest_port_distance_km')) {
+    await conn.query(`ALTER TABLE risk_zousi
+      ADD COLUMN nearest_port_distance_km DECIMAL(10,2) COMMENT '静默开始位置距最近码头距离(KM)' AFTER coastline_distance_km,
+      ADD COLUMN nearest_port_name VARCHAR(200) COMMENT '最近码头名称' AFTER nearest_port_distance_km,
+      ADD INDEX idx_port_dist (nearest_port_distance_km)`);
+    console.log('[zssf] 已为 risk_zousi 表补充码头距离/名称字段');
+  }
   console.log('[zssf] risk_zousi 表已就绪');
 }
 
@@ -196,6 +242,7 @@ function vesselTypeCn(code) {
 async function runAlgorithm(dryRun) {
   const params = loadConfig();
   const coastSegments = loadCoastline();
+  const ports = loadPorts();
   console.log('[zssf] 配置参数:', JSON.stringify(params));
 
   const conn = await mysql.createConnection(DB_CONFIG);
@@ -263,6 +310,13 @@ async function runAlgorithm(dryRun) {
       );
       if (coastDist >= params.coastlineDistanceKm) continue;
 
+      // 条件5: 静默开始位置距离最近码头 >= minPortDistanceKm (远离码头才算海上可疑静默)
+      // 如果 minPortDistanceKm 是 0 或未定义则跳过此项
+      const portDist = distanceToNearestPort(
+        parseFloat(cur.longitude), parseFloat(cur.latitude), ports
+      );
+      if (params.minPortDistanceKm && portDist.distKm < params.minPortDistanceKm) continue;
+
       // 条件4: 恢复位置与静默开始位置距离 <= restartDisplacementKm
       const displacement = haversineKm(
         parseFloat(cur.longitude), parseFloat(cur.latitude),
@@ -282,6 +336,8 @@ async function runAlgorithm(dryRun) {
         silent_end_lng: parseFloat(next.longitude).toFixed(6),
         silent_end_lat: parseFloat(next.latitude).toFixed(6),
         coastline_distance_km: coastDist.toFixed(2),
+        nearest_port_distance_km: isFinite(portDist.distKm) ? portDist.distKm.toFixed(2) : null,
+        nearest_port_name: portDist.nearest ? (portDist.nearest.name || portDist.nearest.type || '未知码头') : null,
         displacement_km: displacement.toFixed(2),
         sog_before: cur.sog_kn,
         sog_after: next.sog_kn,
@@ -303,11 +359,12 @@ async function runAlgorithm(dryRun) {
   // 打印前10条结果
   if (results.length > 0) {
     console.log('\n[zssf] 前10条结果预览:');
-    console.log('MMSI | 船名 | 静默开始 | 时长(分) | 距岸(KM) | 位移(KM) | 速度前→后');
+    console.log('MMSI | 船名 | 静默开始 | 时长(分) | 距岸(KM) | 距码头(KM) | 位移(KM) | 速度前→后');
     results.slice(0, 10).forEach(r => {
-      console.log('%s | %s | %s | %s | %s | %s | %s→%s',
+      console.log('%s | %s | %s | %s | %s | %s | %s | %s→%s',
         r.mmsi, r.vessel_name, r.silent_start_time,
         r.silent_duration_min, r.coastline_distance_km,
+        r.nearest_port_distance_km || '-',
         r.displacement_km, r.sog_before, r.sog_after);
     });
   }
@@ -318,6 +375,7 @@ async function runAlgorithm(dryRun) {
          (mmsi, vessel_name, silent_start_time, silent_end_time,
           silent_duration_min, silent_start_lng, silent_start_lat,
           silent_end_lng, silent_end_lat, coastline_distance_km,
+          nearest_port_distance_km, nearest_port_name,
           displacement_km, sog_before, sog_after,
           nav_status_before, nav_status_after, flag_country_cn,
           vessel_type_name, vessel_type, vessel_type_name_cn, destination, algo_params)
@@ -329,6 +387,7 @@ async function runAlgorithm(dryRun) {
         r.mmsi, r.vessel_name, r.silent_start_time, r.silent_end_time,
         r.silent_duration_min, r.silent_start_lng, r.silent_start_lat,
         r.silent_end_lng, r.silent_end_lat, r.coastline_distance_km,
+        r.nearest_port_distance_km, r.nearest_port_name,
         r.displacement_km, r.sog_before, r.sog_after,
         r.nav_status_before, r.nav_status_after, r.flag_country_cn,
         r.vessel_type_name, r.vessel_type, r.vessel_type_name_cn, r.destination, r.algo_params
