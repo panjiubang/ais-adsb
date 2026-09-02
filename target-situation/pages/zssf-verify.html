@@ -306,7 +306,7 @@
   <div class="cfg-item">
     <label>静默时长</label>
     <input type="number" id="cfg-duration" min="1" step="1" value="45">
-    <span class="hint">公里</span>
+    <span class="hint">分钟</span>
   </div>
   <div class="cfg-item">
     <label>恢复位移</label>
@@ -697,7 +697,7 @@
       '<div class="dc-title"><span>' + r.mmsi + ' · ' + escHtml(r.vessel_name||'-') + '</span></div>' +
       '<div class="dc-row"><span class="k">静默开</span><span class="v">' + fmtTime(r.silent_start_time) + '</span></div>' +
       '<div class="dc-row"><span class="k">静默结束</span><span class="v">' + fmtTime(r.silent_end_time) + '</span></div>' +
-      '<div class="dc-row"><span class="k">静默时长</span><span class="v" style="color:var(--warn)">' + dur.toFixed(1) + ' </span></div>' +
+      '<div class="dc-row"><span class="k">静默时长</span><span class="v" style="color:var(--warn)">' + dur.toFixed(1) + ' 分钟</span></div>' +
       '<div class="dc-row"><span class="k">距岸距离</span><span class="v" style="color:var(--danger)">' + coast.toFixed(2) + ' KM</span></div>' +
       '<div class="dc-row"><span class="k">恢复位移</span><span class="v">' + disp.toFixed(2) + ' KM</span></div>' +
       '<div class="dc-row"><span class="k">速度前→</span><span class="v">' + (r.sog_before==null?'-':r.sog_before) + ' ' + (r.sog_after==null?'-':r.sog_after) + ' kn</span></div>' +
