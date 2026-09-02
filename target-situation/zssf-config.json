@@ -3,7 +3,7 @@
   "_alias": "zssf",
   "_version": "1.0",
   "params": {
-    "coastlineDistanceKm": 100,
+    "coastlineDistanceKm": 5,
     "silenceDurationMin": 45,
     "restartDisplacementKm": 10,
     "silenceTimeWindow": {
