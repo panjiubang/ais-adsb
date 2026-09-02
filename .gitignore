@@ -89,10 +89,18 @@ final-check.js
 fix-*.js
 fix[0-9]*.js
 bisect.js
+fetch-coastline.js
+regenerate-coastline.js
+regenerate-coastline-osm.js
+regenerate-coastline-stream.js
+verify-coastline-new.js
+coastline-raw.json
 
 # ---- Temporary data directories ----
 3702/
 ais_data/
+_*/
+_coastlines_unzipped/
 
 # ---- Temporary text / scratch files ----
 *.txt
