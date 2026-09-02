@@ -1,0 +1,1490 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>某海域DW态势</title>
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+  :root{
+    --bg:#0B1220;
+    --bg2:#0f1a2e;
+    --bg3:#0d1526;
+    --panel:#0f1a2e;
+    --panel2:#101c33;
+    --text:#e2e8f0;
+    --text2:#94a3b8;
+    --text3:#64748b;
+    --border:#1e293b;
+    --border2:#243349;
+    --blue:#3b82f6;
+    --red:#ef4444;
+    --yellow:#eab308;
+    --black:#64748b;
+    --accent:#38bdf8;
+    --nav-h:58px;
+    --status-h:34px;
+    --left-w:300px;
+    --right-w:340px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:"Microsoft YaHei","PingFang SC","Segoe UI",system-ui,sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    overflow:hidden;
+    font-size:12px;
+  }
+  button{font-family:inherit;cursor:pointer;color:var(--text2);background:transparent;border:1px solid var(--border2);border-radius:4px;padding:3px 8px;font-size:11px;transition:all .15s}
+  button:hover{color:var(--text);border-color:var(--accent);background:rgba(56,189,248,.08)}
+  button.active{color:var(--accent);border-color:var(--accent);background:rgba(56,189,248,.12)}
+  input,select{font-family:inherit;background:var(--bg3);color:var(--text);border:1px solid var(--border2);border-radius:4px;padding:3px 6px;font-size:11px;outline:none}
+  input:focus,select:focus{border-color:var(--accent)}
+  input[type=checkbox]{accent-color:var(--accent);width:12px;height:12px;cursor:pointer;vertical-align:middle}
+  input[type=range]{accent-color:var(--accent);height:4px;padding:0}
+  ::-webkit-scrollbar{width:6px;height:6px}
+  ::-webkit-scrollbar-thumb{background:#2a3b54;border-radius:3px}
+  ::-webkit-scrollbar-thumb:hover{background:#3a4b64}
+  ::-webkit-scrollbar-track{background:transparent}
+  .icon{width:14px;height:14px;display:inline-block;vertical-align:middle}
+
+  #app{display:flex;flex-direction:column;height:100vh}
+
+  /* ===== Top Nav ===== */
+  .top-nav{
+    height:var(--nav-h);flex-shrink:0;
+    background:linear-gradient(180deg,#0a1424,#0d1830);
+    border-bottom:1px solid var(--border);
+    display:flex;align-items:center;gap:14px;
+    padding:0 14px;
+    overflow-x:auto;
+  }
+  .top-nav::-webkit-scrollbar{height:0}
+  .nav-title{
+    font-size:16px;font-weight:700;color:#fff;white-space:nowrap;
+    letter-spacing:1px;
+    text-shadow:0 0 10px rgba(56,189,248,.5);
+  }
+  .nav-title .badge{color:var(--accent);font-size:10px;margin-left:4px}
+  .nav-group{display:flex;align-items:center;gap:6px;white-space:nowrap;padding:0 8px;border-left:1px solid var(--border)}
+  .nav-group:first-of-type{border-left:none}
+  .nav-group .lbl{color:var(--text3);font-size:10px;margin-right:2px}
+  .nav-sep{width:1px;height:24px;background:var(--border)}
+
+  .playback{display:flex;align-items:center;gap:4px}
+  .pb-btn{width:26px;height:26px;display:flex;align-items:center;justify-content:center;padding:0;border-radius:4px}
+  .pb-btn:hover{color:#fff}
+  .pb-time{color:var(--accent);font-size:11px;font-family:Consolas,monospace;min-width:120px;text-align:center;background:rgba(56,189,248,.08);padding:3px 6px;border-radius:4px;border:1px solid rgba(56,189,248,.2)}
+
+  .ds-check{display:flex;align-items:center;gap:3px;font-size:10px;color:var(--text2);cursor:pointer;white-space:nowrap}
+  .ds-check:hover{color:var(--text)}
+
+  .tool-btn{display:flex;align-items:center;gap:3px;padding:4px 8px;font-size:11px}
+
+  /* ===== Main ===== */
+  .main-area{flex:1;display:flex;overflow:hidden;min-height:0}
+
+  /* ===== Left Panel ===== */
+  .left-panel{
+    width:var(--left-w);flex-shrink:0;
+    background:var(--panel);
+    border-right:1px solid var(--border);
+    display:flex;flex-direction:column;
+    transition:width .2s;
+    overflow:hidden;
+  }
+  .left-panel.collapsed{width:0;border-right:none}
+  .panel-tabs{display:flex;border-bottom:1px solid var(--border);background:var(--bg2);flex-shrink:0}
+  .ptab{
+    flex:1;padding:8px 4px;text-align:center;font-size:11px;color:var(--text2);
+    cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;
+  }
+  .ptab:hover{color:var(--text);background:rgba(56,189,248,.05)}
+  .ptab.active{color:var(--accent);border-bottom-color:var(--accent);background:rgba(56,189,248,.08)}
+  .panel-body{flex:1;overflow-y:auto;padding:8px}
+  .panel-body::-webkit-scrollbar{width:5px}
+
+  .collapse-btn{
+    position:absolute;top:50%;transform:translateY(-50%);
+    width:16px;height:48px;background:var(--panel2);border:1px solid var(--border);
+    display:flex;align-items:center;justify-content:center;cursor:pointer;
+    color:var(--text2);z-index:10;font-size:10px;
+  }
+  .collapse-btn:hover{color:var(--accent)}
+  .collapse-btn.left{right:-16px;border-radius:0 4px 4px 0}
+  .collapse-btn.right{left:-16px;border-radius:4px 0 0 4px 0}
+
+  .left-panel,.right-panel{position:relative}
+
+  /* Stats row */
+  .stats-row{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px}
+  .stat-chip{
+    background:var(--bg3);border:1px solid var(--border2);border-radius:5px;
+    padding:6px 8px;display:flex;align-items:center;justify-content:space-between;
+  }
+  .stat-chip .dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:4px}
+  .stat-chip .n{font-weight:700;font-size:14px}
+
+  /* Tree / List */
+  .group-title{
+    font-size:11px;color:var(--text2);font-weight:600;
+    padding:6px 4px;margin-top:4px;display:flex;align-items:center;gap:4px;
+    border-bottom:1px dashed var(--border2);
+  }
+  .group-title .cnt{color:var(--text3);font-weight:400;margin-left:auto}
+
+  .target-row{
+    display:grid;grid-template-columns:14px 1fr auto;gap:6px;align-items:center;
+    padding:5px 6px;border-radius:4px;cursor:pointer;border:1px solid transparent;
+    margin:1px 0;font-size:11px;
+  }
+  .target-row:hover{background:var(--panel2);border-color:var(--border2)}
+  .target-row.selected{background:rgba(56,189,248,.12);border-color:var(--accent)}
+  .target-row .tcolor{width:8px;height:8px;border-radius:50%}
+  .target-row .tname{color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .target-row .ttype{color:var(--text3);font-size:10px}
+
+  .data-table{width:100%;border-collapse:collapse;font-size:10.5px}
+  .data-table th{
+    text-align:left;padding:5px 4px;color:var(--text3);font-weight:600;
+    border-bottom:1px solid var(--border2);position:sticky;top:0;background:var(--panel);z-index:1;
+  }
+  .data-table td{padding:5px 4px;border-bottom:1px solid var(--border);color:var(--text2)}
+  .data-table tr{cursor:pointer}
+  .data-table tr:hover td{background:var(--panel2);color:var(--text)}
+  .data-table tr.selected td{background:rgba(56,189,248,.12);color:var(--text)}
+
+  /* Formation tree */
+  .formation-card{
+    background:var(--bg3);border:1px solid var(--border2);border-radius:5px;
+    margin-bottom:6px;overflow:hidden;
+  }
+  .formation-card.selected{border-color:var(--accent);box-shadow:0 0 0 1px rgba(56,189,248,.3)}
+  .formation-head{
+    padding:6px 8px;display:flex;align-items:center;gap:6px;cursor:pointer;
+    background:var(--panel2);font-weight:600;
+  }
+  .formation-head:hover{background:#16243f}
+  .formation-head .fcolor{width:8px;height:8px;border-radius:2px}
+  .formation-head .chev{margin-left:auto;transition:transform .15s;color:var(--text3)}
+  .formation-card.open .chev{transform:rotate(90deg)}
+  .formation-members{display:none;padding:4px 8px 6px 18px}
+  .formation-card.open .formation-members{display:block}
+  .formation-member{padding:3px 0;font-size:11px;color:var(--text2);display:flex;align-items:center;gap:6px}
+  .formation-member .mdot{width:6px;height:6px;border-radius:50%}
+
+  /* Alerts */
+  .alert-item{
+    background:var(--bg3);border:1px solid var(--border2);border-left:3px solid var(--red);
+    border-radius:4px;padding:7px 9px;margin-bottom:6px;cursor:pointer;transition:all .15s;
+  }
+  .alert-item:hover{border-color:var(--border2);background:var(--panel2)}
+  .alert-item.selected{border-color:var(--accent);background:rgba(56,189,248,.08)}
+  .alert-item.lvl-red{border-left-color:var(--red)}
+  .alert-item.lvl-orange{border-left-color:#f97316}
+  .alert-item.lvl-yellow{border-left-color:var(--yellow)}
+  .alert-head{display:flex;align-items:center;gap:5px;margin-bottom:3px}
+  .alert-level{font-size:10px;font-weight:700;padding:1px 5px;border-radius:3px}
+  .alert-level.red{background:rgba(239,68,68,.18);color:#fca5a5}
+  .alert-level.orange{background:rgba(249,115,22,.18);color:#fdba74}
+  .alert-level.yellow{background:rgba(234,179,8,.18);color:#fde047}
+  .alert-title{font-size:11px;color:var(--text);flex:1}
+  .alert-meta{font-size:10px;color:var(--text3);display:flex;gap:8px;margin-top:3px}
+  .alert-status{font-size:10px;padding:1px 5px;border-radius:3px}
+  .alert-status.unprocessed{color:#fca5a5;background:rgba(239,68,68,.12)}
+  .alert-status.verified{color:#fde047;background:rgba(234,179,8,.12)}
+  .alert-status.archived{color:#94a3b8;background:rgba(100,116,139,.12)}
+
+  /* Filter */
+  .filter-section{margin-bottom:10px}
+  .filter-section h4{font-size:11px;color:var(--text2);margin-bottom:5px;font-weight:600;display:flex;align-items:center;gap:4px}
+  .filter-options{display:flex;flex-wrap:wrap;gap:5px}
+  .filter-chip{
+    padding:3px 8px;border:1px solid var(--border2);border-radius:12px;
+    font-size:10px;color:var(--text2);cursor:pointer;transition:all .15s;
+  }
+  .filter-chip:hover{border-color:var(--accent);color:var(--text)}
+  .filter-chip.active{background:rgba(56,189,248,.15);border-color:var(--accent);color:var(--accent)}
+  .filter-chip.blue.active{background:rgba(59,130,246,.18);border-color:var(--blue);color:#93c5fd}
+  .filter-chip.red.active{background:rgba(239,68,68,.18);border-color:var(--red);color:#fca5a5}
+  .filter-chip.yellow.active{background:rgba(234,179,8,.18);border-color:var(--yellow);color:#fde047}
+  .filter-chip.black.active{background:rgba(100,116,139,.18);border-color:var(--black);color:#cbd5e1}
+
+  /* ===== Map ===== */
+  .map-container{flex:1;position:relative;min-width:0;background:#06101f}
+  #map{position:absolute;inset:0}
+  .map-toolbar{
+    position:absolute;top:10px;right:10px;z-index:5;
+    display:flex;flex-direction:column;gap:4px;
+    background:rgba(15,26,46,.9);backdrop-filter:blur(6px);
+    border:1px solid var(--border2);border-radius:6px;padding:4px;
+  }
+  .mt-btn{
+    width:30px;height:30px;display:flex;align-items:center;justify-content:center;
+    border:1px solid transparent;border-radius:4px;color:var(--text2);cursor:pointer;background:transparent;
+  }
+  .mt-btn:hover{background:var(--panel2);color:var(--accent)}
+  .mt-btn.active{background:rgba(56,189,248,.15);color:var(--accent)}
+
+  .map-legend{
+    position:absolute;bottom:44px;left:10px;z-index:5;
+    background:rgba(15,26,46,.9);backdrop-filter:blur(6px);
+    border:1px solid var(--border2);border-radius:6px;padding:8px 10px;
+    font-size:10px;
+  }
+  .map-legend h5{font-size:10px;color:var(--text3);margin-bottom:5px;font-weight:600}
+  .legend-row{display:flex;align-items:center;gap:6px;margin:3px 0;color:var(--text2)}
+  .legend-row .ls{width:18px;height:8px;border-radius:2px}
+  .legend-row .ld{width:10px;height:10px;border-radius:50%}
+
+  .playback-bar{
+    position:absolute;bottom:8px;left:50%;transform:translateX(-50%);z-index:5;
+    background:rgba(15,26,46,.92);backdrop-filter:blur(6px);
+    border:1px solid var(--border2);border-radius:8px;padding:6px 14px;
+    display:flex;align-items:center;gap:10px;min-width:560px;
+  }
+  .pb-slider{flex:1;min-width:180px}
+  .pb-frame{color:var(--accent);font-family:Consolas,monospace;font-size:11px;min-width:80px;text-align:center}
+
+  .tooltip-card{
+    position:absolute;z-index:1000;background:rgba(8,16,30,.96);
+    border:1px solid var(--accent);border-radius:6px;padding:8px 10px;
+    font-size:11px;color:var(--text);min-width:180px;pointer-events:none;
+    box-shadow:0 4px 20px rgba(0,0,0,.5);display:none;
+  }
+  .tooltip-card .tt-title{font-weight:700;margin-bottom:4px;color:#fff;border-bottom:1px solid var(--border);padding-bottom:3px}
+  .tooltip-card .tt-row{display:flex;justify-content:space-between;gap:10px;margin:2px 0}
+  .tooltip-card .tt-row span:first-child{color:var(--text3)}
+
+  .ctx-menu{
+    position:fixed;z-index:2000;background:var(--panel2);
+    border:1px solid var(--border2);border-radius:5px;padding:4px 0;
+    box-shadow:0 6px 24px rgba(0,0,0,.6);display:none;min-width:150px;
+  }
+  .ctx-item{padding:6px 14px;font-size:11px;color:var(--text2);cursor:pointer}
+  .ctx-item:hover{background:rgba(56,189,248,.12);color:var(--accent)}
+
+  /* ===== Right Panel ===== */
+  .right-panel{
+    width:var(--right-w);flex-shrink:0;
+    background:var(--panel);
+    border-left:1px solid var(--border);
+    display:flex;flex-direction:column;
+    transition:width .2s;overflow:hidden;
+  }
+  .right-panel.collapsed{width:0;border-left:none}
+  .rp-header{
+    padding:8px 10px;border-bottom:1px solid var(--border);
+    background:var(--bg2);flex-shrink:0;
+  }
+  .rp-header .rh-title{font-size:13px;font-weight:700;color:#fff;display:flex;align-items:center;gap:6px}
+  .rp-header .rh-sub{font-size:10px;color:var(--text3);margin-top:2px}
+  .rp-body{flex:1;overflow-y:auto;padding:10px}
+  .rp-body::-webkit-scrollbar{width:5px}
+
+  .info-grid{display:grid;grid-template-columns:90px 1fr;gap:5px 8px;font-size:11px;margin-bottom:8px}
+  .info-grid .ik{color:var(--text3)}
+  .info-grid .iv{color:var(--text)}
+  .info-section{margin-bottom:12px}
+  .info-section h5{
+    font-size:11px;color:var(--accent);font-weight:600;margin-bottom:6px;
+    padding-bottom:4px;border-bottom:1px solid var(--border2);
+    display:flex;align-items:center;gap:5px;
+  }
+
+  .aff-picker{display:flex;gap:5px;margin:5px 0}
+  .aff-opt{
+    padding:3px 10px;border:1px solid var(--border2);border-radius:12px;
+    font-size:10px;cursor:pointer;display:flex;align-items:center;gap:4px;
+  }
+  .aff-opt .ad{width:8px;height:8px;border-radius:50%}
+  .aff-opt.active.我方{background:rgba(59,130,246,.18);border-color:var(--blue);color:#93c5fd}
+  .aff-opt.active.外方{background:rgba(239,68,68,.18);border-color:var(--red);color:#fca5a5}
+  .aff-opt.active.中立{background:rgba(234,179,8,.18);border-color:var(--yellow);color:#fde047}
+  .aff-opt.active.未知{background:rgba(100,116,139,.18);border-color:var(--black);color:#cbd5e1}
+
+  .chart-box{background:var(--bg3);border:1px solid var(--border2);border-radius:5px;padding:6px;margin-bottom:8px}
+  .chart-box .cb-title{font-size:10px;color:var(--text3);margin-bottom:4px}
+  canvas.chart{width:100%;height:90px;display:block}
+
+  .key-node{
+    display:grid;grid-template-columns:60px 1fr auto;gap:6px;font-size:10.5px;
+    padding:4px 6px;border-bottom:1px solid var(--border);
+  }
+  .key-node .kn-t{color:var(--text3);font-family:Consolas,monospace}
+  .key-node .kn-p{color:var(--text2)}
+  .key-node .kn-e{font-size:10px}
+  .key-node .kn-e.抵近警戒圈{color:#fca5a5}
+  .key-node .kn-e.信号丢失{color:#fdba74}
+  .key-node .kn-e.转向{color:#93c5fd}
+  .key-node .kn-e.编队会合{color:#86efac}
+
+  .person-row{
+    display:grid;grid-template-columns:1fr auto;gap:6px;align-items:center;
+    padding:5px 6px;background:var(--bg3);border:1px solid var(--border2);
+    border-radius:4px;margin-bottom:4px;font-size:11px;
+  }
+  .person-row .pr-name{color:var(--text);font-weight:600}
+  .person-row .pr-meta{color:var(--text3);font-size:10px;margin-top:2px}
+  .person-row .pr-actions{display:flex;gap:3px}
+  .mini-btn{padding:2px 5px;font-size:10px;border-radius:3px}
+
+  textarea{
+    width:100%;background:var(--bg3);color:var(--text);border:1px solid var(--border2);
+    border-radius:4px;padding:6px;font-size:11px;font-family:inherit;resize:vertical;outline:none;
+  }
+  textarea:focus{border-color:var(--accent)}
+
+  .risk-picker{display:flex;gap:6px;margin:6px 0}
+  .risk-opt{padding:4px 12px;border:1px solid var(--border2);border-radius:4px;font-size:11px;cursor:pointer;font-weight:600}
+  .risk-opt.active.high{background:rgba(239,68,68,.18);border-color:var(--red);color:#fca5a5}
+  .risk-opt.active.mid{background:rgba(234,179,8,.18);border-color:var(--yellow);color:#fde047}
+  .risk-opt.active.low{background:rgba(34,197,94,.18);border-color:#22c55e;color:#86efac}
+
+  .empty-state{text-align:center;color:var(--text3);padding:40px 20px;font-size:11px}
+  .empty-state .icon{width:32px;height:32px;color:var(--text3);margin-bottom:8px}
+
+  /* ===== Status Bar ===== */
+  .status-bar{
+    height:var(--status-h);flex-shrink:0;
+    background:linear-gradient(180deg,#0a1424,#08101e);
+    border-top:1px solid var(--border);
+    display:flex;align-items:center;gap:14px;padding:0 14px;
+    font-size:10.5px;color:var(--text2);overflow-x:auto;
+  }
+  .status-bar::-webkit-scrollbar{height:0}
+  .sb-item{display:flex;align-items:center;gap:4px;white-space:nowrap}
+  .sb-item .lbl{color:var(--text3)}
+  .sb-item .val{color:var(--text);font-family:Consolas,monospace}
+  .sb-dot{width:6px;height:6px;border-radius:50%;background:#22c55e;box-shadow:0 0 6px #22c55e}
+  .sb-dot.warn{background:var(--red);box-shadow:0 0 6px var(--red)}
+  .sb-sep{width:1px;height:14px;background:var(--border)}
+
+  /* Map markers */
+  .amap-mk{position:relative;display:flex;flex-direction:column;align-items:center;transform:translate(-50%,-50%);cursor:pointer}
+  .mk-body{
+    width:18px;height:18px;border-radius:50%;border:2px solid #fff;
+    display:flex;align-items:center;justify-content:center;font-size:10px;
+    box-shadow:0 0 6px rgba(0,0,0,.6);
+  }
+  .mk-arrow{
+    position:absolute;top:-6px;left:50%;width:0;height:0;
+    border-left:4px solid transparent;border-right:4px solid transparent;
+    border-bottom:6px solid currentColor;transform:translateX(-50%);transform-origin:50% 24px;
+  }
+  .mk-label{
+    position:absolute;top:22px;left:50%;transform:translateX(-50%);
+    font-size:9px;color:#fff;background:rgba(8,16,30,.8);padding:1px 5px;border-radius:2px;
+    white-space:nowrap;border:1px solid rgba(255,255,255,.1);
+  }
+  .mk-pulse{
+    position:absolute;top:0;left:50%;width:18px;height:18px;border-radius:50%;
+    transform:translate(-50%,0);border:2px solid currentColor;
+    animation:pulse 1.8s ease-out infinite;pointer-events:none;
+  }
+  @keyframes pulse{
+    0%{transform:translate(-50%,0) scale(1);opacity:.7}
+    100%{transform:translate(-50%,0) scale(2.8);opacity:0}
+  }
+  .amap-mk.selected .mk-body{box-shadow:0 0 0 3px rgba(56,189,248,.6),0 0 12px rgba(56,189,248,.8)}
+
+  .rp-body .scroll-x{overflow-x:auto}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ===== TOP NAV ===== -->
+  <header class="top-nav">
+    <div class="nav-title">某海域DW态势<span class="badge">v2.0</span></div>
+
+    <div class="nav-group">
+      <i data-lucide="clock" class="icon" style="color:var(--accent)"></i>
+      <span class="lbl">时段</span>
+      <select id="timeRange">
+        <option value="12h">近12h</option>
+        <option value="24h" selected>近24h</option>
+        <option value="7d">近7天</option>
+        <option value="custom">自定义</option>
+      </select>
+    </div>
+
+    <div class="nav-group playback">
+      <button class="pb-btn" id="pbBack" title="后退"><i data-lucide="skip-back" class="icon"></i></button>
+      <button class="pb-btn" id="pbPlay" title="播放"><i data-lucide="play" class="icon"></i></button>
+      <button class="pb-btn" id="pbPause" title="暂停" style="display:none"><i data-lucide="pause" class="icon"></i></button>
+      <button class="pb-btn" id="pbFwd" title="前进"><i data-lucide="skip-forward" class="icon"></i></button>
+      <select id="pbSpeed" style="width:60px">
+        <option value="0.25">0.25x</option>
+        <option value="0.5">0.5x</option>
+        <option value="1" selected>1x</option>
+        <option value="2">2x</option>
+        <option value="4">4x</option>
+        <option value="8">8x</option>
+        <option value="16">16x</option>
+      </select>
+      <div class="pb-time" id="pbTime">--</div>
+    </div>
+
+    <div class="nav-group">
+      <i data-lucide="database" class="icon" style="color:var(--accent)"></i>
+      <span class="lbl">数据源</span>
+      <label class="ds-check"><input type="checkbox" checked data-ds="ais"> AIS船舶</label>
+      <label class="ds-check"><input type="checkbox" checked data-ds="adsb"> ADS-B航空</label>
+      <label class="ds-check"><input type="checkbox" checked data-ds="intel"> 人工情报</label>
+      <label class="ds-check"><input type="checkbox" checked data-ds="formation"> 编队库</label>
+      <label class="ds-check"><input type="checkbox" checked data-ds="history"> 历史事件</label>
+      <label class="ds-check"><input type="checkbox" checked data-ds="basemap"> 地理底图</label>
+    </div>
+
+    <div class="nav-group">
+      <i data-lucide="pen-tool" class="icon" style="color:var(--accent)"></i>
+      <span class="lbl">标绘</span>
+      <button class="tool-btn" data-draw="point"><i data-lucide="map-pin" class="icon"></i>点</button>
+      <button class="tool-btn" data-draw="line"><i data-lucide="minus" class="icon"></i>线</button>
+      <button class="tool-btn" data-draw="poly"><i data-lucide="hexagon" class="icon"></i>面</button>
+      <button class="tool-btn" data-draw="circle"><i data-lucide="circle" class="icon"></i>圆</button>
+      <button class="tool-btn" data-draw="arrow"><i data-lucide="move-up-right" class="icon"></i>箭头</button>
+      <button class="tool-btn" data-draw="text"><i data-lucide="type" class="icon"></i>文字</button>
+    </div>
+
+    <div class="nav-group">
+      <i data-lucide="brain" class="icon" style="color:var(--accent)"></i>
+      <span class="lbl">分析</span>
+      <button class="tool-btn" data-analysis="assess"><i data-lucide="gauge" class="icon"></i>态势评估</button>
+      <button class="tool-btn" data-analysis="formation"><i data-lucide="group" class="icon"></i>编队聚合</button>
+      <button class="tool-btn" data-analysis="anomaly"><i data-lucide="alert-triangle" class="icon"></i>异常告警</button>
+      <button class="tool-btn" data-analysis="conflict"><i data-lucide="route" class="icon"></i>航线冲突</button>
+    </div>
+
+    <div class="nav-group">
+      <i data-lucide="download" class="icon" style="color:var(--accent)"></i>
+      <span class="lbl">导出</span>
+      <button class="tool-btn" data-export="image"><i data-lucide="image" class="icon"></i>态势图</button>
+      <button class="tool-btn" data-export="kml"><i data-lucide="file-code" class="icon"></i>KML</button>
+      <button class="tool-btn" data-export="report"><i data-lucide="file-text" class="icon"></i>研判报表</button>
+      <button class="tool-btn" data-export="csv"><i data-lucide="file-spreadsheet" class="icon"></i>轨迹CSV</button>
+    </div>
+
+    <div class="nav-group">
+      <i data-lucide="layers" class="icon" style="color:var(--accent)"></i>
+      <span class="lbl">图层</span>
+      <button class="tool-btn" data-layer="chart"><i data-lucide="map" class="icon"></i>电子海图</button>
+      <button class="tool-btn active" data-layer="sat"><i data-lucide="satellite" class="icon"></i>卫星影像</button>
+    </div>
+  </header>
+
+  <!-- ===== MAIN ===== -->
+  <main class="main-area">
+
+    <!-- LEFT PANEL -->
+    <aside class="left-panel" id="leftPanel">
+      <div class="panel-tabs">
+        <div class="ptab active" data-ltab="overview">态势目标</div>
+        <div class="ptab" data-ltab="formation">编队组织</div>
+        <div class="ptab" data-ltab="alert">告警列表</div>
+        <div class="ptab" data-ltab="filter">目标过滤</div>
+      </div>
+      <div class="panel-body" id="leftBody"></div>
+      <div class="collapse-btn left" id="leftCollapse" title="收起">◀</div>
+    </aside>
+
+    <!-- MAP -->
+    <div class="map-container">
+      <div id="map"></div>
+
+      <div class="map-toolbar">
+        <div class="mt-btn" id="mtZoomIn" title="放大"><i data-lucide="plus" class="icon"></i></div>
+        <div class="mt-btn" id="mtZoomOut" title="缩小"><i data-lucide="minus" class="icon"></i></div>
+        <div class="mt-btn" id="mtFit" title="全图"><i data-lucide="locate-fixed" class="icon"></i></div>
+        <div class="mt-btn" id="mtMeasure" title="测距"><i data-lucide="ruler" class="icon"></i></div>
+        <div class="mt-btn" id="mtDraw" title="标绘"><i data-lucide="pen-tool" class="icon"></i></div>
+        <div class="mt-btn" id="mtFull" title="全屏"><i data-lucide="maximize" class="icon"></i></div>
+      </div>
+
+      <div class="map-legend">
+        <h5>图例</h5>
+        <div class="legend-row"><span class="ld" style="background:var(--blue)"></span>我方</div>
+        <div class="legend-row"><span class="ld" style="background:var(--red)"></span>外方/敌方</div>
+        <div class="legend-row"><span class="ld" style="background:var(--yellow)"></span>中立</div>
+        <div class="legend-row"><span class="ld" style="background:var(--black)"></span>未知</div>
+        <div class="legend-row"><span class="ls" style="background:repeating-linear-gradient(90deg,var(--red) 0 4px,transparent 4px 8px)"></span>警戒圈</div>
+        <div class="legend-row"><span class="ls" style="background:var(--blue)"></span>领海基线</div>
+        <div class="legend-row"><span class="ls" style="background:#475569"></span>岛礁陆地</div>
+      </div>
+
+      <div class="playback-bar">
+        <i data-lucide="history" class="icon" style="color:var(--accent)"></i>
+        <span style="color:var(--text3);font-size:10px">回放</span>
+        <input type="range" class="pb-slider" id="pbSlider" min="0" max="6" value="6" step="1">
+        <div class="pb-frame" id="pbFrame">实时</div>
+        <button class="tool-btn" id="pbReset" title="回到实时"><i data-lucide="refresh-ccw" class="icon"></i></button>
+      </div>
+
+      <div class="tooltip-card" id="tooltip"></div>
+      <div class="ctx-menu" id="ctxMenu"></div>
+    </div>
+
+    <!-- RIGHT PANEL -->
+    <aside class="right-panel" id="rightPanel">
+      <div class="rp-header" id="rpHeader">
+        <div class="rh-title"><i data-lucide="target" class="icon" style="color:var(--accent)"></i><span id="rpTitle">未选择目标</span></div>
+        <div class="rh-sub" id="rpSub">点击左侧目标或地图图标查看详情</div>
+      </div>
+      <div class="panel-tabs">
+        <div class="ptab active" data-rtab="info">基础信息</div>
+        <div class="ptab" data-rtab="track">轨迹航迹</div>
+        <div class="ptab" data-rtab="intel">关联情报</div>
+        <div class="ptab" data-rtab="formation">编队关系</div>
+        <div class="ptab" data-rtab="judge">态势研判</div>
+      </div>
+      <div class="rp-body" id="rightBody">
+        <div class="empty-state">
+          <i data-lucide="mouse-pointer-click" class="icon"></i>
+          <div>请选择一个目标查看详情</div>
+        </div>
+      </div>
+      <div class="collapse-btn right" id="rightCollapse" title="收起">▶</div>
+    </aside>
+  </main>
+
+  <!-- ===== STATUS BAR ===== -->
+  <footer class="status-bar" id="statusBar"></footer>
+</div>
+
+<script src="https://webapi.amap.com/maps?v=2.0&key=01d6322cc08dafd1800e07b018b06b49"></script>
+<script>
+/* ===================== MOCK DATA ===================== */
+const AFF_COLOR = {'我方':'#3b82f6','外方':'#ef4444','中立':'#eab308','未知':'#64748b'};
+const AFF_TEXT = {'我方':'🟦我方','外方':'🔴外方','中立':'🟡中立','未知':'⚫未知'};
+
+const targets = [
+  {id:'T1',mmsi:'412345678',name:'海巡31',type:'水面舰船',cat:'海',aff:'我方',status:'正常巡航',lng:117.52,lat:15.11,heading:45,speed:18,imo:'IMO 9571234',flag:'中国',dim:'93m×11m',shipType:'公务船',ais:'正常',call:null,acType:null,org:'海警局',adsb:null,src:null,found:null,equip:null,notes:'日常巡航'},
+  {id:'T2',mmsi:'412456789',name:'中国渔政310',type:'水面舰船',cat:'海',aff:'我方',status:'正常巡航',lng:117.48,lat:15.08,heading:90,speed:15,imo:'IMO 9582345',flag:'中国',dim:'108m×13m',shipType:'渔政船',ais:'正常'},
+  {id:'T3',mmsi:'548912345',name:'BRP Gregorio del Pilar',type:'水面舰船',cat:'海',aff:'外方',status:'抵近活动',lng:117.60,lat:15.05,heading:285,speed:12,imo:'IMO 7329945',flag:'菲律宾',dim:'115m×13m',shipType:'巡逻舰',ais:'正常'},
+  {id:'T4',mmsi:'548923456',name:'BRP Teresa Magbanua',type:'水面舰船',cat:'海',aff:'外方',status:'警戒区徘徊',lng:117.65,lat:15.12,heading:200,speed:8,imo:'IMO 9801234',flag:'菲律宾',dim:'96m×11m',shipType:'海警船',ais:'正常'},
+  {id:'T5',mmsi:'412567890',name:'粤汕渔8866',type:'渔船',cat:'海',aff:'中立',status:'作业',lng:117.40,lat:15.00,heading:30,speed:4,imo:null,flag:'中国',dim:'42m×8m',shipType:'渔船',ais:'正常'},
+  {id:'T6',mmsi:'412678901',name:'远洋98',type:'民用船舶',cat:'海',aff:'中立',status:'锚泊',lng:117.35,lat:15.20,heading:180,speed:0,imo:'IMO 9012345',flag:'巴拿马',dim:'180m×28m',shipType:'货船',ais:'正常'},
+  {id:'T7',mmsi:'000000000',name:'UNK-VES-01',type:'水面舰船',cat:'海',aff:'未知',status:'信号丢失',lng:117.55,lat:15.18,heading:0,speed:null,imo:null,flag:'未知',dim:'未知',shipType:'不明',ais:'丢失'},
+  {id:'T8',icao:'780123',name:'PA-200 Orion',type:'固定翼飞机',cat:'空',aff:'外方',status:'抵近活动',lng:117.62,lat:14.85,heading:315,speed:380,call:'RPF812',acType:'P-3C Orion',org:'外方空军',adsb:'正常',alt:3500},
+  {id:'T9',icao:'780456',name:'Z-9EC',type:'直升机',cat:'空',aff:'我方',status:'巡逻',lng:117.50,lat:15.05,heading:135,speed:220,call:'CHA09',acType:'Z-9EC',org:'海航',adsb:'正常',alt:800},
+  {id:'T10',icao:'780789',name:'RP-C1234',type:'民航机',cat:'空',aff:'中立',status:'过境',lng:117.70,lat:14.70,heading:60,speed:780,call:'PAL1234',acType:'A320',org:'菲律宾航空',adsb:'正常',alt:8000},
+  {id:'T11',manId:'MAN-001',name:'海上作业小组A',type:'海上人员单元',cat:'人员',aff:'未知',status:'海上漂泊',lng:117.41,lat:15.02,heading:null,speed:null,src:'卫星图像识别',found:'2026-08-22 06:30',equip:'橡皮艇×2,通信设备',notes:'疑似作业渔民,身份待核实'},
+  {id:'T12',manId:'MAN-002',name:'不明海上人员B',type:'海上人员单元',cat:'人员',aff:'未知',status:'观察',lng:117.43,lat:15.06,heading:null,speed:null,src:'无人机侦察',found:'2026-08-22 07:15',equip:'小艇×1',notes:'与MAN-001相距约5km'}
+];
+
+const formations = [
+  {id:'F1',name:'我方海上编队A',aff:'我方',members:['T1','T2','T9']},
+  {id:'F2',name:'外方海上编队B',aff:'外方',members:['T3','T4','T8']}
+];
+
+const alerts = [
+  {id:'A1',level:'red',title:'外方舰船BRP Gregorio del Pilar进入周边警戒圈',time:'2026-08-22 08:42',type:'警戒圈入侵',target:'T3',pos:'117.60,15.05',status:'unprocessed'},
+  {id:'A2',level:'red',title:'外方航空器PA-200 Orion抵近我方空域',time:'2026-08-22 09:15',type:'空域抵近',target:'T8',pos:'117.62,14.85',status:'unprocessed'},
+  {id:'A3',level:'orange',title:'不明船只UNK-VES-01 AIS信号频繁消失',time:'2026-08-22 07:50',type:'信号异常',target:'T7',pos:'117.55,15.18',status:'verified'},
+  {id:'A4',level:'yellow',title:'不明海上人员单元MAN-001出现',time:'2026-08-22 06:35',type:'不明目标',target:'T11',pos:'117.41,15.02',status:'unprocessed'}
+];
+
+/* ===================== STATE ===================== */
+let map, satelliteLayer, roadLayer, vectorLayer;
+let markers={}, trajLines={}, trajDots={};
+let islandPolygon, alertCircle, baselineLine;
+let bboxOverlays={};
+let selectedTargetId=null, selectedFormationId=null, selectedAlertId=null;
+let leftTab='overview', rightTab='info';
+let playbackFrame=6, isPlaying=false, pbTimer=null, pbSpeed=1;
+let ctxTargetId=null;
+const filters = {
+  types:['水面舰船','渔船','民用船舶','军机','民航机','固定翼飞机','直升机','海上人员单元'],
+  affs:['我方','外方','中立','未知'],
+  zones:['core','outer'],
+  status:['巡航','正常巡航','作业','锚泊','抵近活动','警戒区徘徊','信号丢失','海上漂泊','观察','巡逻','过境']
+};
+
+/* ===================== TRAJECTORY GEN ===================== */
+function genTrajectory(t){
+  const n=7, pts=[];
+  const baseLat=t.lat, baseLng=t.lng;
+  const events = t.aff==='外方' ? [null,null,'抵近警戒圈',null,'转向',null,null]
+              : t.status==='信号丢失' ? [null,null,null,'信号丢失',null,null,null]
+              : t.aff==='我方' ? [null,null,null,null,'编队会合',null,null]
+              : [null,null,null,null,null,null,null];
+  const seed = parseInt((t.mmsi||t.icao||t.manId||'1').replace(/\D/g,''))||1;
+  let rng = mulberry32(seed);
+  for(let i=0;i<n;i++){
+    const frac = i/(n-1);
+    const lat = baseLat - (1-frac)*(rng()*0.06-0.03);
+    const lng = baseLng - (1-frac)*(rng()*0.06-0.03);
+    const spd = t.speed!=null ? Math.max(0, t.speed*(0.7+rng()*0.6)) : null;
+    pts.push({
+      idx:i,
+      time:new Date(Date.now()-(n-1-i)*30*60000),
+      lng, lat,
+      speed:spd,
+      alt: t.alt!=null ? Math.max(0,t.alt*(0.85+rng()*0.3)) : null,
+      event:events[i]
+    });
+  }
+  return pts;
+}
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+targets.forEach(t=>t.traj=genTrajectory(t));
+
+/* ===================== MAP INIT ===================== */
+function initMap(){
+  map = new AMap.Map('map',{
+    zoom:9,
+    center:[117.52,15.11],
+    mapStyle:'amap://styles/dark',
+    resizeEnable:true,
+    viewMode:'2D'
+  });
+  satelliteLayer = new AMap.TileLayer.Satellite();
+  roadLayer = new AMap.TileLayer.RoadNet();
+  satelliteLayer.setMap(map);
+  roadLayer.setMap(map);
+
+  map.on('click',()=>{ hideCtx(); });
+  map.on('zoomchange',updateStatusBar);
+  map.on('moveend',updateStatusBar);
+
+  drawSpecialLayers();
+  targets.forEach(t=>{ createTargetMarker(t); drawTrajectory(t); });
+  map.setFitView();
+  setTimeout(()=>map.setZoomAndCenter(9,[117.52,15.11]),200);
+}
+
+function drawSpecialLayers(){
+  // 岛礁陆地 (灰多边形)
+  const islandPath = [
+    [117.508,15.135],[117.518,15.13],[117.528,15.118],[117.532,15.105],
+    [117.528,15.092],[117.516,15.085],[117.504,15.088],[117.496,15.10],
+    [117.494,15.115],[117.5,15.128],[117.508,15.135]
+  ];
+  islandPolygon = new AMap.Polygon({
+    path:islandPath,
+    fillColor:'#475569',fillOpacity:0.85,
+    strokeColor:'#64748b',strokeWeight:1,
+    map:map,zIndex:50
+  });
+  // 潟湖 (内圈)
+  new AMap.Polygon({
+    path:[[117.512,15.118],[117.52,15.115],[117.522,15.108],[117.518,15.10],[117.51,15.103],[117.508,15.11]],
+    fillColor:'#1e3a5f',fillOpacity:0.6,strokeColor:'#334155',strokeWeight:1,map:map,zIndex:51
+  });
+
+  // 警戒圈 (红色虚线圆)
+  alertCircle = new AMap.Circle({
+    center:[117.515,15.11],
+    radius:22000,
+    strokeColor:'#ef4444',strokeWeight:2,strokeOpacity:0.9,
+    strokeStyle:'dashed',strokeDasharray:[6,6],
+    fillColor:'#ef4444',fillOpacity:0.04,
+    map:map,zIndex:60
+  });
+
+  // 领海基线 (蓝色线)
+  baselineLine = new AMap.Polyline({
+    path:[[117.20,15.30],[117.35,15.22],[117.515,15.15],[117.68,15.20],[117.85,15.10]],
+    strokeColor:'#3b82f6',strokeWeight:2.5,strokeOpacity:0.9,
+    strokeStyle:'longdash',strokeDasharray:[12,4],
+    map:map,zIndex:55,showDir:true
+  });
+}
+
+function mkIcon(t){
+  const c = AFF_COLOR[t.aff];
+  const icon = t.cat==='空' ? '✈' : t.cat==='人员' ? '⚑' : '⚓';
+  return `<div class="amap-mk" style="color:${c}" data-id="${t.id}">
+    <div class="mk-pulse"></div>
+    <div class="mk-arrow" style="transform:translateX(-50%) rotate(${t.heading||0}deg)"></div>
+    <div class="mk-body" style="background:${c}">${icon}</div>
+    <div class="mk-label">${t.name}</div>
+  </div>`;
+}
+
+function createTargetMarker(t){
+  const marker = new AMap.Marker({
+    position:[t.lng,t.lat],
+    content:mkIcon(t),
+    offset:new AMap.Pixel(0,0),
+    map:map,zIndex:100
+  });
+  marker.on('mouseover',e=>showTooltip(t,e));
+  marker.on('mouseout',hideTooltip);
+  marker.on('click',()=>{ selectTarget(t.id,true); });
+  markers[t.id]=marker;
+}
+
+function drawTrajectory(t){
+  const c = AFF_COLOR[t.aff];
+  const path = t.traj.map(p=>[p.lng,p.lat]);
+  // 主轨迹线
+  const line = new AMap.Polyline({
+    path:path, strokeColor:c, strokeWeight:2, strokeOpacity:0.7,
+    strokeStyle: t.status==='信号丢失' ? 'dashed' : 'solid',
+    map:map,zIndex:80
+  });
+  trajLines[t.id]=line;
+  // 轨迹节点
+  const dots = t.traj.map((p,i)=>{
+    return new AMap.CircleMarker({
+      center:[p.lng,p.lat], radius:3,
+      fillColor: p.event? '#fbbf24' : c, fillOpacity:0.95,
+      strokeColor:'#fff',strokeWeight:0.5,
+      map:map,zIndex:90
+    });
+  });
+  trajDots[t.id]=dots;
+}
+
+function showTooltip(t,e){
+  const tt=document.getElementById('tooltip');
+  const px = e.pixel || (e.originEvent&&e.originEvent.pixel) || {x:0,y:0};
+  tt.innerHTML = `<div class="tt-title">${t.name}</div>
+    <div class="tt-row"><span>ID</span><span>${t.mmsi||t.icao||t.manId}</span></div>
+    <div class="tt-row"><span>类型</span><span>${t.type}</span></div>
+    <div class="tt-row"><span>归属</span><span style="color:${AFF_COLOR[t.aff]}">${t.aff}</span></div>
+    <div class="tt-row"><span>位置</span><span>${t.lng.toFixed(3)},${t.lat.toFixed(3)}</span></div>
+    <div class="tt-row"><span>航向</span><span>${t.heading!=null?t.heading+'°':'-'}</span></div>
+    <div class="tt-row"><span>速度</span><span>${t.speed!=null?t.speed+' 节':'-'}</span></div>
+    <div class="tt-row"><span>状态</span><span>${t.status}</span></div>`;
+  tt.style.display='block';
+  const rect=document.querySelector('.map-container').getBoundingClientRect();
+  tt.style.left=(px.x+12)+'px';
+  tt.style.top=(px.y+12)+'px';
+}
+function hideTooltip(){document.getElementById('tooltip').style.display='none'}
+
+/* ===================== LEFT PANEL ===================== */
+function renderLeft(){
+  if(leftTab==='overview') renderOverview();
+  else if(leftTab==='formation') renderFormations();
+  else if(leftTab==='alert') renderAlerts();
+  else if(leftTab==='filter') renderFilter();
+}
+
+function visibleTargets(){
+  return targets.filter(t=>{
+    if(!filters.types.includes(t.type)) return false;
+    if(!filters.affs.includes(t.aff)) return false;
+    if(!filters.status.includes(t.status)) return false;
+    return true;
+  });
+}
+
+function renderOverview(){
+  const vt = visibleTargets();
+  const stats = {'我方':0,'外方':0,'中立':0,'未知':0};
+  vt.forEach(t=>stats[t.aff]++);
+  const body = document.getElementById('leftBody');
+  body.innerHTML = `
+    <div class="stats-row">
+      <div class="stat-chip"><span><span class="dot" style="background:var(--blue)"></span>我方</span><span class="n" style="color:var(--blue)">${stats['我方']}</span></div>
+      <div class="stat-chip"><span><span class="dot" style="background:var(--red)"></span>外方</span><span class="n" style="color:var(--red)">${stats['外方']}</span></div>
+      <div class="stat-chip"><span><span class="dot" style="background:var(--yellow)"></span>中立</span><span class="n" style="color:var(--yellow)">${stats['中立']}</span></div>
+      <div class="stat-chip"><span><span class="dot" style="background:var(--black)"></span>未知</span><span class="n" style="color:#cbd5e1">${stats['未知']}</span></div>
+    </div>
+    <div class="scroll-x">
+    <table class="data-table" id="targetTable">
+      <thead><tr><th>ID</th><th>名称</th><th>类型</th><th>归属</th><th>状态</th><th>位置</th><th>更新</th></tr></thead>
+      <tbody>
+      ${vt.map(t=>`<tr data-id="${t.id}" class="${t.id===selectedTargetId?'selected':''}">
+        <td>${t.mmsi||t.icao||t.manId}</td>
+        <td style="color:#fff">${t.name}</td>
+        <td>${t.type}</td>
+        <td><span style="color:${AFF_COLOR[t.aff]}">${t.aff}</span></td>
+        <td>${t.status}</td>
+        <td>${t.lng.toFixed(2)},${t.lat.toFixed(2)}</td>
+        <td>${fmtTime(t.traj[t.traj.length-1].time)}</td>
+      </tr>`).join('')}
+      </tbody>
+    </table>
+    </div>`;
+  body.querySelectorAll('tr[data-id]').forEach(tr=>{
+    tr.addEventListener('click',()=>selectTarget(tr.dataset.id,true));
+    tr.addEventListener('contextmenu',e=>{e.preventDefault();showCtx(tr.dataset.id,e.clientX,e.clientY);});
+  });
+}
+
+function renderFormations(){
+  const body=document.getElementById('leftBody');
+  body.innerHTML = `
+    <div style="display:flex;gap:5px;margin-bottom:8px">
+      <button class="tool-btn" id="newForm" style="flex:1"><i data-lucide="plus" class="icon"></i>新建编队</button>
+      <button class="tool-btn" id="delForm" style="flex:1"><i data-lucide="trash-2" class="icon"></i>删除编队</button>
+      <button class="tool-btn" id="disForm" style="flex:1"><i data-lucide="unlink" class="icon"></i>解散</button>
+    </div>
+    <div id="formationList">
+    ${formations.map(f=>{
+      const members = f.members.map(id=>targets.find(t=>t.id===id)).filter(Boolean);
+      return `<div class="formation-card ${f.id===selectedFormationId?'selected open':''}" data-id="${f.id}">
+        <div class="formation-head">
+          <span class="fcolor" style="background:${AFF_COLOR[f.aff]}"></span>
+          <span>${f.name}</span>
+          <span style="color:var(--text3);font-size:10px">${members.length}单元</span>
+          <i data-lucide="chevron-right" class="icon chev"></i>
+        </div>
+        <div class="formation-members">
+          ${members.map(m=>`<div class="formation-member">
+            <span class="mdot" style="background:${AFF_COLOR[m.aff]}"></span>
+            <span>${m.name}</span>
+            <span style="margin-left:auto;color:var(--text3);font-size:10px">${m.type}</span>
+          </div>`).join('')}
+        </div>
+      </div>`;
+    }).join('')}
+    </div>`;
+  body.querySelectorAll('.formation-card').forEach(card=>{
+    card.querySelector('.formation-head').addEventListener('click',()=>{
+      selectFormation(card.dataset.id);
+    });
+  });
+  lucide.createIcons();
+}
+
+function renderAlerts(){
+  const body=document.getElementById('leftBody');
+  const unproc = alerts.filter(a=>a.status==='unprocessed').length;
+  body.innerHTML = `
+    <div style="font-size:10px;color:var(--text3);margin-bottom:6px;display:flex;justify-content:space-between">
+      <span>共 ${alerts.length} 条告警</span>
+      <span style="color:#fca5a5">未处置 ${unproc}</span>
+    </div>
+    ${alerts.map(a=>{
+      const t = targets.find(x=>x.id===a.target);
+      return `<div class="alert-item lvl-${a.level} ${a.id===selectedAlertId?'selected':''}" data-id="${a.id}">
+        <div class="alert-head">
+          <span class="alert-level ${a.level}">${a.level==='red'?'🔴紧急':a.level==='orange'?'🟠重要':'🟡提示'}</span>
+          <span class="alert-title">${a.title}</span>
+        </div>
+        <div class="alert-meta">
+          <span>⏱ ${a.time}</span>
+          <span>📋 ${a.type}</span>
+        </div>
+        <div class="alert-meta">
+          <span>🎯 ${t?t.name:'-'}</span>
+          <span>📍 ${a.pos}</span>
+        </div>
+        <div class="alert-meta">
+          <span class="alert-status ${a.status}">${a.status==='unprocessed'?'未处置':a.status==='verified'?'已核实':'已归档'}</span>
+        </div>
+      </div>`;
+    }).join('')}`;
+  body.querySelectorAll('.alert-item').forEach(it=>{
+    it.addEventListener('click',()=>{
+      const a=alerts.find(x=>x.id===it.dataset.id);
+      selectedAlertId=a.id;
+      selectTarget(a.target,true);
+      renderAlerts();
+    });
+  });
+}
+
+function renderFilter(){
+  const body=document.getElementById('leftBody');
+  const allTypes=['水面舰船','渔船','民用船舶','军机','民航机','固定翼飞机','直升机','海上人员单元'];
+  const allStatus=['巡航','正常巡航','作业','锚泊','高速抵近','信号丢失','海上漂泊','观察','巡逻','过境','抵近活动','警戒区徘徊'];
+  body.innerHTML = `
+    <div class="filter-section">
+      <h4><i data-lucide="filter" class="icon"></i>目标类型</h4>
+      <div class="filter-options">
+        ${allTypes.map(t=>`<span class="filter-chip ${filters.types.includes(t)?'active':''}" data-ftype="${t}">${t}</span>`).join('')}
+      </div>
+    </div>
+    <div class="filter-section">
+      <h4><i data-lucide="flag" class="icon"></i>归属</h4>
+      <div class="filter-options">
+        <span class="filter-chip blue ${filters.affs.includes('我方')?'active':''}" data-faff="我方">🟦我方</span>
+        <span class="filter-chip red ${filters.affs.includes('外方')?'active':''}" data-faff="外方">🔴外方</span>
+        <span class="filter-chip yellow ${filters.affs.includes('中立')?'active':''}" data-faff="中立">🟡中立</span>
+        <span class="filter-chip black ${filters.affs.includes('未知')?'active':''}" data-faff="未知">⚫未知</span>
+      </div>
+    </div>
+    <div class="filter-section">
+      <h4><i data-lucide="map-pin" class="icon"></i>空间范围</h4>
+      <div class="filter-options">
+        <span class="filter-chip ${filters.zones.includes('core')?'active':''}" data-fzone="core">核心区</span>
+        <span class="filter-chip ${filters.zones.includes('outer')?'active':''}" data-fzone="outer">外围警戒区</span>
+        <span class="filter-chip ${filters.zones.includes('aoi')?'active':''}" data-fzone="aoi">自定义AOI</span>
+      </div>
+    </div>
+    <div class="filter-section">
+      <h4><i data-lucide="activity" class="icon"></i>状态</h4>
+      <div class="filter-options">
+        ${allStatus.map(s=>`<span class="filter-chip ${filters.status.includes(s)?'active':''}" data-fstatus="${s}">${s}</span>`).join('')}
+      </div>
+    </div>
+    <div style="display:flex;gap:6px;margin-top:10px">
+      <button class="tool-btn" id="filterReset" style="flex:1"><i data-lucide="rotate-ccw" class="icon"></i>重置</button>
+      <button class="tool-btn active" id="filterApply" style="flex:1"><i data-lucide="check" class="icon"></i>应用</button>
+    </div>`;
+  body.querySelectorAll('[data-ftype]').forEach(c=>c.onclick=()=>toggleFilter('types',c.dataset.ftype,c));
+  body.querySelectorAll('[data-faff]').forEach(c=>c.onclick=()=>toggleFilter('affs',c.dataset.faff,c));
+  body.querySelectorAll('[data-fzone]').forEach(c=>c.onclick=()=>toggleFilter('zones',c.dataset.fzone,c));
+  body.querySelectorAll('[data-fstatus]').forEach(c=>c.onclick=()=>toggleFilter('status',c.dataset.fstatus,c));
+  document.getElementById('filterReset').onclick=()=>{
+    filters.types=allTypes; filters.affs=['我方','外方','中立','未知'];
+    filters.zones=['core','outer']; filters.status=allStatus;
+    applyFilters();
+  };
+  document.getElementById('filterApply').onclick=()=>applyFilters();
+  lucide.createIcons();
+}
+function toggleFilter(key,val,el){
+  const arr=filters[key];
+  const i=arr.indexOf(val);
+  if(i>=0) arr.splice(i,1); else arr.push(val);
+  el.classList.toggle('active');
+}
+function applyFilters(){
+  targets.forEach(t=>{
+    const vis = visibleTargets().includes(t);
+    if(markers[t.id]) markers[t.id].setVisible(vis);
+    if(trajLines[t.id]) trajLines[t.id].setVisible(vis);
+    (trajDots[t.id]||[]).forEach(d=>d.setVisible(vis));
+  });
+  if(leftTab==='overview') renderOverview();
+  updateStatusBar();
+}
+
+/* ===================== CONTEXT MENU ===================== */
+function showCtx(id,x,y){
+  ctxTargetId=id;
+  const menu=document.getElementById('ctxMenu');
+  menu.innerHTML = `
+    <div class="ctx-item" data-act="history">📜 查看历史轨迹</div>
+    <div class="ctx-item" data-act="formation">👥 加入编队</div>
+    <div class="ctx-item" data-act="mark">🏷 标记归属</div>
+    <div class="ctx-item" data-act="kml">📤 导出轨迹KML</div>`;
+  menu.style.display='block';
+  menu.style.left=x+'px';
+  menu.style.top=y+'px';
+  menu.querySelectorAll('.ctx-item').forEach(it=>{
+    it.onclick=()=>{
+      const act=it.dataset.act;
+      const t=targets.find(x=>x.id===ctxTargetId);
+      if(act==='history'){ selectTarget(t.id,true); switchRightTab('track'); }
+      else if(act==='formation'){ switchLeftTab('formation'); }
+      else if(act==='mark'){ selectTarget(t.id,true); switchRightTab('info'); }
+      else if(act==='kml'){ alert('已导出 '+t.name+' 轨迹KML (mock)'); }
+      hideCtx();
+    };
+  });
+}
+function hideCtx(){document.getElementById('ctxMenu').style.display='none'}
+document.addEventListener('click',hideCtx);
+
+/* ===================== SELECT ===================== */
+function selectTarget(id,pan){
+  selectedTargetId=id;
+  selectedAlertId=null;
+  const t=targets.find(x=>x.id===id);
+  if(!t) return;
+  // marker highlight
+  document.querySelectorAll('.amap-mk').forEach(m=>m.classList.remove('selected'));
+  if(markers[id]){
+    const el=markers[id].getContentElement();
+    if(el) el.querySelector('.amap-mk')?.classList.add('selected');
+    markers[id].getContentElement && (markers[id].getContentElement().querySelector('.amap-mk')?.classList.add('selected'));
+  }
+  if(pan){ map.setZoomAndCenter(11,[t.lng,t.lat]); }
+  renderRight(t);
+  if(leftTab==='overview') renderOverview();
+}
+function selectFormation(id){
+  selectedFormationId = selectedFormationId===id?null:id;
+  // clear bboxes
+  Object.values(bboxOverlays).forEach(o=>{o.setMap(null);});
+  bboxOverlays={};
+  if(selectedFormationId){
+    const f=formations.find(x=>x.id===selectedFormationId);
+    const members=f.members.map(mid=>targets.find(t=>t.id===mid)).filter(Boolean);
+    if(members.length){
+      const lats=members.map(m=>m.lat), lngs=members.map(m=>m.lng);
+      const minLat=Math.min(...lats)-0.02,maxLat=Math.max(...lats)+0.02;
+      const minLng=Math.min(...lngs)-0.02,maxLng=Math.max(...lngs)+0.02;
+      const c=AFF_COLOR[f.aff];
+      const bbox=new AMap.Polygon({
+        path:[[minLng,minLat],[maxLng,minLat],[maxLng,maxLat],[minLng,maxLat]],
+        fillColor:c,fillOpacity:0.06,strokeColor:c,strokeWeight:2,
+        strokeStyle:'dashed',strokeDasharray:[8,4],map:map,zIndex:70
+      });
+      bboxOverlays[f.id]=bbox;
+      map.setFitView([bbox]);
+    }
+  }
+  renderFormations();
+}
+
+/* ===================== RIGHT PANEL ===================== */
+function renderRight(t){
+  document.getElementById('rpTitle').textContent=t.name;
+  document.getElementById('rpSub').textContent=`${t.type} · ${t.aff} · ${t.status}`;
+  renderRightTab(t);
+}
+function renderRightTab(t){
+  const body=document.getElementById('rightBody');
+  if(rightTab==='info') body.innerHTML=infoHTML(t);
+  else if(rightTab==='track') body.innerHTML=trackHTML(t),drawCharts(t);
+  else if(rightTab==='intel') body.innerHTML=intelHTML(t);
+  else if(rightTab==='formation') body.innerHTML=formationRelHTML(t);
+  else if(rightTab==='judge') body.innerHTML=judgeHTML(t);
+  lucide.createIcons();
+  bindRightEvents(t);
+}
+
+function infoHTML(t){
+  let specific='';
+  if(t.cat==='海'){
+    specific=`<div class="info-section">
+      <h5><i data-lucide="ship" class="icon"></i>船舶信息</h5>
+      <div class="info-grid">
+        <span class="ik">MMSI</span><span class="iv">${t.mmsi}</span>
+        <span class="ik">IMO</span><span class="iv">${t.imo||'-'}</span>
+        <span class="ik">船名</span><span class="iv">${t.name}</span>
+        <span class="ik">船旗</span><span class="iv">${t.flag}</span>
+        <span class="ik">尺寸</span><span class="iv">${t.dim}</span>
+        <span class="ik">船舶类型</span><span class="iv">${t.shipType}</span>
+        <span class="ik">AIS信号</span><span class="iv" style="color:${t.ais==='正常'?'#22c55e':'#ef4444'}">${t.ais}</span>
+      </div></div>`;
+  }else if(t.cat==='空'){
+    specific=`<div class="info-section">
+      <h5><i data-lucide="plane" class="icon"></i>航空器信息</h5>
+      <div class="info-grid">
+        <span class="ik">ICAO24</span><span class="iv">${t.icao}</span>
+        <span class="ik">呼号</span><span class="iv">${t.call}</span>
+        <span class="ik">机型</span><span class="iv">${t.acType}</span>
+        <span class="ik">所属组织</span><span class="iv">${t.org}</span>
+        <span class="ik">ADS-B信号</span><span class="iv" style="color:${t.adsb==='正常'?'#22c55e':'#ef4444'}">${t.adsb}</span>
+      </div></div>`;
+  }else{
+    specific=`<div class="info-section">
+      <h5><i data-lucide="user" class="icon"></i>人员单元信息</h5>
+      <div class="info-grid">
+        <span class="ik">单元编号</span><span class="iv">${t.manId}</span>
+        <span class="ik">来源情报</span><span class="iv">${t.src}</span>
+        <span class="ik">发现时间</span><span class="iv">${t.found}</span>
+        <span class="ik">装备描述</span><span class="iv">${t.equip}</span>
+        <span class="ik">备注</span><span class="iv">${t.notes}</span>
+      </div></div>`;
+  }
+  return `
+    <div class="info-section">
+      <h5><i data-lucide="tag" class="icon"></i>归属标记 (可编辑)</h5>
+      <div class="aff-picker" id="affPicker">
+        ${['我方','外方','中立','未知'].map(a=>`<span class="aff-opt ${a} ${t.aff===a?'active':''}" data-aff="${a}"><span class="ad" style="background:${AFF_COLOR[a]}"></span>${a}</span>`).join('')}
+      </div>
+    </div>
+    ${specific}
+    <div class="info-section">
+      <h5><i data-lucide="navigation" class="icon"></i>当前状态</h5>
+      <div class="info-grid">
+        <span class="ik">经度</span><span class="iv">${t.lng.toFixed(5)}°E</span>
+        <span class="ik">纬度</span><span class="iv">${t.lat.toFixed(5)}°N</span>
+        <span class="ik">速度</span><span class="iv">${t.speed!=null?t.speed+' 节':'-'}</span>
+        <span class="ik">航向</span><span class="iv">${t.heading!=null?t.heading+'°':'-'}</span>
+        <span class="ik">高度</span><span class="iv">${t.alt!=null?t.alt+' m':'-'}</span>
+        <span class="ik">状态</span><span class="iv">${t.status}</span>
+        <span class="ik">更新时间</span><span class="iv">${fmtTime(t.traj[t.traj.length-1].time)}</span>
+      </div>
+    </div>`;
+}
+
+function trackHTML(t){
+  const nodes = t.traj;
+  return `
+    <div class="info-section">
+      <h5><i data-lucide="line-chart" class="icon"></i>速度-时间</h5>
+      <div class="chart-box"><div class="cb-title">Speed (节) over time</div><canvas class="chart" id="spdChart"></canvas></div>
+    </div>
+    ${t.alt!=null?`<div class="info-section">
+      <h5><i data-lucide="trending-up" class="icon"></i>高度-时间</h5>
+      <div class="chart-box"><div class="cb-title">Altitude (m) over time</div><canvas class="chart" id="altChart"></canvas></div>
+    </div>`:''}
+    <div class="info-section">
+      <h5><i data-lucide="map-pin" class="icon"></i>关键节点 (${nodes.length})</h5>
+      <div class="scroll-x">
+      ${nodes.map(p=>`<div class="key-node">
+        <span class="kn-t">${fmtTime(p.time).slice(5)}</span>
+        <span class="kn-p">${p.lng.toFixed(3)},${p.lat.toFixed(3)} ${p.speed!=null?'· '+p.speed.toFixed(0)+'节':''}</span>
+        <span class="kn-e ${p.event||''}">${p.event||'—'}</span>
+      </div>`).join('')}
+      </div>
+    </div>
+    <div style="display:flex;gap:6px">
+      <button class="tool-btn" id="expKml" style="flex:1"><i data-lucide="file-code" class="icon"></i>导出KML</button>
+      <button class="tool-btn" id="expCsv" style="flex:1"><i data-lucide="file-spreadsheet" class="icon"></i>导出CSV</button>
+    </div>`;
+}
+
+function intelHTML(t){
+  const persons = t.cat==='海' ? [
+    {name:'张志远',identity:'船长',org:t.org,src:'AIS登记',notes:'持证航行'},
+    {name:'李海生',identity:'大副',org:t.org,src:'AIS登记',notes:'-'}
+  ] : t.cat==='空' ? [
+    {name:'(未知)',identity:'驾驶员',org:t.org,src:'ADS-B',notes:'呼号 '+t.call}
+  ] : [
+    {name:'(待识别)',identity:'小组长',org:'不明',src:t.src,notes:t.notes}
+  ];
+  return `
+    <div class="info-section">
+      <h5><i data-lucide="users" class="icon"></i>关联人员 (${persons.length})</h5>
+      ${persons.map((p,i)=>`<div class="person-row">
+        <div>
+          <div class="pr-name">${p.name}</div>
+          <div class="pr-meta">${p.identity} · ${p.org} · ${p.src}</div>
+          <div class="pr-meta">${p.notes}</div>
+        </div>
+        <div class="pr-actions">
+          <button class="mini-btn" data-pedit="${i}"><i data-lucide="edit" class="icon"></i></button>
+          <button class="mini-btn" data-pdel="${i}"><i data-lucide="trash-2" class="icon"></i></button>
+        </div>
+      </div>`).join('')}
+      <button class="tool-btn" id="addPerson" style="margin-top:6px;width:100%"><i data-lucide="user-plus" class="icon"></i>新增人员</button>
+    </div>
+    <div class="info-section">
+      <h5><i data-lucide="file-text" class="icon"></i>情报备注</h5>
+      <textarea id="intelNote" rows="4" placeholder="输入情报备注...">${t.notes||''}</textarea>
+      <button class="tool-btn active" id="saveIntel" style="margin-top:6px;width:100%"><i data-lucide="save" class="icon"></i>保存情报</button>
+    </div>`;
+}
+
+function formationRelHTML(t){
+  const myForm = formations.find(f=>f.members.includes(t.id));
+  const others = formations.filter(f=>!f.members.includes(t.id));
+  return `
+    <div class="info-section">
+      <h5><i data-lucide="group" class="icon"></i>当前编队</h5>
+      ${myForm?`<div class="formation-card open selected" style="margin-bottom:6px">
+        <div class="formation-head" style="background:rgba(56,189,248,.1)">
+          <span class="fcolor" style="background:${AFF_COLOR[myForm.aff]}"></span>
+          <span>${myForm.name}</span>
+        </div>
+        <div class="formation-members" style="display:block;padding-left:18px">
+          ${myForm.members.map(mid=>{const m=targets.find(x=>x.id===mid);return `<div class="formation-member"><span class="mdot" style="background:${AFF_COLOR[m.aff]}"></span>${m.name}${m.id===t.id?' <span style="color:var(--accent)">(本目标)</span>':''}</div>`}).join('')}
+        </div>
+      </div>`:'<div style="color:var(--text3);padding:8px">该目标未加入任何编队</div>'}
+    </div>
+    <div style="display:flex;gap:6px;margin-bottom:10px">
+      <button class="tool-btn" id="leaveForm" style="flex:1" ${!myForm?'disabled':''}><i data-lucide="log-out" class="icon"></i>移出编队</button>
+      <button class="tool-btn" id="switchForm" style="flex:1"><i data-lucide="repeat" class="icon"></i>切换编队</button>
+    </div>
+    <div class="info-section">
+      <h5><i data-lucide="plus-circle" class="icon"></i>可加入编队</h5>
+      <button class="tool-btn active" id="createForm" style="width:100%"><i data-lucide="plus" class="icon"></i>新建编队</button>
+    </div>`;
+}
+
+function judgeHTML(t){
+  const risk = t.aff==='外方'&&t.status.includes('抵近')?'high':t.aff==='未知'?'mid':'low';
+  const basis = t.aff==='外方' ? `${t.name}持续在警戒圈附近活动,航向${t.heading}°,速度${t.speed}节,存在抵近侦察意图。`
+             : t.aff==='未知' ? `${t.name}身份未明,AIS/ADS-B信号异常,需进一步核实。`
+             : `${t.name}处于正常${t.status}状态,无异常迹象。`;
+  return `
+    <div class="info-section">
+      <h5><i data-lucide="gauge" class="icon"></i>风险等级</h5>
+      <div class="risk-picker" id="riskPicker">
+        <span class="risk-opt high ${risk==='high'?'active':''}" data-risk="high">高风险</span>
+        <span class="risk-opt mid ${risk==='mid'?'active':''}" data-risk="mid">中风险</span>
+        <span class="risk-opt low ${risk==='low'?'active':''}" data-risk="low">低风险</span>
+      </div>
+    </div>
+    <div class="info-section">
+      <h5><i data-lucide="cpu" class="icon"></i>自动研判依据</h5>
+      <div style="background:var(--bg3);border:1px solid var(--border2);border-radius:4px;padding:8px;font-size:11px;color:var(--text2);line-height:1.6">${basis}</div>
+    </div>
+    <div class="info-section">
+      <h5><i data-lucide="edit-3" class="icon"></i>人工研判</h5>
+      <div class="info-grid">
+        <span class="ik">研判人员</span><span class="iv"><input id="judgeWho" placeholder="姓名" value="值班员A" style="width:100%"></span>
+        <span class="ik">研判时间</span><span class="iv">${fmtTime(new Date())}</span>
+      </div>
+      <textarea id="judgeSuggest" rows="4" placeholder="处置建议..." style="margin-top:6px">${risk==='high'?'建议加强监视,准备拦截驱离':risk==='mid'?'建议持续跟踪,核实身份':'保持常规监视'}</textarea>
+      <button class="tool-btn active" id="saveJudge" style="margin-top:6px;width:100%"><i data-lucide="save" class="icon"></i>保存研判</button>
+    </div>`;
+}
+
+function bindRightEvents(t){
+  // affiliation
+  document.querySelectorAll('#affPicker .aff-opt').forEach(o=>{
+    o.onclick=()=>{
+      document.querySelectorAll('#affPicker .aff-opt').forEach(x=>x.classList.remove('active'));
+      o.classList.add('active');
+      t.aff=o.dataset.aff;
+      // update marker
+      if(markers[t.id]) markers[t.id].setContent(mkIcon(t));
+      if(trajLines[t.id]) trajLines[t.id].setOptions({strokeColor:AFF_COLOR[t.aff]});
+      renderRight(t);
+      if(leftTab==='overview') renderOverview();
+      updateStatusBar();
+    };
+  });
+  // track exports
+  document.getElementById('expKml')?.addEventListener('click',()=>alert('已导出 '+t.name+' KML (mock)'));
+  document.getElementById('expCsv')?.addEventListener('click',()=>alert('已导出 '+t.name+' CSV (mock)'));
+  // person actions
+  document.querySelectorAll('[data-pedit]').forEach(b=>b.onclick=()=>alert('编辑人员 (mock)'));
+  document.querySelectorAll('[data-pdel]').forEach(b=>b.onclick=()=>alert('删除人员 (mock)'));
+  document.getElementById('addPerson')?.addEventListener('click',()=>alert('新增人员 (mock)'));
+  document.getElementById('saveIntel')?.addEventListener('click',()=>{t.notes=document.getElementById('intelNote').value;alert('情报已保存');});
+  // formation
+  document.getElementById('leaveForm')?.addEventListener('click',()=>{
+    formations.forEach(f=>{const i=f.members.indexOf(t.id);if(i>=0)f.members.splice(i,1);});
+    renderRightTab(t); renderFormations();
+  });
+  document.getElementById('switchForm')?.addEventListener('click',()=>switchLeftTab('formation'));
+  document.getElementById('createForm')?.addEventListener('click',()=>{
+    const name='新编队'+(formations.length+1);
+    formations.push({id:'F'+Date.now(),name,aff:t.aff,members:[t.id]});
+    renderRightTab(t); renderFormations();
+  });
+  // judge
+  document.querySelectorAll('#riskPicker .risk-opt').forEach(o=>{
+    o.onclick=()=>{
+      document.querySelectorAll('#riskPicker .risk-opt').forEach(x=>x.classList.remove('active'));
+      o.classList.add('active');
+    };
+  });
+  document.getElementById('saveJudge')?.addEventListener('click',()=>alert('研判已保存'));
+}
+
+/* ===================== CHARTS ===================== */
+function drawCharts(t){
+  const spdCanvas=document.getElementById('spdChart');
+  if(spdCanvas) drawLineChart(spdCanvas,t.traj.map(p=>({x:p.idx,y:p.speed,label:'节'})),'节');
+  const altCanvas=document.getElementById('altChart');
+  if(altCanvas && t.alt!=null) drawLineChart(altCanvas,t.traj.map(p=>({x:p.idx,y:p.alt,label:'m'})),'m');
+}
+function drawLineChart(canvas,data,unit){
+  const ctx=canvas.getContext('2d');
+  const dpr=window.devicePixelRatio||1;
+  const w=canvas.clientWidth, h=canvas.clientHeight;
+  canvas.width=w*dpr; canvas.height=h*dpr;
+  ctx.scale(dpr,dpr);
+  ctx.clearRect(0,0,w,h);
+  const pad={l:28,r:8,t:8,b:18};
+  const cw=w-pad.l-pad.r, ch=h-pad.t-pad.b;
+  const ys=data.map(d=>d.y).filter(v=>v!=null);
+  if(!ys.length) return;
+  const yMin=Math.min(...ys,0), yMax=Math.max(...ys,1);
+  // grid
+  ctx.strokeStyle='#1e293b'; ctx.lineWidth=1;
+  ctx.fillStyle='#64748b'; ctx.font='9px Consolas';
+  for(let i=0;i<=3;i++){
+    const y=pad.t+ch*i/3;
+    ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(pad.l+cw,y);ctx.stroke();
+    const v=yMax-(yMax-yMin)*i/3;
+    ctx.fillText(v.toFixed(0),2,y+3);
+  }
+  // line
+  ctx.strokeStyle='#38bdf8'; ctx.lineWidth=1.8;
+  ctx.beginPath();
+  data.forEach((d,i)=>{
+    const x=pad.l+cw*i/(data.length-1);
+    const y=pad.t+ch*(1-(d.y-yMin)/(yMax-yMin||1));
+    if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);
+  });
+  ctx.stroke();
+  // points
+  data.forEach((d,i)=>{
+    const x=pad.l+cw*i/(data.length-1);
+    const y=pad.t+ch*(1-(d.y-yMin)/(yMax-yMin||1));
+    ctx.fillStyle=d.event||i===data.length-1?'#fbbf24':'#38bdf8';
+    ctx.beginPath();ctx.arc(x,y,2.5,0,Math.PI*2);ctx.fill();
+  });
+}
+
+/* ===================== TAB SWITCHING ===================== */
+function switchLeftTab(tab){
+  leftTab=tab;
+  document.querySelectorAll('[data-ltab]').forEach(x=>x.classList.toggle('active',x.dataset.ltab===tab));
+  renderLeft();
+}
+function switchRightTab(tab){
+  rightTab=tab;
+  document.querySelectorAll('[data-rtab]').forEach(x=>x.classList.toggle('active',x.dataset.rtab===tab));
+  if(selectedTargetId) renderRightTab(targets.find(t=>t.id===selectedTargetId));
+}
+
+/* ===================== STATUS BAR ===================== */
+function updateStatusBar(){
+  const center=map?map.getCenter():{lng:117.52,lat:15.11};
+  const zoom=map?map.getZoom():9;
+  const vt=visibleTargets();
+  const stats={'我方':0,'外方':0,'中立':0,'未知':0};
+  vt.forEach(t=>stats[t.aff]++);
+  const unproc=alerts.filter(a=>a.status==='unprocessed').length;
+  const scaleKm = Math.round(40000*Math.pow(2,-zoom)*10)/10;
+  document.getElementById('statusBar').innerHTML=`
+    <div class="sb-item"><i data-lucide="crosshair" class="icon"></i><span class="lbl">中心</span><span class="val">${center.lng.toFixed(3)},${center.lat.toFixed(3)}</span></div>
+    <div class="sb-sep"></div>
+    <div class="sb-item"><i data-lucide="zoom-in" class="icon"></i><span class="lbl">层级</span><span class="val">${zoom.toFixed(1)}</span></div>
+    <div class="sb-item"><span class="lbl">比例尺</span><span class="val">≈${scaleKm}km</span></div>
+    <div class="sb-sep"></div>
+    <div class="sb-item"><span class="lbl">目标</span><span class="val" style="color:var(--blue)">我方${stats['我方']}</span><span class="val" style="color:var(--red)">外方${stats['外方']}</span><span class="val" style="color:var(--yellow)">中立${stats['中立']}</span><span class="val" style="color:#cbd5e1">未知${stats['未知']}</span></div>
+    <div class="sb-sep"></div>
+    <div class="sb-item"><i data-lucide="radio" class="icon"></i><span class="lbl">AIS</span><span class="val">${fmtTime(new Date(Date.now()-60000))}</span></div>
+    <div class="sb-item"><i data-lucide="radio" class="icon"></i><span class="lbl">ADS-B</span><span class="val">${fmtTime(new Date(Date.now()-45000))}</span></div>
+    <div class="sb-item"><span class="lbl">情报</span><span class="val">${vt.length}条</span></div>
+    <div class="sb-sep"></div>
+    <div class="sb-item"><span class="sb-dot ${unproc>0?'warn':''}"></span><span class="lbl">告警</span><span class="val" style="color:${unproc>0?'#fca5a5':'#22c55e'}">未处置 ${unproc}</span></div>
+    <div class="sb-sep"></div>
+    <div class="sb-item"><i data-lucide="clock" class="icon"></i><span class="lbl">分析时段</span><span class="val">近24h</span></div>
+    <div class="sb-item"><i data-lucide="activity" class="icon"></i><span class="lbl">更新</span><span class="val">${fmtTime(new Date())}</span></div>
+    <div class="sb-sep"></div>
+    <div class="sb-item"><span class="sb-dot"></span><span class="lbl">数据状态</span><span class="val" style="color:#22c55e">正常</span></div>`;
+  lucide.createIcons();
+}
+
+/* ===================== PLAYBACK ===================== */
+function setFrame(idx){
+  playbackFrame=idx;
+  document.getElementById('pbSlider').value=idx;
+  document.getElementById('pbFrame').textContent = idx===6?'实时':'T-'+(6-idx);
+  document.getElementById('pbTime').textContent = idx===6?'实时 '+fmtTime(new Date()):fmtTime(targets[0].traj[idx].time);
+  targets.forEach(t=>{
+    const p=t.traj[idx];
+    if(p&&markers[t.id]) markers[t.id].setPosition([p.lng,p.lat]);
+  });
+}
+function play(){
+  isPlaying=true;
+  document.getElementById('pbPlay').style.display='none';
+  document.getElementById('pbPause').style.display='flex';
+  pbTimer=setInterval(()=>{
+    let next=(playbackFrame-1+7)%7;
+    if(next===6) next=0;
+    setFrame(next);
+  },1000/Math.max(pbSpeed,0.25)*2);
+}
+function pause(){
+  isPlaying=false;
+  document.getElementById('pbPlay').style.display='flex';
+  document.getElementById('pbPause').style.display='none';
+  clearInterval(pbTimer);
+}
+
+/* ===================== UTILS ===================== */
+function fmtTime(d){
+  d=new Date(d);
+  const p=n=>String(n).padStart(2,'0');
+  return `${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+
+/* ===================== ICON INIT ===================== */
+function initIcons(){
+  if(window.lucide && typeof lucide.createIcons === 'function'){
+    try{ lucide.createIcons(); }catch(e){}
+  } else {
+    setTimeout(initIcons, 50);
+  }
+}
+initIcons();
+// Also try after a delay to catch late loads
+setTimeout(initIcons, 500);
+setTimeout(initIcons, 1500);
+setTimeout(initIcons, 3000);
+
+/* ===================== INIT ===================== */
+window.addEventListener('load',()=>{
+  initIcons();
+  lucide.createIcons();
+  initMap();
+  renderLeft();
+  updateStatusBar();
+  setFrame(6);
+
+  // left tabs
+  document.querySelectorAll('[data-ltab]').forEach(t=>t.onclick=()=>switchLeftTab(t.dataset.ltab));
+  // right tabs
+  document.querySelectorAll('[data-rtab]').forEach(t=>t.onclick=()=>switchRightTab(t.dataset.rtab));
+
+  // collapse
+  document.getElementById('leftCollapse').onclick=()=>{
+    const p=document.getElementById('leftPanel');
+    p.classList.toggle('collapsed');
+    document.getElementById('leftCollapse').textContent=p.classList.contains('collapsed')?'▶':'◀';
+    setTimeout(()=>map.setFitView(),250);
+  };
+  document.getElementById('rightCollapse').onclick=()=>{
+    const p=document.getElementById('rightPanel');
+    p.classList.toggle('collapsed');
+    document.getElementById('rightCollapse').textContent=p.classList.contains('collapsed')?'◀':'▶';
+    setTimeout(()=>map.setFitView(),250);
+  };
+
+  // playback
+  document.getElementById('pbSlider').oninput=e=>setFrame(parseInt(e.target.value));
+  document.getElementById('pbPlay').onclick=play;
+  document.getElementById('pbPause').onclick=pause;
+  document.getElementById('pbBack').onclick=()=>setFrame(Math.max(0,playbackFrame-1));
+  document.getElementById('pbFwd').onclick=()=>setFrame(Math.min(6,playbackFrame+1));
+  document.getElementById('pbReset').onclick=()=>{pause();setFrame(6);};
+  document.getElementById('pbSpeed').onchange=e=>{pbSpeed=parseFloat(e.target.value);if(isPlaying){pause();play();}};
+
+  // map toolbar
+  document.getElementById('mtZoomIn').onclick=()=>map.zoomIn();
+  document.getElementById('mtZoomOut').onclick=()=>map.zoomOut();
+  document.getElementById('mtFit').onclick=()=>map.setFitView();
+  document.getElementById('mtMeasure').onclick=()=>alert('测距工具 (mock): 在地图上点击两点测距');
+  document.getElementById('mtDraw').onclick=()=>alert('标绘工具 (mock): 选择标绘类型');
+  document.getElementById('mtFull').onclick=()=>{
+    if(document.fullscreenElement) document.exitFullscreen();
+    else document.documentElement.requestFullscreen();
+  };
+
+  // draw buttons
+  document.querySelectorAll('[data-draw]').forEach(b=>b.onclick=()=>{
+    document.querySelectorAll('[data-draw]').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+    alert('标绘 '+b.dataset.draw+' (mock)');
+  });
+  document.querySelectorAll('[data-spatial]').forEach(b=>b.onclick=()=>{
+    if(b.dataset.spatial==='clear'){alert('已清除标绘 (mock)');return;}
+    alert('空间工具 '+b.dataset.spatial+' (mock)');
+  });
+  document.querySelectorAll('[data-analysis]').forEach(b=>b.onclick=()=>{
+    const m={assess:'态势综合评估',formation:'编队聚合分析',anomaly:'异常目标告警',conflict:'航线冲突检测'};
+    alert(m[b.dataset.analysis]+' 分析中... (mock)\n当前可见目标 '+visibleTargets().length+' 个');
+  });
+  document.querySelectorAll('[data-export]').forEach(b=>b.onclick=()=>{
+    const m={image:'态势图图片',kml:'KML',report:'研判报表',csv:'轨迹CSV'};
+    alert('导出 '+m[b.dataset.export]+' (mock)');
+  });
+
+  // data source toggles
+  document.querySelectorAll('[data-ds]').forEach(c=>{
+    c.onchange=()=>{
+      const ds=c.dataset.ds, vis=c.checked;
+      if(ds==='ais'){ targets.filter(t=>t.cat==='海').forEach(t=>{if(markers[t.id])markers[t.id].setVisible(vis);if(trajLines[t.id])trajLines[t.id].setVisible(vis);}); }
+      else if(ds==='adsb'){ targets.filter(t=>t.cat==='空').forEach(t=>{if(markers[t.id])markers[t.id].setVisible(vis);if(trajLines[t.id])trajLines[t.id].setVisible(vis);}); }
+      else if(ds==='intel'){ targets.filter(t=>t.cat==='人员').forEach(t=>{if(markers[t.id])markers[t.id].setVisible(vis);}); }
+      else if(ds==='basemap'){ if(vis){islandPolygon.show();alertCircle.show();baselineLine.show();}else{islandPolygon.hide();alertCircle.hide();baselineLine.hide();} }
+    };
+  });
+
+  // layer switch
+  document.querySelectorAll('[data-layer]').forEach(b=>{
+    b.onclick=()=>{
+      document.querySelectorAll('[data-layer]').forEach(x=>x.classList.remove('active'));
+      b.classList.add('active');
+      const l=b.dataset.layer;
+      if(l==='sat'){satelliteLayer.show();roadLayer.show();}
+      else if(l==='chart'){satelliteLayer.hide();roadLayer.hide();}
+      else if(l==='vector'){satelliteLayer.hide();roadLayer.show();}
+    };
+  });
+
+  // time range
+  document.getElementById('timeRange').onchange=e=>{
+    if(e.target.value==='custom') alert('自定义时段 (mock)');
+  };
+
+  // auto refresh status bar
+  setInterval(updateStatusBar,30000);
+});
+</script>
+</body>
+</html>

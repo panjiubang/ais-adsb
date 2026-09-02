@@ -1,0 +1,1035 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>zssf 静默专项分析 - 走私识别可视化分析</title>
+<script src="https://webapi.amap.com/maps?v=2.0&key=01d6322cc08dafd1800e07b018b06b49&plugin=AMap.Scale,AMap.ToolBar"></script>
+<style>
+  html { height: 100%; }
+
+  :root {
+    --bg: #0b1220;
+    --surface: #141c2b;
+    --surface-2: #1a2536;
+    --border: rgba(255,255,255,0.08);
+    --ink: #e2e8f0;
+    --ink-3: #64748b;
+    --primary: #38bdf8;
+    --warn: #f59e0b;
+    --danger: #ef4444;
+    --success: #22c55e;
+    --mono: 'JetBrains Mono', Consolas, monospace;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg); color: var(--ink); font-size: 14px; line-height: 1.6;
+    overflow: hidden;
+  }
+
+  /* 顶部栏 */
+  .top-bar {
+    height: 52px; flex-shrink: 0; display: flex; align-items: center;
+    padding: 0 16px; gap: 14px; background: linear-gradient(180deg,#0F1A2E,#0B1220);
+    border-bottom: 1px solid var(--border); box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    z-index: 100;
+  }
+  .top-title { display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 700; white-space: nowrap; }
+  .top-title svg { color: var(--primary); }
+  .top-badge {
+    font-size: 10px; font-weight: 600; color: var(--primary);
+    background: rgba(56,189,248,0.1); border: 1px solid rgba(56,189,248,0.3);
+    padding: 2px 8px; border-radius: 10px;
+  }
+  .top-close {
+    margin-left: auto; display: inline-flex; align-items: center; gap: 6px;
+    height: 32px; padding: 0 14px; border-radius: 8px; font-size: 12px;
+    font-weight: 600; cursor: pointer; border: 1px solid var(--border);
+    background: transparent; color: var(--ink-3); font-family: inherit;
+  }
+  .top-close:hover { border-color: var(--danger); color: var(--danger); }
+
+  /* 配置面板 */
+  .cfg-bar {
+    flex-shrink: 0; display: flex; align-items: center; gap: 18px; flex-wrap: wrap;
+    padding: 10px 16px; background: var(--surface); border-bottom: 1px solid var(--border);
+  }
+  .cfg-item { display: flex; align-items: center; gap: 6px; }
+  .cfg-item label { font-size: 11px; color: var(--ink-3); white-space: nowrap; }
+  .cfg-item input {
+    width: 74px; background: var(--bg); border: 1px solid var(--border);
+    border-radius: 6px; color: var(--ink); padding: 5px 8px; font-size: 12px;
+    font-family: var(--mono); outline: none;
+  }
+  .cfg-item input:focus { border-color: var(--primary); }
+  .cfg-item .hint { font-size: 10px; color: var(--ink-3); }
+  .cfg-actions { display: flex; gap: 8px; margin-left: auto; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    height: 32px; padding: 0 14px; border-radius: 8px; font-size: 12px;
+    font-weight: 600; cursor: pointer; border: none; transition: all .15s;
+    font-family: inherit;
+  }
+  .btn-primary {
+    background: linear-gradient(180deg, var(--primary), #0ea5e9);
+    color: #0b1220; box-shadow: 0 2px 8px rgba(56,189,248,0.35);
+  }
+  .btn-primary:hover { filter: brightness(1.1); transform: translateY(-1px); }
+  .btn-primary:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+  .btn-ghost { background: transparent; color: var(--ink-3); border: 1px solid var(--border); }
+  .btn-ghost:hover { border-color: var(--primary); color: var(--primary); }
+
+  /* 统计卡片 */
+  .stat-row {
+    flex-shrink: 0; display: flex; gap: 10px; padding: 8px 16px;
+    background: var(--surface-2); border-bottom: 1px solid var(--border);
+  }
+  .stat-chip {
+    display: flex; align-items: center; gap: 6px; padding: 4px 12px;
+    background: var(--bg); border: 1px solid var(--border); border-radius: 16px;
+    font-size: 11px; color: var(--ink-3);
+  }
+  .stat-chip b { font-family: var(--mono); font-size: 13px; color: var(--ink); }
+  .stat-chip.primary b { color: var(--primary); }
+  .stat-chip.warn b { color: var(--warn); }
+  .stat-chip.danger b { color: var(--danger); }
+
+  /* 主体 */
+  .main { flex: 1; display: flex; min-height: 0; }
+  .left-pane {
+    width: 420px; flex-shrink: 0; display: flex; flex-direction: column;
+    background: var(--surface); border-right: 1px solid var(--border);
+  }
+  .filter-bar {
+    flex-shrink: 0; display: flex; gap: 6px; padding: 8px 12px;
+    border-bottom: 1px solid var(--border); flex-wrap: wrap;
+  }
+  .filter-bar input {
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 6px; color: var(--ink); padding: 5px 8px; font-size: 11px;
+    outline: none; font-family: inherit;
+  }
+  .filter-bar input:focus { border-color: var(--primary); }
+  .filter-bar input[type=text] { width: 120px; }
+  .filter-bar input[type=number] { width: 90px; }
+
+  .list-wrap { flex: 1; overflow-y: auto; }
+  .list-item {
+    padding: 10px 12px; border-bottom: 1px solid rgba(255,255,255,0.04);
+    cursor: pointer; transition: background .12s;
+  }
+  .list-item:hover { background: rgba(56,189,248,0.05); }
+  .list-item.active { background: rgba(56,189,248,0.1); border-left: 3px solid var(--primary); padding-left: 9px; }
+  .li-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .li-mmsi { color: var(--primary); font-weight: 700; font-family: var(--mono); font-size: 13px; }
+  .li-name { color: var(--ink); font-size: 12px; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .li-flag { color: var(--primary); font-size: 12px; font-weight: 600; padding: 2px 10px; border-radius: 10px; background: rgba(56,189,248,0.1); border: 1px solid rgba(56,189,248,0.25); white-space: nowrap; }
+  .li-meta { display: flex; gap: 12px; margin-top: 4px; font-size: 10px; color: var(--ink-3); font-family: var(--mono); }
+  .li-meta span b { color: var(--ink); font-weight: 600; }
+  .li-actions { display: flex; gap: 6px; margin-top: 6px; }
+  .li-btn {
+    font-size: 10px; padding: 3px 8px; border-radius: 4px; border: 1px solid var(--border);
+    background: transparent; color: var(--ink-3); cursor: pointer; font-family: inherit;
+  }
+  .li-btn:hover { border-color: var(--primary); color: var(--primary); }
+  .li-btn.track:hover { border-color: var(--success); color: var(--success); }
+  .empty { text-align: center; padding: 40px 20px; color: var(--ink-3); font-size: 12px; }
+
+  /* 分页 */
+  .pager {
+    flex-shrink: 0; display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 12px; border-top: 1px solid var(--border); gap: 6px;
+  }
+  .pager-info { font-size: 11px; color: var(--ink-3); }
+  .pager-btns { display: flex; gap: 4px; }
+  .pager-btns button {
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 6px; color: var(--ink); padding: 4px 10px;
+    font-size: 11px; cursor: pointer; font-family: inherit;
+  }
+  .pager-btns button:hover:not(:disabled) { border-color: var(--primary); color: var(--primary); }
+  .pager-btns button:disabled { opacity: .4; cursor: not-allowed; }
+
+  /* 地图 */
+  .right-pane { flex: 1; position: relative; min-width: 0; }
+  #mapContainer { position: absolute; inset: 0; }
+  .map-tip {
+    position: absolute; top: 12px; left: 12px; z-index: 50;
+    background: rgba(15,23,42,0.92); border: 1px solid var(--border);
+    border-radius: 8px; padding: 8px 12px; font-size: 11px; color: var(--ink-3);
+    max-width: 280px; line-height: 1.6;
+  }
+  .map-tip b { color: var(--ink); }
+  .map-tip .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; vertical-align: middle; margin-right: 4px; }
+  .layer-swtich {
+    position: absolute; top: 12px; right: 12px; z-index: 50;
+    display: flex; gap: 4px; background: rgba(15,23,42,0.92);
+    border: 1px solid var(--border); border-radius: 8px; padding: 4px;
+  }
+  .layer-swtich button {
+    background: transparent; border: none; color: var(--ink-3);
+    padding: 4px 10px; border-radius: 5px; font-size: 11px; cursor: pointer; font-family: inherit;
+  }
+  .layer-swtich button.active { background: var(--primary); color: #0b1220; font-weight: 600; }
+
+  /* 详情卡片 */
+  .detail-card {
+    position: absolute; bottom: 12px; left: 12px; z-index: 50;
+    background: rgba(15,23,42,0.95); border: 1px solid var(--border);
+    border-radius: 10px; padding: 12px 14px; font-size: 11px; color: var(--ink);
+    min-width: 280px; max-width: 360px; display: none;
+  }
+  .detail-card.show { display: block; }
+  .dc-title { font-size: 13px; font-weight: 700; margin-bottom: 8px; color: var(--primary); display: flex; align-items: center; justify-content: space-between; }
+  .dc-row { display: flex; justify-content: space-between; padding: 3px 0; border-bottom: 1px dashed rgba(255,255,255,0.05); }
+  .dc-row:last-child { border: none; }
+  .dc-row .k { color: var(--ink-3); }
+  .dc-row .v { color: var(--ink); font-family: var(--mono); }
+
+  /* 轨迹播放控制 */
+  .player {
+    position: absolute; right: 16px; bottom: 16px; z-index: 200;
+    background: rgba(15,23,42,0.96); border: 1px solid var(--success);
+    border-radius: 14px; padding: 14px 16px; color: var(--ink);
+    font-family: var(--mono); font-size: 12px; min-width: 420px; max-width: 520px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.6); display: none;
+  }
+  .player.show { display: block; }
+  .player .ph { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .player .pt { color: var(--success); font-size: 13px; font-weight: 700; }
+  .player .pc { color: var(--ink-3); cursor: pointer; font-size: 18px; line-height: 1; }
+  .player .pi { color: #cbd5e1; font-size: 11px; margin-bottom: 8px; }
+  .player .wave-wrap { margin-bottom: 8px; }
+  .player .wave-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+  .player .wave-label { color: var(--ink-3); font-size: 10px; }
+  .player .wave-val { color: var(--success); font-size: 11px; font-weight: 600; }
+  .player canvas { width: 100%; height: 40px; border-radius: 4px; background: rgba(0,0,0,0.3); }
+  .player .ctrl { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .player .pbtn {
+    background: var(--success); color: #0f172a; border: none; border-radius: 6px;
+    padding: 6px 16px; cursor: pointer; font-size: 12px; font-weight: 700; font-family: inherit;
+  }
+  .player .pbtn.reset { background: transparent; color: var(--ink-3); border: 1px solid #475569; padding: 5px 10px; }
+  .player select {
+    background: #1e293b; color: var(--ink); border: 1px solid #475569;
+    border-radius: 4px; padding: 4px 6px; font-size: 11px;
+  }
+  .player .pinfo { color: var(--ink-3); font-size: 11px; flex: 1; text-align: right; }
+  .player input[type=range] { width: 100%; accent-color: var(--success); cursor: pointer; }
+
+  /* 运行日志弹窗 */
+  .log-modal {
+    position: fixed; inset: 0; background: rgba(8,14,24,0.8); backdrop-filter: blur(6px);
+    z-index: 99999; display: flex; align-items: center; justify-content: center;
+  }
+  .log-box {
+    width: 600px; max-width: 90vw; max-height: 80vh; background: var(--surface);
+    border: 1px solid var(--border); border-radius: 12px; display: flex; flex-direction: column;
+  }
+  .log-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border-bottom: 1px solid var(--border); }
+  .log-title { font-size: 14px; font-weight: 600; }
+  .log-close { cursor: pointer; color: var(--ink-3); font-size: 20px; }
+  .log-body {
+    padding: 16px; overflow-y: auto; font-family: var(--mono);
+    font-size: 12px; line-height: 1.8; color: var(--ink); white-space: pre-wrap;
+  }
+  .log-body .err { color: var(--danger); }
+  .log-body .ok { color: var(--success); }
+  .log-body .info { color: var(--primary); }
+
+  .loading { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(56,189,248,0.2); border-top-color: var(--primary); border-radius: 50%; animation: spin .6s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* 全局加载遮罩 */
+  .app-mask {
+    position: fixed; inset: 0; z-index: 99999;
+    background: rgba(8,14,24,0.75); backdrop-filter: blur(4px);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .app-mask-box {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 14px; padding: 28px 48px; text-align: center;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.6);
+  }
+  .app-mask-spinner {
+    width: 40px; height: 40px; margin: 0 auto 14px;
+    border: 3px solid rgba(56,189,248,0.15);
+    border-top-color: var(--primary); border-radius: 50%;
+    animation: spin .8s linear infinite;
+  }
+  .app-mask-tip { color: var(--ink); font-size: 14px; font-weight: 500; letter-spacing: 1px; }
+  .app-mask-sub { color: var(--ink-3); font-size: 11px; margin-top: 6px; }
+
+  /* 完成Toast */
+  .app-toast {
+    position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-20px);
+    background: var(--surface); border: 1px solid var(--success);
+    border-radius: 10px; padding: 12px 24px; z-index: 99999;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+    display: flex; align-items: center; gap: 10px; opacity: 0;
+    transition: all .3s ease;
+  }
+  .app-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .app-toast .ok-icon {
+    width: 22px; height: 22px; border-radius: 50%;
+    background: var(--success); color: #0b1220;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 700;
+  }
+  .app-toast .ok-msg { color: var(--ink); font-size: 13px; }
+</style>
+</head>
+<body style="display:flex;flex-direction:column;">
+
+<!-- 顶部栏 -->
+<div class="top-bar">
+  <div class="top-title">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2v6h6V2M9 2h6M5 8h14l-1 14H6L5 8z"/><path d="M10 14h4"/></svg>
+    <span>zssf 静默专项分析</span>
+    <span class="top-badge">走私识别可视化分析</span>
+  </div>
+  <button class="top-close" onclick="window.close()">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+    关闭
+  </button>
+</div>
+
+<!-- 配置面板 -->
+<div class="cfg-bar">
+  <div class="cfg-item">
+    <label>距岸距离</label>
+    <input type="number" id="cfg-coast" min="0" step="1" value="5">
+    <span class="hint">KM(&lt;)</span>
+  </div>
+  <div class="cfg-item">
+    <label>静默时长</label>
+    <input type="number" id="cfg-duration" min="1" step="1" value="45">
+    <span class="hint">公里</span>
+  </div>
+  <div class="cfg-item">
+    <label>恢复位移</label>
+    <input type="number" id="cfg-displacement" min="0" step="1" value="10">
+    <span class="hint">KM(千米)</span>
+  </div>
+  <div class="cfg-item">
+    <label>时间窗起</label>
+    <input type="text" id="cfg-tstart" value="18:00">
+  </div>
+  <div class="cfg-item">
+    <label>时间窗止</label>
+    <input type="text" id="cfg-tend" value="06:00">
+  </div>
+  <div class="cfg-actions">
+    <button class="btn btn-ghost" onclick="saveConfig()">保存配置</button>
+    <button class="btn btn-primary" id="run-btn" onclick="runAlgorithm()">运行算法</button>
+  </div>
+</div>
+
+<!-- 统计 -->
+<div class="stat-row">
+  <div class="stat-chip primary">检测记录<b id="stat-total">-</b></div>
+  <div class="stat-chip warn">嫌疑船舶 <b id="stat-ships">-</b></div>
+  <div class="stat-chip danger">最长静默<b id="stat-maxdur">-</b> </div>
+  <div class="stat-chip">最远离岸<b id="stat-maxcoast">-</b> KM</div>
+  <div class="stat-chip" style="margin-left:auto;">算法别名 <b style="color:var(--primary)">zssf</b></div>
+</div>
+
+<!-- 主体 -->
+<div class="main">
+  <!-- 左侧结果列表 -->
+  <div class="left-pane">
+    <div class="filter-bar">
+      <input type="text" id="filter-keyword" placeholder="MMSI/船名" onkeyup="if(event.key==='Enter'){currentPage=1;loadResults();}">
+      <input type="number" id="filter-mindur" placeholder="最小静默（小时）" onkeyup="if(event.key==='Enter'){currentPage=1;loadResults();}">
+      <button class="btn btn-ghost" style="height:28px;padding:0 10px;" onclick="currentPage=1;loadResults()">查询</button>
+      <button class="btn btn-ghost" style="height:28px;padding:0 10px;" onclick="clearFilters()">重置</button>
+    </div>
+    <div class="list-wrap" id="list-wrap">
+      <div class="empty">加载数据源中...</div>
+    </div>
+    <div class="pager">
+      <div class="pager-info" id="pager-info">-</div>
+      <div class="pager-btns">
+        <button id="pager-prev" onclick="prevPage()" disabled>上一</button>
+        <button id="pager-next" onclick="nextPage()">下一</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 右侧地图 -->
+  <div class="right-pane">
+    <div id="mapContainer"></div>
+    <div class="map-tip">
+      <div><span class="dot" style="background:var(--danger)"></span><b>静默开始点</b> (最后一次AIS信号)</div>
+      <div><span class="dot" style="background:var(--success)"></span><b>静默结束</b> (恢复AIS信号)</div>
+      <div><span class="dot" style="background:var(--warn)"></span><b>位移连线</b> (静默前后位移)</div>
+      <div style="margin-top:4px;">点击左侧记录查看详情, 点击"播放轨迹"查看完整轨迹</div>
+    </div>
+    <div class="layer-swtich">
+      <button class="active" id="layer-sat" onclick="setLayer('sat')">卫星</button>
+      <button id="layer-vec" onclick="setLayer('vec')">标准</button>
+    </div>
+    <div class="detail-card" id="detail-card"></div>
+    <div class="player" id="player"></div>
+  </div>
+</div>
+
+<script>
+  var currentPage = 1;
+  var pageSize = 50;
+  var map = null, satLayer = null, vecLayer = null;
+  var resultMarkers = [];        // 所有结果静默开始点标记
+  var activeOverlay = null;     // 当前选中记录的地图覆盖物 {start,end,line,markers}
+  var trackOverlay = null;       // 轨迹播放覆盖图层
+  var playerTimer = null;
+  var currentMmsi = null;
+
+  // ============ 地图初始化 =============
+  function initMap() {
+    map = new AMap.Map('mapContainer', {
+      zoom: 8,
+      center: [113.85, 22.15],
+      mapStyle: 'amap://styles/dark',
+      viewMode: '2D'
+    });
+    satLayer = new AMap.TileLayer.Satellite();
+    vecLayer = new AMap.TileLayer.Vector();
+    satLayer.setMap(map);
+    map.addControl(new AMap.Scale());
+    map.addControl(new AMap.ToolBar({ position: 'RB' }));
+  }
+
+  function setLayer(type) {
+    if (type === 'sat') {
+      satLayer.setMap(map); vecLayer.setMap(null);
+      document.getElementById('layer-sat').classList.add('active');
+      document.getElementById('layer-vec').classList.remove('active');
+    } else {
+      vecLayer.setMap(map); satLayer.setMap(null);
+      document.getElementById('layer-vec').classList.add('active');
+      document.getElementById('layer-sat').classList.remove('active');
+    }
+  }
+
+  // ============ API 调用 ============
+  function fetchApi(url) { return fetch(url).then(function(r){ return r.json(); }); }
+
+  function loadConfig() {
+    fetchApi('/api/zssf/config').then(function(d){
+      var p = d.params;
+      document.getElementById('cfg-coast').value = p.coastlineDistanceKm;
+      document.getElementById('cfg-duration').value = p.silenceDurationMin;
+      document.getElementById('cfg-displacement').value = p.restartDisplacementKm;
+      document.getElementById('cfg-tstart').value = p.silenceTimeWindow.start;
+      document.getElementById('cfg-tend').value = p.silenceTimeWindow.end;
+    }).catch(function(e){ console.error('config error', e); });
+  }
+
+  function saveConfig() {
+    var params = {
+      coastlineDistanceKm: parseFloat(document.getElementById('cfg-coast').value),
+      silenceDurationMin: parseFloat(document.getElementById('cfg-duration').value),
+      restartDisplacementKm: parseFloat(document.getElementById('cfg-displacement').value),
+      silenceTimeWindow: {
+        start: document.getElementById('cfg-tstart').value,
+        end: document.getElementById('cfg-tend').value
+      }
+    };
+    fetch('/api/zssf/config', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ params: params })
+    }).then(function(r){ return r.json(); }).then(function(d){
+      if (d.ok) alert('配置已保存');
+      else alert('保存失败: ' + d.error);
+    }).catch(function(e){ alert('保存出错: ' + e.message); });
+  }
+
+  function showLoading() {
+    var mask = document.createElement('div');
+    mask.className = 'app-mask'; mask.id = 'app-loading-mask';
+    mask.innerHTML = '<div class="app-mask-box">' +
+      '<div class="app-mask-spinner"></div>' +
+      '<div class="app-mask-tip">数据分析中，请稍</div>' +
+      '<div class="app-mask-sub">正在检测船舶静默行为中...</div>' +
+      '</div>';
+    document.body.appendChild(mask);
+  }
+  function hideLoading() {
+    var m = document.getElementById('app-loading-mask');
+    if (m) m.remove();
+  }
+  function showToast(msg) {
+    var toast = document.createElement('div');
+    toast.className = 'app-toast';
+    toast.innerHTML = '<div class="ok-icon"></div><div class="ok-msg">' + escHtml(msg) + '</div>';
+    document.body.appendChild(toast);
+    requestAnimationFrame(function(){ toast.classList.add('show'); });
+    setTimeout(function(){
+      toast.classList.remove('show');
+      setTimeout(function(){ toast.remove(); }, 300);
+    }, 2500);
+  }
+
+  function runAlgorithm() {
+    var params = {
+      coastlineDistanceKm: parseFloat(document.getElementById('cfg-coast').value),
+      silenceDurationMin: parseFloat(document.getElementById('cfg-duration').value),
+      restartDisplacementKm: parseFloat(document.getElementById('cfg-displacement').value),
+      silenceTimeWindow: {
+        start: document.getElementById('cfg-tstart').value,
+        end: document.getElementById('cfg-tend').value
+      }
+    };
+    showLoading();
+    fetch('/api/zssf/config', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ params: params })
+    }).then(function(r){ return r.json(); }).then(function(cd){
+      if (!cd.ok) { hideLoading(); alert('配置保存失败: ' + cd.error); return; }
+      return fetch('/api/zssf/run', { method: 'POST' });
+    }).then(function(r){ if(!r) return; return r.json(); }).then(function(d){
+      hideLoading();
+      if (d && d.ok) {
+        showToast('分析完成，检测到 ' + d.detected + ' 条静默记');
+        currentPage = 1;
+        loadResults();
+      } else if (d) {
+        alert('运行失败: ' + d.error);
+      }
+    }).catch(function(e){
+      hideLoading();
+      alert('运行出错: ' + e.message);
+    });
+  }
+
+  // ============ 结果列表(查库) ============
+  function loadResults() {
+    var keyword = document.getElementById('filter-keyword').value.trim();
+    var minDur = document.getElementById('filter-mindur').value.trim();
+    var url = '/api/zssf/results?page=' + currentPage + '&pageSize=' + pageSize;
+    if (keyword) url += '&keyword=' + encodeURIComponent(keyword);
+    if (minDur) url += '&minDuration=' + encodeURIComponent(minDur);
+
+    fetchApi(url).then(function(d){
+      if (!d.ok) {
+        document.getElementById('list-wrap').innerHTML = '<div class="empty">加载失败: ' + (d.error||'') + '</div>';
+        return;
+      }
+      // 统计
+      document.getElementById('stat-total').textContent = d.total;
+      document.getElementById('stat-ships').textContent = d.ships;
+      if (d.data.length > 0) {
+        var maxDur = Math.max.apply(null, d.data.map(function(r){ return parseFloat(r.silent_duration_min)||0; }));
+        var maxCoast = Math.max.apply(null, d.data.map(function(r){ return parseFloat(r.coastline_distance_km)||0; }));
+        document.getElementById('stat-maxdur').textContent = maxDur.toFixed(0);
+        document.getElementById('stat-maxcoast').textContent = maxCoast.toFixed(1);
+      } else {
+        document.getElementById('stat-maxdur').textContent = '0';
+        document.getElementById('stat-maxcoast').textContent = '0';
+      }
+      // 列表
+      var wrap = document.getElementById('list-wrap');
+      if (d.data.length === 0) {
+        wrap.innerHTML = '<div class="empty">暂无数据</div>';
+      } else {
+        wrap.innerHTML = d.data.map(function(r, idx){
+          var dur = parseFloat(r.silent_duration_min)||0;
+          var coast = parseFloat(r.coastline_distance_km)||0;
+          var disp = parseFloat(r.displacement_km)||0;
+          return '<div class="list-item" data-idx="' + idx + '" onclick="selectResult(' + idx + ')">' +
+            '<div class="li-head">' +
+              '<span class="li-mmsi">' + r.mmsi + '</span>' +
+              '<span class="li-name">' + escHtml(r.vessel_name || '-') + '</span>' +
+              '<span class="li-flag">' + escHtml(r.flag_country_cn || '-') + '</span>' +
+            '</div>' +
+            '<div class="li-meta">' +
+              '<span>距岸 <b>' + coast.toFixed(2) + 'KM</b></span>' +
+              '<span>位移 <b>' + disp.toFixed(2) + 'KM</b></span>' +
+              '<span>' + fmtTime(r.silent_start_time) + '</span>' +
+            '</div>' +
+            '<div class="li-actions">' +
+              '<button class="li-btn" onclick="event.stopPropagation();focusResult(' + idx + ')">定位</button>' +
+              '<button class="li-btn track" onclick="event.stopPropagation();playTrack(' + idx + ')">播放轨迹</button>' +
+            '</div>' +
+          '</div>';
+        }).join('');
+        // 缓存当前页数
+        window._pageData = d.data;
+        // 在地图上标记所有静默开始点
+        drawAllResultMarkers(d.data);
+      }
+      // 分页
+      var totalPages = Math.ceil(d.total / d.pageSize);
+      document.getElementById('pager-info').textContent = '共' + d.total + ' 条 / 第' + d.page + '/' + totalPages + ' 页';
+      document.getElementById('pager-prev').disabled = d.page <= 1;
+      document.getElementById('pager-next').disabled = d.page >= totalPages;
+    }).catch(function(e){
+      document.getElementById('list-wrap').innerHTML = '<div class="empty">加载出错: ' + e.message + '</div>';
+    });
+  }
+
+  function prevPage(){ if(currentPage>1){ currentPage--; loadResults(); } }
+  function nextPage(){ currentPage++; loadResults(); }
+  function clearFilters(){
+    document.getElementById('filter-keyword').value='';
+    document.getElementById('filter-mindur').value='';
+    currentPage=1; loadResults();
+  }
+
+  // ============ 地图标记 ============
+  function clearResultMarkers() {
+    resultMarkers.forEach(function(m){ map.remove(m); });
+    resultMarkers = [];
+  }
+
+  function clearActiveOverlay() {
+    if (activeOverlay) {
+      activeOverlay.markers.forEach(function(m){ map.remove(m); });
+      if (activeOverlay.line) map.remove(activeOverlay.line);
+      activeOverlay = null;
+    }
+  }
+
+  // 在地图上标记所有结果的静默开始点(红点)
+  function drawAllResultMarkers(data) {
+    clearResultMarkers();
+    data.forEach(function(r, idx){
+      var lng = parseFloat(r.silent_start_lng);
+      var lat = parseFloat(r.silent_start_lat);
+      if (isNaN(lng) || isNaN(lat)) return;
+      var marker = new AMap.Marker({
+        position: [lng, lat],
+        content: '<div style="width:10px;height:10px;border-radius:50%;background:#ef4444;border:2px solid #fff;box-shadow:0 0 6px rgba(239,68,68,0.8);"></div>',
+        offset: new AMap.Pixel(-7, -7),
+        zIndex: 50
+      });
+      marker.on('click', function(){ selectResult(idx); });
+      map.add(marker);
+      resultMarkers.push(marker);
+    });
+  }
+
+  // 选中一条记录 — 高亮列表 + 地图聚焦 + 显示静默开始/结束'+ 位移连线
+  function selectResult(idx) {
+    var data = window._pageData;
+    if (!data || !data[idx]) return;
+    var r = data[idx];
+    // 高亮列表
+    var items = document.querySelectorAll('.list-item');
+    items.forEach(function(el){ el.classList.remove('active'); });
+    if (items[idx]) items[idx].classList.add('active');
+
+    clearActiveOverlay();
+    clearTrackOverlay();
+
+    var sLng = parseFloat(r.silent_start_lng);
+    var sLat = parseFloat(r.silent_start_lat);
+    var eLng = parseFloat(r.silent_end_lng);
+    var eLat = parseFloat(r.silent_end_lat);
+
+    var markers = [];
+
+    // 静默开始点（绿）
+    if (!isNaN(sLng) && !isNaN(sLat)) {
+      var startM = new AMap.Marker({
+        position: [sLng, sLat],
+        content: '<div style="text-align:center;">' +
+          '<div style="width:14px;height:14px;border-radius:50%;background:#ef4444;border:2px solid #fff;box-shadow:0 0 8px rgba(239,68,68,0.9);"></div>' +
+          '<div style="margin-top:2px;font-size:10px;color:#ef4444;background:rgba(15,23,42,0.8);padding:1px 4px;border-radius:3px;white-space:nowrap;">静默开</div>' +
+          '</div>',
+        offset: new AMap.Pixel(-30, -7),
+        zIndex: 90
+      });
+      map.add(startM); markers.push(startM);
+    }
+
+    // 静默结束点（红）
+    if (!isNaN(eLng) && !isNaN(eLat)) {
+      var endM = new AMap.Marker({
+        position: [eLng, eLat],
+        content: '<div style="text-align:center;">' +
+          '<div style="width:14px;height:14px;border-radius:50%;background:#22c55e;border:2px solid #fff;box-shadow:0 0 8px rgba(34,197,94,0.9);"></div>' +
+          '<div style="margin-top:2px;font-size:10px;color:#22c55e;background:rgba(15,23,42,0.8);padding:1px 4px;border-radius:3px;white-space:nowrap;">恢复AIS</div>' +
+          '</div>',
+        offset: new AMap.Pixel(-26, -7),
+        zIndex: 90
+      });
+      map.add(endM); markers.push(endM);
+    }
+
+    // 位移连线(黄虚线)
+    var line = null;
+    if (!isNaN(sLng) && !isNaN(sLat) && !isNaN(eLng) && !isNaN(eLat)) {
+      line = new AMap.Polyline({
+        path: [[sLng, sLat], [eLng, eLat]],
+        strokeColor: '#f59e0b',
+        strokeWeight: 3,
+        strokeStyle: 'dashed',
+        strokeOpacity: 0.9,
+        zIndex: 80
+      });
+      map.add(line);
+    }
+
+    activeOverlay = { markers: markers, line: line, record: r };
+
+    // 聚焦视野
+    if (line) {
+      map.setFitView([line]);
+    } else if (markers.length > 0) {
+      map.setZoomAndCenter(11, [sLng, sLat]);
+    }
+
+    // 显示详情卡片
+    showDetailCard(r);
+  }
+
+  function focusResult(idx) { selectResult(idx); }
+
+  function showDetailCard(r) {
+    var card = document.getElementById('detail-card');
+    var dur = parseFloat(r.silent_duration_min)||0;
+    var coast = parseFloat(r.coastline_distance_km)||0;
+    var disp = parseFloat(r.displacement_km)||0;
+    card.innerHTML =
+      '<div class="dc-title"><span>' + r.mmsi + ' · ' + escHtml(r.vessel_name||'-') + '</span></div>' +
+      '<div class="dc-row"><span class="k">静默开</span><span class="v">' + fmtTime(r.silent_start_time) + '</span></div>' +
+      '<div class="dc-row"><span class="k">静默结束</span><span class="v">' + fmtTime(r.silent_end_time) + '</span></div>' +
+      '<div class="dc-row"><span class="k">静默时长</span><span class="v" style="color:var(--warn)">' + dur.toFixed(1) + ' </span></div>' +
+      '<div class="dc-row"><span class="k">距岸距离</span><span class="v" style="color:var(--danger)">' + coast.toFixed(2) + ' KM</span></div>' +
+      '<div class="dc-row"><span class="k">恢复位移</span><span class="v">' + disp.toFixed(2) + ' KM</span></div>' +
+      '<div class="dc-row"><span class="k">速度前→</span><span class="v">' + (r.sog_before==null?'-':r.sog_before) + ' ' + (r.sog_after==null?'-':r.sog_after) + ' kn</span></div>' +
+      '<div class="dc-row"><span class="k">船旗</span><span class="v">' + escHtml(r.flag_country_cn||'-') + '</span></div>' +
+      '<div class="dc-row"><span class="k">船舶类型</span><span class="v">' + escHtml(r.vessel_type_name_cn || r.vessel_type_name || '-') + '</span></div>' +
+      '<div class="dc-row"><span class="k">目的地</span><span class="v">' + escHtml(r.destination||'-') + '</span></div>';
+    card.classList.add('show');
+  }
+
+  // ============ 轨迹播放 ============
+  function clearTrackOverlay() {
+    if (trackOverlay) {
+      trackOverlay.markers.forEach(function(m){ map.remove(m); });
+      if (trackOverlay.line) map.remove(trackOverlay.line);
+      if (trackOverlay.playedLine) map.remove(trackOverlay.playedLine);
+      if (trackOverlay.shipMarker) map.remove(trackOverlay.shipMarker);
+      if (trackOverlay.silentStartM) map.remove(trackOverlay.silentStartM);
+      if (trackOverlay.silentEndM) map.remove(trackOverlay.silentEndM);
+      trackOverlay = null;
+    }
+    if (playerTimer) { clearInterval(playerTimer); playerTimer = null; }
+    var player = document.getElementById('player');
+    if (player) { player.classList.remove('show'); player.innerHTML = ''; }
+  }
+
+  function playTrack(idx) {
+    var data = window._pageData;
+    if (!data || !data[idx]) return;
+    var r = data[idx];
+    var mmsi = r.mmsi;
+    currentMmsi = mmsi;
+
+    // 高亮列表
+    selectResult(idx);
+
+    fetchApi('/api/vessel-track?mmsi=' + encodeURIComponent(mmsi)).then(function(d){
+      if (!d.ok || d.data.length < 2) {
+        alert('该船舶轨迹数据不足，仅' + (d.data?d.data.length:0) + '点，无法播放');
+        return;
+      }
+      startTrackPlayer(d.data, r);
+    }).catch(function(e){
+      alert('查询轨迹出错: ' + e.message);
+    });
+  }
+
+  function startTrackPlayer(rawPoints, silentRecord) {
+    clearTrackOverlay();
+
+    // 转换轨迹点
+    var points = rawPoints.map(function(p){
+      return {
+        lng: parseFloat(p.longitude),
+        lat: parseFloat(p.latitude),
+        speed: parseFloat(p.sog_kn)||0,
+        heading: parseFloat(p.heading)||null,
+        time: p.ts_local ? String(p.ts_local).substring(5,19) : '',
+        ts: p.ts_local
+      };
+    }).filter(function(p){ return !isNaN(p.lng) && !isNaN(p.lat); });
+
+    if (points.length < 2) { alert('有效轨迹点不足，无法播放'); return; }
+
+    var themeColor = '#22c55e';
+    var path = points.map(function(p){ return [p.lng, p.lat]; });
+
+    // 航向计算
+    function bearingBetween(a, b) {
+      var dx = b[0]-a[0], dy = b[1]-a[1];
+      if (dx===0 && dy===0) return 0;
+      return (Math.atan2(dx, dy) * 180 / Math.PI + 360) % 360;
+    }
+
+    // 船舶图标
+    var iconSize = 22;
+    function buildShipSvg(hdg) {
+      var rot = 'transform:rotate(' + hdg + 'deg);transform-origin:12px 12px;';
+      return '<svg viewBox="0 0 24 24" width="' + iconSize + '" height="' + iconSize + '" style="' + rot + 'display:block;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.5));">' +
+        '<g fill="' + themeColor + '" stroke="#fff" stroke-width="0.6" stroke-linejoin="round">' +
+        '<path d="M12 2 L14 6 L14 17 L16 20 L16 22 L8 22 L8 20 L10 17 L10 6 Z"/>' +
+        '<rect x="10.5" y="9" width="3" height="5" rx="0.5" fill="#fff" opacity="0.7"/>' +
+        '</g></svg>';
+    }
+
+    // 1. 完整轨迹(虚线)
+    var line = new AMap.Polyline({
+      path: path, strokeColor: themeColor, strokeOpacity: 0.4,
+      strokeWeight: 3, strokeStyle: 'dashed', lineJoin: 'round', zIndex: 60
+    });
+    map.add(line);
+
+    // 2. 已播放段(实线)
+    var playedLine = new AMap.Polyline({
+      path: [path[0]], strokeColor: themeColor, strokeOpacity: 0.95,
+      strokeWeight: 4, strokeStyle: 'solid', lineJoin: 'round', lineCap: 'round', zIndex: 61
+    });
+    map.add(playedLine);
+
+    // 3. 船舶图标
+    var initHdg = points[0].heading || bearingBetween(path[0], path[1]);
+    var shipMarker = new AMap.Marker({
+      position: path[0], content: buildShipSvg(initHdg),
+      offset: new AMap.Pixel(-iconSize/2, -iconSize/2), zIndex: 80
+    });
+    map.add(shipMarker);
+
+    // 4. 静默关键点标记（在轨迹上)
+    var silentStartM = null, silentEndM = null;
+    var sLng = parseFloat(silentRecord.silent_start_lng);
+    var sLat = parseFloat(silentRecord.silent_start_lat);
+    var eLng = parseFloat(silentRecord.silent_end_lng);
+    var eLat = parseFloat(silentRecord.silent_end_lat);
+
+    if (!isNaN(sLng) && !isNaN(sLat)) {
+      silentStartM = new AMap.Marker({
+        position: [sLng, sLat],
+        content: '<div style="text-align:center;">' +
+          '<div style="width:16px;height:16px;border-radius:50%;background:#ef4444;border:3px solid #fff;box-shadow:0 0 10px rgba(239,68,68,1);"></div>' +
+          '<div style="margin-top:3px;font-size:10px;color:#ef4444;background:rgba(15,23,42,0.9);padding:2px 6px;border-radius:3px;white-space:nowrap;font-weight:600;">静默开</div>' +
+          '</div>',
+        offset: new AMap.Pixel(-34, -8), zIndex: 95
+      });
+      map.add(silentStartM);
+    }
+    if (!isNaN(eLng) && !isNaN(eLat)) {
+      silentEndM = new AMap.Marker({
+        position: [eLng, eLat],
+        content: '<div style="text-align:center;">' +
+          '<div style="width:16px;height:16px;border-radius:50%;background:#22c55e;border:3px solid #fff;box-shadow:0 0 10px rgba(34,197,94,1);"></div>' +
+          '<div style="margin-top:3px;font-size:10px;color:#22c55e;background:rgba(15,23,42,0.9);padding:2px 6px;border-radius:3px;white-space:nowrap;font-weight:600;">恢复AIS</div>' +
+          '</div>',
+        offset: new AMap.Pixel(-30, -8), zIndex: 95
+      });
+      map.add(silentEndM);
+    }
+
+    // 自适应视野
+    var fitObjs = [line];
+    if (silentStartM) fitObjs.push(silentStartM);
+    if (silentEndM) fitObjs.push(silentEndM);
+    map.setFitView(fitObjs);
+
+    trackOverlay = {
+      line: line, playedLine: playedLine, shipMarker: shipMarker,
+      silentStartM: silentStartM, silentEndM: silentEndM,
+      markers: []
+    };
+
+    // 5. 速度波形数据
+    var speedData = points.map(function(p){ return p.speed||0; });
+    var waveSamples = speedData.length > 200 ? resampleArray(speedData, 200) : speedData.slice();
+    var maxSpeed = Math.max.apply(null, waveSamples.concat([1]));
+
+    // 6. 播放器UI
+    var player = document.getElementById('player');
+    player.innerHTML =
+      '<div class="ph"><span class="pt">轨迹播放 · ' + currentMmsi + '</span><span class="pc" onclick="clearTrackOverlay()">×</span></div>' +
+      '<div class="pi">共' + points.length + ' 个轨迹点 · 静默 ' + (parseFloat(silentRecord.silent_duration_min)||0).toFixed(0) + ' </div>' +
+      '<div class="wave-wrap"><div class="wave-head"><span class="wave-label">速度波形</span><span class="wave-val" id="tp-speed">0 kn</span></div>' +
+      '<canvas id="tp-wave" width="480" height="40"></canvas></div>' +
+      '<div class="ctrl">' +
+        '<button class="pbtn" id="tp-play">播放</button>' +
+        '<button class="pbtn reset" id="tp-reset">重置</button>' +
+        '<select id="tp-sel"><option value="0.5">0.5x</option><option value="1" selected>1x</option><option value="2">2x</option><option value="4">4x</option></select>' +
+        '<span class="pinfo" id="tp-info">-</span>' +
+      '</div>' +
+      '<input type="range" id="tp-prog" min="0" max="' + (points.length-1) + '" value="0" step="1" />';
+    player.classList.add('show');
+
+    // 7. 波形画布
+    var canvas = document.getElementById('tp-wave');
+    var ctx = canvas ? canvas.getContext('2d') : null;
+    var W = canvas ? canvas.width : 480, H = canvas ? canvas.height : 40;
+
+    function drawWave(progressIdx) {
+      if (!ctx) return;
+      ctx.clearRect(0, 0, W, H);
+      var n = waveSamples.length;
+      if (n === 0) return;
+      var barW = W / n;
+      var playedX = (progressIdx / (points.length-1)) * W;
+      for (var i = 0; i < n; i++) {
+        var h = (waveSamples[i] / maxSpeed) * (H - 4);
+        var x = i * barW;
+        var y = H - h - 2;
+        ctx.fillStyle = (x <= playedX) ? themeColor : 'rgba(100,116,139,0.4)';
+        ctx.fillRect(x, y, Math.max(1, barW-0.5), h);
+      }
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(playedX, 0);
+      ctx.lineTo(playedX, H);
+      ctx.stroke();
+    }
+
+    // 8. 播放状态
+    var idx = 0, playing = false, speed = 1, baseInterval = 500;
+
+    function updateView(i) {
+      idx = Math.max(0, Math.min(points.length-1, i));
+      var p = points[idx];
+      playedLine.setPath(path.slice(0, idx+1));
+      shipMarker.setPosition([p.lng, p.lat]);
+      var hdg;
+      if (idx < points.length-1) hdg = bearingBetween(path[idx], path[idx+1]);
+      else if (idx > 0) hdg = bearingBetween(path[idx-1], path[idx]);
+      else hdg = p.heading || 0;
+      shipMarker.setContent(buildShipSvg(hdg));
+      var progEl = document.getElementById('tp-prog');
+      var infoEl = document.getElementById('tp-info');
+      var spdEl = document.getElementById('tp-speed');
+      if (progEl) progEl.value = idx;
+      if (infoEl) infoEl.textContent = '时间 ' + (p.time||'-') + ' | 航向 ' + Math.round(hdg) + '°';
+      if (spdEl) spdEl.textContent = (p.speed||0).toFixed(1) + ' kn';
+      drawWave(idx);
+    }
+
+    function tick() {
+      if (!playing) return;
+      if (idx >= points.length-1) {
+        playing = false;
+        var pb = document.getElementById('tp-play');
+        if (pb) pb.textContent = '重播';
+        return;
+      }
+      updateView(idx+1);
+    }
+
+    function startTimer() {
+      if (playerTimer) clearInterval(playerTimer);
+      playerTimer = setInterval(tick, baseInterval / speed);
+    }
+
+    // 9. 事件绑定
+    var playBtn = document.getElementById('tp-play');
+    playBtn.onclick = function(){
+      if (idx >= points.length-1) updateView(0);
+      playing = !playing;
+      playBtn.textContent = playing ? '暂停' : '播放';
+      if (playing) startTimer();
+      else if (playerTimer) { clearInterval(playerTimer); playerTimer = null; }
+    };
+    document.getElementById('tp-reset').onclick = function(){
+      playing = false;
+      if (playerTimer) { clearInterval(playerTimer); playerTimer = null; }
+      playBtn.textContent = '播放';
+      updateView(0);
+    };
+    document.getElementById('tp-sel').onchange = function(){
+      speed = parseFloat(this.value) || 1;
+      if (playing) startTimer();
+    };
+    document.getElementById('tp-prog').oninput = function(){
+      playing = false;
+      if (playerTimer) { clearInterval(playerTimer); playerTimer = null; }
+      playBtn.textContent = '播放';
+      updateView(parseInt(this.value, 10));
+    };
+
+    // 10. 初始'+ 自动播放
+    updateView(0);
+    drawWave(0);
+    playing = true;
+    playBtn.textContent = '暂停';
+    startTimer();
+  }
+
+  function resampleArray(arr, samples) {
+    if (!arr || arr.length === 0) return [];
+    if (arr.length <= samples) return arr.slice();
+    var step = arr.length / samples;
+    var out = [];
+    for (var i = 0; i < samples; i++) out.push(arr[Math.floor(i * step)]);
+    return out;
+  }
+
+  // ============ 工具 ============
+  function escHtml(s) {
+    var d = document.createElement('div');
+    d.appendChild(document.createTextNode(String(s==null?'':s)));
+    return d.innerHTML;
+  }
+  function fmtTime(ts) {
+    if (!ts) return '-';
+    return String(ts).substring(5, 19);
+  }
+
+  function showLog(text) {
+    var overlay = document.createElement('div');
+    overlay.className = 'log-modal';
+    var lines = text.split('\n');
+    var html = '';
+    var skipNextJson = false;
+    lines.forEach(function(line){
+      // 跳过 [zssf] 配置参数: 后面紧跟的JSON大括号行
+      if (skipNextJson) {
+        if (line.trim().startsWith('{') || line.trim().startsWith('}')) return;
+        skipNextJson = false;
+      }
+      if (line.indexOf('配置参数:') >= 0 && line.indexOf('[zssf]') < 0) {
+        // 前端传来的配置行, 保留
+      } else if (line.indexOf('[zssf] 配置参数') >= 0) {
+        skipNextJson = true; // 跳过下一行JSON
+        return;
+      }
+      if (line.trim() === '' || line.indexOf('[zssf] 进度100%') >= 0) {
+        return; // 跳过空行和预览标记行
+      }
+      // 跳过表格数据源（太占空间）
+      if (/^\d+\s*\|\s*\w/.test(line.trim())) return;
+
+      var cls = '';
+      if (line.indexOf('错误')>=0 || line.indexOf('error')>=0) cls = 'err';
+      else if (line.indexOf('完成')>=0 || line.indexOf('已入')>=0 || line.indexOf('检测到')>=0) cls = 'ok';
+      else if (line.indexOf('[zssf]')>=0) cls = 'info';
+      else if (line.indexOf('MMSI')>=0 && line.indexOf('船名')>=0) cls = ''; // 表头跳过
+      html += '<div class="' + cls + '">' + escHtml(line) + '</div>';
+    });
+    overlay.innerHTML =
+      '<div class="log-box">' +
+        '<div class="log-header"><span class="log-title">算法运行日志</span><span class="log-close" onclick="this.closest(\'.log-modal\').remove()">×</span></div>' +
+        '<div class="log-body">' + html + '</div>' +
+      '</div>';
+    document.body.appendChild(overlay);
+    overlay.addEventListener('click', function(e){ if (e.target === overlay) overlay.remove(); });
+  }
+
+  // ============ 初始化 ============
+  initMap();
+  loadConfig();
+  loadResults();
+</script>
+</body>
+</html>

@@ -372,7 +372,7 @@
         <div class="ed-top-left">
           <div class="ed-title">
             <span class="ed-title-text" id="ed-event-title">海上船舶异常聚集</span>
-            <span class="ed-title-id" id="ed-event-id">EVT-2002</span>
+            <span class="ed-title-id" id="ed-event-id">EVT-2001</span>
           </div>
           <div class="ed-tags" id="ed-event-tags">
             <span class="ed-tag ed-tag-type-mixed">🔗 海空联动</span>
@@ -580,32 +580,32 @@
       ]
     },
     'EVT-2001': {
-      title: '航空器信号丢失事件', id: 'EVT-2001', type: 'sea',
+      title: '海上船舶异常聚集', id: 'EVT-2001', type: 'sea',
       typeText: '船舶', typeClass: 'sea', risk: 'high', status: 'researching',
-      location: '西沙群岛西部海域 · 111.3°E, 16.5°N',
-      timeRange: '08/15 06:20 — 08:10',
-      score: 95,
-      conclusion: '外籍货船在西沙西部海域发生连续3次AIS关机静默，每次间隔约45分钟，与过往影子船队作业模式高度吻合。静默期间射频信号仍可被监测捕获，疑似故意关闭AIS以规避海事追踪。',
-      center: [111.3, 16.5],
-      targets: [
-        { type: 'ship', flag: '🇱🇧', name: 'MV OCEAN LINK', id: 'MMSI 512987000', subType: '散货船 · 巴拿马旗', desc: 'AIS连续关机3次，每次约45分钟', tags: ['AIS静默', '巴拿马旗', '高频关机'] },
-        { type: 'ship', flag: '🇸🇬', name: 'MV PACIFIC STAR', id: 'MMSI 566778899', subType: '油轮 · 新加坡旗', desc: '同时段轨迹异常靠拢0.3海里', tags: ['轨迹异常', '疑似过驳'] },
-        { type: 'ship', flag: '🇭🇰', name: 'MV EASTERN WIND', id: 'MMSI 477998877', subType: '杂货船 · 香港旗', desc: '关机后快速驶离事发海域', tags: ['异常撤离'] }
-      ]
-    },
-    'EVT-2002': {
-      title: '海上船舶异常聚集', id: 'EVT-2002', type: 'mixed',
-      typeText: '海空联动', typeClass: 'mixed', risk: 'high', status: 'researching',
       location: '南海黄岩岛东北海域 · 117.2°E, 15.8°N',
       timeRange: '08/15 02:30 — 04:48',
-      score: 82,
-      conclusion: '多艘外籍货船在南海管控禁航区周边聚集，AIS信号规律性静默（每次约45分钟），射频信号持续留存，ADS-B航空器多次抵近盘旋，综合判定为疑似海上非法过驳作业行为，存在重大安全风险。',
+      score: 95,
+      conclusion: '多艘外籍货船在南海管控禁航区周边聚集，AIS信号规律性静默（每次约45分钟），射频信号持续留存，ADS-B航空器多次抵近盘旋，综合判断疑似海警作业或非法过驳行为。',
       center: [117.2, 15.8],
       targets: [
         { type: 'ship', flag: '🇵🇦', name: 'MV SOUTH WIND', id: 'MMSI 351234567', subType: '散货船 · 巴拿马旗', desc: '管控区边缘反复进出，AIS规律性静默', tags: ['AIS静默', '敏感海域', '规律关机'] },
         { type: 'ship', flag: '🇱🇷', name: 'MV ATLANTIC HOPE', id: 'MMSI 636012345', subType: '油轮 · 利比里亚旗', desc: '与SOUTH WIND多次短距并行，间距<0.5海里', tags: ['疑似过驳', '异常接近'] },
         { type: 'ship', flag: '🇲🇭', name: 'MV NORTH STAR', id: 'MMSI 538009999', subType: '杂货船 · 马绍尔旗', desc: '抵达后即关机，2小时后恢复信号', tags: ['AIS静默', '外籍货轮'] },
         { type: 'aircraft', flag: '🇺🇸', name: 'CL-604 Challenger', id: 'ICAO AE123F', subType: '公务机 · 注册号N888TP', desc: '聚集期间2次抵近盘旋，高度1500ft', tags: ['低空盘旋', '外籍航空器', '疑似监视'] }
+      ]
+    },
+    'EVT-2002': {
+      title: '海空近距离交汇事件', id: 'EVT-2002', type: 'mixed',
+      typeText: '海空联动', typeClass: 'mixed', risk: 'high', status: 'researching',
+      location: '西沙群岛东部空域 · 112.5°E, 17.2°N',
+      timeRange: '08/15 09:15 — 09:42',
+      score: 88,
+      conclusion: '外籍军机在西沙东部空域低空盘旋，与我监测到的海上外籍货船航线形成近距离交汇，最近水平距离约3.2海里，疑似联合侦察行动。',
+      center: [112.5, 17.2],
+      targets: [
+        { type: 'aircraft', flag: '🇺🇸', name: 'P-8A Poseidon', id: 'ICAO AE7789', subType: '反潜巡逻机', desc: '低空盘旋35分钟，最低高度1200ft', tags: ['低空盘旋', '反潜巡逻', '抵近侦察'] },
+        { type: 'aircraft', flag: '🇺🇸', name: 'MQ-9 Reaper', id: 'ICAO AE4455', subType: '察打一体无人机', desc: '与P-8A协同飞行，间距约5海里', tags: ['协同飞行', '无人机'] },
+        { type: 'ship', flag: '🇱🇧', name: 'MV GULF STAR', id: 'MMSI 512998877', subType: '集装箱船 · 巴拿马旗', desc: '与军机航迹交汇，水平距离3.2nm', tags: ['海空交汇', '外籍货船'] }
       ]
     },
     'EVT-2003': {
@@ -625,7 +625,7 @@
   };
 
   var EVIDENCE_TEMPLATES = {
-    'EVT-2002': [
+    'EVT-2001': [
       // AIS 轨迹
       { type: 'ais', time: '08/15 02:30:12', status: 'normal', statusText: '正常上报', content: 'MV SOUTH WIND 进入管控区外围，航速12kn，航向215°', meta: 'MMSI 351234567 · LAT 15.782 / LON 117.184' },
       { type: 'ais', time: '08/15 02:48:05', status: 'silence', statusText: '关机静默', content: 'SOUTH WIND AIS信号突然消失，位置点进入管控禁航区内', meta: '静默时长: 47min · 移动距离估算: 8.2nm' },
@@ -633,7 +633,7 @@
       { type: 'ais', time: '08/15 03:05:44', status: 'silence', statusText: '关机静默', content: 'MV ATLANTIC HOPE 同步关闭AIS，与SOUTH WIND消失时间差<3min', meta: '静默时长: 43min · 双船同步关机' },
       // RF 射频
       { type: 'rf', time: '08/15 02:45 — 03:40', statusText: '持续捕获', content: '156.8MHz海事频段捕获到特征频谱，与SOUTH WIND船舶MMSI指纹匹配度93%，尽管AIS关机但射频持续留存', meta: '信号稳定性: 稳定 · 频偏 ±0.2kHz · 信号强度 -47dBm' },
-      { type: 'rf', time: '08/15 03:10 — 03:25', statusText: '信号波动', content: '9.4GHz雷达频段出现间歇性扫描信号，疑似船舶间导航雷达交互，与过驳作业雷达特征高度吻合', meta: '信号稳定性: 波动 · 峰值 -52dBm' },
+      { type: 'rf', time: '08/15 03:10 — 03:25', statusText: '信号波动', content: '9.4GHz雷达频段出现间歇性扫描信号，疑似船舶间导航雷达交互', meta: '信号稳定性: 波动 · 峰值 -52dBm' },
       // ADS-B
       { type: 'adsb', time: '08/15 02:55 — 03:20', statusText: '抵近盘旋', content: 'CL-604公务机从东北方向抵近，高度1500ft，以船舶聚集点为中心完成2次完整盘旋', meta: '航迹覆盖匹配度: 96% · 盘旋半径: 1.2nm' },
       { type: 'adsb', time: '08/15 04:10', statusText: '飞离区域', content: '公务机爬升至FL320，航向东北方向离场，全程共留空约75分钟', meta: '起飞机场疑似: 克拉克国际机场' },
@@ -643,7 +643,24 @@
       // OSINT
       { type: 'osint', osintType: '官方公告', time: '08/14 18:00', content: '海南海事局发布航行警告：南海部分海域8月15日00:00-12:00禁止无关船舶进入', meta: '发布方: 海南海事局 · 文号: 琼航警 0815/26' },
       { type: 'osint', osintType: '新闻', time: '08/15 05:30', content: '菲律宾某新闻网站报道：近期南海多个海域出现"不明船队聚集"，当地渔民称有外籍货船夜间出没', meta: '来源: Inquirer.net · 热度: 4.2k' },
-      { type: 'osint', osintType: 'X社交', time: '08/15 06:15', content: 'OSINT分析账号@SeaLookup发帖：MV SOUTH WIND (351234567) 历史轨迹显示该船过去6个月在南海出现相同模式行为共7次，疑似"影子船队"成员', meta: '转推: 187 · 话题: #南海 #影子船队' }
+      { type: 'osint', osintType: 'X社交', time: '08/15 06:15', content: 'OSINT分析账号@SeaLookup发帖：MV SOUTH WIND (351234567) 历史轨迹显示该船过去6个月在南海出现相同模式行为共7次', meta: '转推: 187 · 话题: #南海 #影子船队' }
+    ],
+    'EVT-2002': [
+      // ADS-B 航迹
+      { type: 'adsb', time: '08/15 09:15:00', status: 'normal', statusText: '正常飞行', content: 'P-8A反潜巡逻机从东侧进入西沙空域，高度FL280，航速380kt', meta: 'ICAO: AE7789 · 机型: Boeing P-8A' },
+      { type: 'adsb', time: '08/15 09:22:30', status: 'normal', statusText: '下降盘旋', content: 'P-8A开始下降至1200ft，以目标为中心进行盘旋飞行', meta: '最低高度: 1200ft · 盘旋半径: 3.5nm' },
+      { type: 'adsb', time: '08/15 09:35:12', status: 'normal', statusText: '协同飞行', content: 'MQ-9无人机从东南方向与P-8A汇合，形成双机编队，间距约5海里', meta: 'ICAO: AE4455 · 机型: General Atomics MQ-9' },
+      // AIS 轨迹
+      { type: 'ais', time: '08/15 09:05:00', status: 'normal', statusText: '正常上报', content: 'MV GULF STAR 正常航行，航速14kn，航向085°，未察觉异常', meta: 'MMSI 512998877 · LAT 17.215 / LON 112.532' },
+      { type: 'ais', time: '08/15 09:28:30', status: 'alert', statusText: '交汇预警', content: 'GULF STAR 与P-8A航迹交汇，最近水平距离3.2海里，垂直高度差1200ft', meta: '交汇时刻: 09:28:30 · 距离: 3.2nm' },
+      // RF 射频
+      { type: 'rf', time: '08/15 09:10 — 09:42', statusText: '持续捕获', content: '137-143MHz甚高频频段捕获到P-8A机载通信信号，通信活跃度是平时的2.3倍', meta: '信号稳定性: 稳定 · 信号强度: -42dBm' },
+      { type: 'rf', time: '08/15 09:20 — 09:38', statusText: '雷达工作', content: '9.0-9.5GHz雷达频段持续活跃，疑似P-8A开启海面搜索雷达模式', meta: '信号稳定性: 稳定 · 峰值: -38dBm' },
+      // VHF 话音
+      { type: 'voice', time: '08/15 09:30:15', content: 'VHF Ch13 捕获到疑似P-8A机组通话，涉及"target acquired""surface contact"等术语', meta: '时长 01:45 · 语言: 英语 · 疑似美军术语', audio: true },
+      // OSINT
+      { type: 'osint', osintType: '官方公告', time: '08/14 20:00', content: '美军印太司令部发布"自由航行"行动通告，涉及西沙周边空域', meta: '发布方: USINDOPACOM · 编号: FONOPS-2026-08' },
+      { type: 'osint', osintType: '新闻', time: '08/15 10:00', content: '路透社报道：美军P-8A巡逻机今日在南海执行例行侦察任务', meta: '来源: Reuters · 热度: 3.8k' }
     ]
   };
 
@@ -663,10 +680,10 @@
   }
 
   // ===== 页面初始化 =====
-  var evId = getQueryParam('id') || 'EVT-2002';
+  var evId = getQueryParam('id') || 'EVT-2001';
   var evTitle = getQueryParam('title') || '';
   var evType = getQueryParam('type') || '';
-  var evData = EVENT_MAP[evId] || EVENT_MAP['EVT-2002'];
+  var evData = EVENT_MAP[evId] || EVENT_MAP['EVT-2001'];
 
   function rand(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
 

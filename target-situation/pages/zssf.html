@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>zssf 走私识别 - 船舶静默检测结果</title>
+<style>
+  :root {
+    --bg: #0b1220;
+    --surface: #141c2b;
+    --surface-2: #1a2536;
+    --border: rgba(255,255,255,0.08);
+    --ink: #e2e8f0;
+    --ink-3: #64748b;
+    --primary: #38bdf8;
+    --warn: #f59e0b;
+    --danger: #ef4444;
+    --success: #22c55e;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg); color: var(--ink); font-size: 14px; line-height: 1.6;
+  }
+  .zssf-page { max-width: 1400px; margin: 0 auto; padding: 20px; }
+  .zssf-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 16px; flex-wrap: wrap; gap: 12px;
+  }
+  .zssf-title {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 18px; font-weight: 700;
+  }
+  .zssf-title svg { color: var(--primary); }
+  .zssf-badge {
+    font-size: 11px; font-weight: 600; color: var(--primary);
+    background: rgba(56,189,248,0.1); border: 1px solid rgba(56,189,248,0.3);
+    padding: 2px 8px; border-radius: 10px; margin-left: 8px;
+  }
+
+  /* 配置面板 */
+  .zssf-config-bar {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 16px; margin-bottom: 16px;
+  }
+  .zssf-config-row {
+    display: flex; align-items: center; gap: 24px; flex-wrap: wrap;
+  }
+  .zssf-config-item { display: flex; align-items: center; gap: 8px; }
+  .zssf-config-item label {
+    font-size: 12px; color: var(--ink-3); white-space: nowrap;
+  }
+  .zssf-config-item input {
+    width: 80px; background: var(--bg); border: 1px solid var(--border);
+    border-radius: 6px; color: var(--ink); padding: 5px 8px; font-size: 12px;
+    font-family: 'JetBrains Mono', Consolas, monospace; outline: none;
+  }
+  .zssf-config-item input:focus { border-color: var(--primary); }
+  .zssf-config-actions { display: flex; gap: 8px; margin-left: auto; }
+  .zssf-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    height: 34px; padding: 0 16px; border-radius: 8px; font-size: 12px;
+    font-weight: 600; cursor: pointer; border: none; transition: all .15s;
+    font-family: inherit;
+  }
+  .zssf-btn-primary {
+    background: linear-gradient(180deg, var(--primary), #0ea5e9);
+    color: #0b1220; box-shadow: 0 2px 8px rgba(56,189,248,0.35);
+  }
+  .zssf-btn-primary:hover { filter: brightness(1.1); transform: translateY(-1px); }
+  .zssf-btn-ghost {
+    background: transparent; color: var(--ink-3);
+    border: 1px solid var(--border);
+  }
+  .zssf-btn-ghost:hover { border-color: var(--primary); color: var(--primary); }
+
+  /* 统计卡片 */
+  .zssf-stats {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
+    margin-bottom: 16px;
+  }
+  .zssf-stat-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 14px 16px;
+  }
+  .zssf-stat-label { font-size: 11px; color: var(--ink-3); text-transform: uppercase; letter-spacing: .05em; }
+  .zssf-stat-value { font-size: 26px; font-weight: 700; margin-top: 4px; font-family: 'JetBrains Mono', Consolas, monospace; }
+  .zssf-stat-value.primary { color: var(--primary); }
+  .zssf-stat-value.warn { color: var(--warn); }
+  .zssf-stat-value.danger { color: var(--danger); }
+  .zssf-stat-value.success { color: var(--success); }
+
+  /* 筛选栏 */
+  .zssf-filter-bar {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    margin-bottom: 12px;
+  }
+  .zssf-filter-bar input {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 6px; color: var(--ink); padding: 6px 10px; font-size: 12px;
+    outline: none; font-family: inherit;
+  }
+  .zssf-filter-bar input:focus { border-color: var(--primary); }
+  .zssf-filter-bar input[type=text] { width: 180px; }
+
+  /* 表格 */
+  .zssf-table-wrap {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; overflow: hidden;
+  }
+  .zssf-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .zssf-table thead th {
+    background: var(--surface-2); padding: 10px 12px; text-align: left;
+    font-weight: 600; color: var(--ink-3); white-space: nowrap;
+    border-bottom: 1px solid var(--border); position: sticky; top: 0;
+  }
+  .zssf-table tbody td {
+    padding: 8px 12px; border-bottom: 1px solid rgba(255,255,255,0.04);
+    white-space: nowrap; font-family: 'JetBrains Mono', Consolas, monospace;
+  }
+  .zssf-table tbody tr:hover { background: rgba(56,189,248,0.04); cursor: pointer; }
+  .zssf-table tbody tr.active { background: rgba(56,189,248,0.08); }
+  .td-mmsi { color: var(--primary); font-weight: 600; }
+  .td-name { color: var(--ink); font-family: inherit; }
+  .td-warn { color: var(--warn); }
+  .td-danger { color: var(--danger); }
+  .td-success { color: var(--success); }
+  .td-time { color: var(--ink-3); font-size: 11px; }
+  .zssf-empty { text-align: center; padding: 40px; color: var(--ink-3); }
+
+  /* 分页 */
+  .zssf-pager {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-top: 12px; flex-wrap: wrap; gap: 8px;
+  }
+  .zssf-pager-info { font-size: 12px; color: var(--ink-3); }
+  .zssf-pager-btns { display: flex; gap: 4px; }
+  .zssf-pager-btns button {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 6px; color: var(--ink); padding: 5px 12px;
+    font-size: 12px; cursor: pointer; font-family: inherit; transition: all .15s;
+  }
+  .zssf-pager-btns button:hover:not(:disabled) { border-color: var(--primary); color: var(--primary); }
+  .zssf-pager-btns button:disabled { opacity: .4; cursor: not-allowed; }
+
+  /* 运行日志弹窗 */
+  .zssf-log-modal {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(8,14,24,0.8); backdrop-filter: blur(6px);
+    z-index: 99999; display: flex; align-items: center; justify-content: center;
+  }
+  .zssf-log-box {
+    width: 600px; max-width: 90vw; max-height: 80vh;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; display: flex; flex-direction: column;
+  }
+  .zssf-log-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 18px; border-bottom: 1px solid var(--border);
+  }
+  .zssf-log-title { font-size: 14px; font-weight: 600; }
+  .zssf-log-close { cursor: pointer; color: var(--ink-3); font-size: 20px; }
+  .zssf-log-body {
+    padding: 16px; overflow-y: auto; font-family: 'JetBrains Mono', Consolas, monospace;
+    font-size: 12px; line-height: 1.8; color: var(--ink); white-space: pre-wrap;
+  }
+  .zssf-log-body .err { color: var(--danger); }
+  .zssf-log-body .ok { color: var(--success); }
+  .zssf-log-body .info { color: var(--primary); }
+
+  /* 加载动画 */
+  .zssf-loading { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(56,189,248,0.2); border-top-color: var(--primary); border-radius: 50%; animation: spin .6s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  @media (max-width: 900px) {
+    .zssf-stats { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+<div class="zssf-page">
+  <div class="zssf-header">
+    <div class="zssf-title">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18l1.5-5h15L21 18M3 18v2h18v-2M6 13V8a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v5"/><circle cx="8" cy="20" r="1.5"/><circle cx="16" cy="20" r="1.5"/></svg>
+      <span>zssf 走私识别</span>
+      <span class="zssf-badge">船舶静默检测算法</span>
+    </div>
+    <button class="zssf-btn zssf-btn-ghost" onclick="window.close();">关闭</button>
+  </div>
+
+  <!-- 配置面板 -->
+  <div class="zssf-config-bar">
+    <div class="zssf-config-row">
+      <div class="zssf-config-item">
+        <label>距岸距离(KM)</label>
+        <input type="number" id="cfg-coast" min="0" step="1" value="20">
+      </div>
+      <div class="zssf-config-item">
+        <label>静默时长(分)</label>
+        <input type="number" id="cfg-duration" min="1" step="1" value="45">
+      </div>
+      <div class="zssf-config-item">
+        <label>恢复位移(KM)</label>
+        <input type="number" id="cfg-displacement" min="0" step="1" value="10">
+      </div>
+      <div class="zssf-config-item">
+        <label>时间窗起</label>
+        <input type="text" id="cfg-tstart" value="00:00">
+      </div>
+      <div class="zssf-config-item">
+        <label>时间窗止</label>
+        <input type="text" id="cfg-tend" value="23:59">
+      </div>
+      <div class="zssf-config-actions">
+        <button class="zssf-btn zssf-btn-ghost" onclick="saveConfig()">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+          保存配置
+        </button>
+        <button class="zssf-btn zssf-btn-primary" id="run-btn" onclick="runAlgorithm(false)">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          运行算法
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 统计 -->
+  <div class="zssf-stats">
+    <div class="zssf-stat-card">
+      <div class="zssf-stat-label">检测记录数</div>
+      <div class="zssf-stat-value primary" id="stat-total">-</div>
+    </div>
+    <div class="zssf-stat-card">
+      <div class="zssf-stat-label">嫌疑船舶数</div>
+      <div class="zssf-stat-value warn" id="stat-ships">-</div>
+    </div>
+    <div class="zssf-stat-card">
+      <div class="zssf-stat-label">最长静默(分)</div>
+      <div class="zssf-stat-value danger" id="stat-maxdur">-</div>
+    </div>
+    <div class="zssf-stat-card">
+      <div class="zssf-stat-label">最远距岸(KM)</div>
+      <div class="zssf-stat-value success" id="stat-maxcoast">-</div>
+    </div>
+  </div>
+
+  <!-- 筛选 -->
+  <div class="zssf-filter-bar">
+    <input type="text" id="filter-keyword" placeholder="搜索 MMSI / 船名..." onkeyup="if(event.key==='Enter')loadResults()">
+    <input type="number" id="filter-mindur" placeholder="最小静默(分)" style="width:120px;" onkeyup="if(event.key==='Enter')loadResults()">
+    <input type="number" id="filter-mincoast" placeholder="最小距岸(KM)" style="width:120px;" onkeyup="if(event.key==='Enter')loadResults()">
+    <button class="zssf-btn zssf-btn-ghost" onclick="loadResults()">查询</button>
+    <button class="zssf-btn zssf-btn-ghost" onclick="clearFilters()">重置</button>
+  </div>
+
+  <!-- 表格 -->
+  <div class="zssf-table-wrap" style="max-height: 50vh; overflow-y: auto;">
+    <table class="zssf-table" id="result-table">
+      <thead>
+        <tr>
+          <th>MMSI</th>
+          <th>船名</th>
+          <th>船旗国</th>
+          <th>静默开始</th>
+          <th>静默结束</th>
+          <th>时长(分)</th>
+          <th>距岸(KM)</th>
+          <th>位移(KM)</th>
+          <th>速度前→后</th>
+          <th>航行状态</th>
+          <th>目的地</th>
+        </tr>
+      </thead>
+      <tbody id="result-body">
+        <tr><td colspan="11" class="zssf-empty">加载数据中...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 分页 -->
+  <div class="zssf-pager">
+    <div class="zssf-pager-info" id="pager-info">-</div>
+    <div class="zssf-pager-btns">
+      <button id="pager-prev" onclick="prevPage()" disabled>上一页</button>
+      <button id="pager-next" onclick="nextPage()">下一页</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  var currentPage = 1;
+  var pageSize = 50;
+
+  function fetchApi(url, opts) {
+    return fetch(url, opts).then(function (r) { return r.json(); });
+  }
+
+  function loadConfig() {
+    fetchApi('/api/zssf/config').then(function (d) {
+      var p = d.params;
+      document.getElementById('cfg-coast').value = p.coastlineDistanceKm;
+      document.getElementById('cfg-duration').value = p.silenceDurationMin;
+      document.getElementById('cfg-displacement').value = p.restartDisplacementKm;
+      document.getElementById('cfg-tstart').value = p.silenceTimeWindow.start;
+      document.getElementById('cfg-tend').value = p.silenceTimeWindow.end;
+    }).catch(function (e) { console.error('config error', e); });
+  }
+
+  function saveConfig() {
+    var params = {
+      coastlineDistanceKm: parseFloat(document.getElementById('cfg-coast').value),
+      silenceDurationMin: parseFloat(document.getElementById('cfg-duration').value),
+      restartDisplacementKm: parseFloat(document.getElementById('cfg-displacement').value),
+      silenceTimeWindow: {
+        start: document.getElementById('cfg-tstart').value,
+        end: document.getElementById('cfg-tend').value
+      }
+    };
+    fetch('/api/zssf/config', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ params: params })
+    }).then(function (r) { return r.json(); }).then(function (d) {
+      if (d.ok) alert('配置已保存');
+      else alert('保存失败: ' + d.error);
+    }).catch(function (e) { alert('保存出错: ' + e.message); });
+  }
+
+  function runAlgorithm(dryRun) {
+    var btn = document.getElementById('run-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="zssf-loading"></span> 运行中...';
+    fetch('/api/zssf/run' + (dryRun ? '?dryRun=1' : ''), { method: 'POST' })
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        btn.disabled = false;
+        btn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg> 运行算法';
+        if (d.ok) {
+          showLog('检测到 ' + d.detected + ' 条静默记录, 入库 ' + d.inserted + ' 条\n\n' + d.log);
+          loadResults();
+        } else {
+          alert('运行失败: ' + d.error);
+        }
+      }).catch(function (e) {
+        btn.disabled = false;
+        btn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg> 运行算法';
+        alert('运行出错: ' + e.message);
+      });
+  }
+
+  function loadResults() {
+    var keyword = document.getElementById('filter-keyword').value.trim();
+    var minDur = document.getElementById('filter-mindur').value.trim();
+    var minCoast = document.getElementById('filter-mincoast').value.trim();
+    var url = '/api/zssf/results?page=' + currentPage + '&pageSize=' + pageSize;
+    if (keyword) url += '&keyword=' + encodeURIComponent(keyword);
+    if (minDur) url += '&minDuration=' + encodeURIComponent(minDur);
+    if (minCoast) url += '&minCoastDist=' + encodeURIComponent(minCoast);
+
+    fetchApi(url).then(function (d) {
+      if (!d.ok) { document.getElementById('result-body').innerHTML = '<tr><td colspan="11" class="zssf-empty">加载失败: ' + (d.error || '') + '</td></tr>'; return; }
+      // 统计
+      document.getElementById('stat-total').textContent = d.total;
+      document.getElementById('stat-ships').textContent = d.ships;
+      if (d.data.length > 0) {
+        var maxDur = Math.max.apply(null, d.data.map(function (r) { return parseFloat(r.silent_duration_min) || 0; }));
+        var maxCoast = Math.max.apply(null, d.data.map(function (r) { return parseFloat(r.coastline_distance_km) || 0; }));
+        document.getElementById('stat-maxdur').textContent = maxDur.toFixed(0);
+        document.getElementById('stat-maxcoast').textContent = maxCoast.toFixed(1);
+      }
+      // 表格
+      var tbody = document.getElementById('result-body');
+      if (d.data.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="11" class="zssf-empty">暂无数据</td></tr>';
+      } else {
+        tbody.innerHTML = d.data.map(function (r) {
+          var dur = parseFloat(r.silent_duration_min) || 0;
+          var coast = parseFloat(r.coastline_distance_km) || 0;
+          var durCls = dur > 120 ? 'td-danger' : (dur > 60 ? 'td-warn' : '');
+          var coastCls = coast > 30 ? 'td-success' : '';
+          return '<tr>' +
+            '<td class="td-mmsi">' + r.mmsi + '</td>' +
+            '<td class="td-name">' + escHtml(r.vessel_name || '-') + '</td>' +
+            '<td>' + escHtml(r.flag_country_cn || '-') + '</td>' +
+            '<td class="td-time">' + fmtTime(r.silent_start_time) + '</td>' +
+            '<td class="td-time">' + fmtTime(r.silent_end_time) + '</td>' +
+            '<td class="' + durCls + '">' + dur.toFixed(1) + '</td>' +
+            '<td class="' + coastCls + '">' + coast.toFixed(2) + '</td>' +
+            '<td>' + (parseFloat(r.displacement_km) || 0).toFixed(2) + '</td>' +
+            '<td>' + (r.sog_before == null ? '-' : r.sog_before) + '→' + (r.sog_after == null ? '-' : r.sog_after) + '</td>' +
+            '<td>' + escHtml(r.nav_status_before || '-') + '</td>' +
+            '<td>' + escHtml(r.destination || '-') + '</td>' +
+            '</tr>';
+        }).join('');
+      }
+      // 分页
+      var totalPages = Math.ceil(d.total / d.pageSize);
+      document.getElementById('pager-info').textContent =
+        '共 ' + d.total + ' 条, 第 ' + d.page + '/' + totalPages + ' 页';
+      document.getElementById('pager-prev').disabled = d.page <= 1;
+      document.getElementById('pager-next').disabled = d.page >= totalPages;
+    }).catch(function (e) {
+      document.getElementById('result-body').innerHTML = '<tr><td colspan="11" class="zssf-empty">加载出错: ' + e.message + '</td></tr>';
+    });
+  }
+
+  function prevPage() { if (currentPage > 1) { currentPage--; loadResults(); } }
+  function nextPage() { currentPage++; loadResults(); }
+  function clearFilters() {
+    document.getElementById('filter-keyword').value = '';
+    document.getElementById('filter-mindur').value = '';
+    document.getElementById('filter-mincoast').value = '';
+    currentPage = 1;
+    loadResults();
+  }
+
+  function showLog(text) {
+    var overlay = document.createElement('div');
+    overlay.className = 'zssf-log-modal';
+    var html = '';
+    text.split('\n').forEach(function (line) {
+      var cls = '';
+      if (line.indexOf('错误') >= 0 || line.indexOf('error') >= 0) cls = 'err';
+      else if (line.indexOf('完成') >= 0 || line.indexOf('已入库') >= 0) cls = 'ok';
+      else if (line.indexOf('[zssf]') >= 0) cls = 'info';
+      html += '<div class="' + cls + '">' + escHtml(line) + '</div>';
+    });
+    overlay.innerHTML =
+      '<div class="zssf-log-box">' +
+        '<div class="zssf-log-header"><span class="zssf-log-title">算法运行日志</span><span class="zssf-log-close" onclick="this.closest(\'.zssf-log-modal\').remove()">×</span></div>' +
+        '<div class="zssf-log-body">' + html + '</div>' +
+      '</div>';
+    document.body.appendChild(overlay);
+    overlay.addEventListener('click', function (e) { if (e.target === overlay) overlay.remove(); });
+  }
+
+  function escHtml(s) {
+    var d = document.createElement('div');
+    d.appendChild(document.createTextNode(String(s == null ? '' : s)));
+    return d.innerHTML;
+  }
+  function fmtTime(ts) {
+    if (!ts) return '-';
+    return String(ts).substring(5, 19);
+  }
+
+  // 初始化
+  loadConfig();
+  loadResults();
+</script>
+</body>
+</html>

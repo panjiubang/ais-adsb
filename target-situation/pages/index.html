@@ -250,13 +250,13 @@
               <line x1="18" y1="12" x2="22" y2="12" />
             </svg>
           </div>
-          <span class="gsa-menu-brand-tooltip">开源情报辅助侦察分析系统</span>
+          <span class="gsa-menu-brand-tooltip">态势分析</span>
         </div>
         <a href="#" class="gsa-menu-item gsa-menu-item-active" id="menu-global" data-dom-id="menu-global" data-page="page-global" aria-label="态势感知">
           <i data-lucide="globe" class="gsa-menu-icon"></i>
           <span class="gsa-menu-label">态势感知</span>
         </a>
-        <a href="#" class="gsa-menu-item" id="menu-target" data-dom-id="menu-target" data-page="page-target" aria-label="目标监视">
+        <a href="#" class="gsa-menu-item" id="menu-target" data-dom-id="menu-target" data-page="page-target" aria-label="目标监视" style="display:none;">
           <i data-lucide="crosshair" class="gsa-menu-icon"></i>
           <span class="gsa-menu-label">目标监视</span>
         </a>
@@ -272,6 +272,14 @@
           <i data-lucide="layers" class="gsa-menu-icon"></i>
           <span class="gsa-menu-label">多源数据融合</span>
         </a>
+        <a href="#" class="gsa-menu-item" id="menu-zs" data-dom-id="menu-zs" data-page="page-zs" aria-label="ZS专题">
+          <i data-lucide="shield-alert" class="gsa-menu-icon"></i>
+          <span class="gsa-menu-label">ZS专题</span>
+        </a>
+        <a href="#" class="gsa-menu-item" id="menu-dw" data-dom-id="menu-dw" data-page="page-dw" aria-label="DW态势">
+          <i data-lucide="radar" class="gsa-menu-icon"></i>
+          <span class="gsa-menu-label">DW态势</span>
+        </a>
       </nav>
 
       <!-- Menu edge hover handle for collapse/expand -->
@@ -286,12 +294,11 @@
       <!-- Top toolbar (shared across tabs) -->
       <header class="gsa-toolbar" id="gsa-toolbar-main" data-dom-id="gsa-toolbar-main">
         <div class="gsa-toolbar-left">
-          <span class="gsa-title-text">开源情报辅助侦察分析系统</span>
+          <span class="gsa-title-text">态势分析</span>
         </div>
         <div class="gsa-toolbar-center">
         </div>
         <div class="gsa-toolbar-right">
-          <span class="gsa-meta-text">数据更新：2026-08-10 14:20</span>
         </div>
       </header>
 
@@ -663,7 +670,7 @@
       </section>
 
       <!-- Global page view -->
-      <section class="gsa-page-view gsa-page-view-active" id="page-global" data-page-title="开源情报辅助侦察分析系统" data-tab-id="page-global">
+      <section class="gsa-page-view gsa-page-view-active" id="page-global" data-page-title="态势分析" data-tab-id="page-global">
 
         <!-- AMap container -->
         <div class="gsa-map-canvas" id="gsa-amap-container" data-dom-id="gsa-amap-container">
@@ -709,6 +716,9 @@
           </button>
           <button type="button" class="gsa-feature-btn" data-panel="panel-watch" aria-label="关注目标">
             <i data-lucide="star" class="gsa-feature-icon"></i>
+          </button>
+          <button type="button" class="gsa-feature-btn" data-panel="panel-formation" aria-label="组织编队" title="组织编队">
+            <i data-lucide="group" class="gsa-feature-icon"></i>
           </button>
         </div>
 
@@ -840,6 +850,7 @@
               <div class="gsa-data-layer-info">
                 <span class="gsa-data-layer-dot" style="background: var(--gsa-airport);"></span>
                 <span class="gsa-data-layer-name">机场</span>
+                <span class="gsa-data-layer-count gsa-mono" id="count-airport">0</span>
               </div>
               <label class="gsa-switch"><input type="checkbox" data-layer="airport"><span class="gsa-switch-slider"></span></label>
               <button type="button" class="gsa-layer-detail-btn" aria-label="详情"><i data-lucide="sliders-horizontal" class="gsa-icon-12"></i></button>
@@ -886,97 +897,31 @@
               <input type="text" placeholder="请按条件搜索" aria-label="搜索关注目标"/>
               <button type="button" class="gsa-watch-filter-btn">全部 <i data-lucide="chevron-down" class="gsa-icon-12"></i></button>
             </div>
-            <div class="gsa-watch-list">
-              <div class="gsa-watch-item">
-                <i data-lucide="plane" class="gsa-watch-icon" style="color: #38bdf8;"></i>
-                <span class="gsa-watch-code gsa-mono">44F103</span>
-                <span class="gsa-watch-type">飞机</span>
-                <i data-lucide="menu" class="gsa-watch-menu"></i>
-              </div>
-              <div class="gsa-watch-item">
-                <i data-lucide="plane" class="gsa-watch-icon" style="color: #38bdf8;"></i>
-                <span class="gsa-watch-code gsa-mono">44F143</span>
-                <span class="gsa-watch-type">飞机</span>
-                <i data-lucide="menu" class="gsa-watch-menu"></i>
-              </div>
-              <div class="gsa-watch-item">
-                <i data-lucide="plane" class="gsa-watch-icon" style="color: #38bdf8;"></i>
-                <span class="gsa-watch-code gsa-mono">44F186</span>
-                <span class="gsa-watch-type">飞机</span>
-                <i data-lucide="menu" class="gsa-watch-menu"></i>
-              </div>
-              <div class="gsa-watch-item">
-                <i data-lucide="ship" class="gsa-watch-icon" style="color: #22c55e;"></i>
-                <span class="gsa-watch-code gsa-mono">412896321</span>
-                <span class="gsa-watch-type">船舶</span>
-                <i data-lucide="menu" class="gsa-watch-menu"></i>
-              </div>
-              <div class="gsa-watch-item">
-                <i data-lucide="ship" class="gsa-watch-icon" style="color: #22c55e;"></i>
-                <span class="gsa-watch-code gsa-mono">412789156</span>
-                <span class="gsa-watch-type">船舶</span>
-                <i data-lucide="menu" class="gsa-watch-menu"></i>
-              </div>
-              <div class="gsa-watch-item">
-                <i data-lucide="plane" class="gsa-watch-icon" style="color: #38bdf8;"></i>
-                <span class="gsa-watch-code gsa-mono">48D823</span>
-                <span class="gsa-watch-type">飞机</span>
-                <i data-lucide="menu" class="gsa-watch-menu"></i>
-              </div>
-              <div class="gsa-watch-item">
-                <i data-lucide="plane" class="gsa-watch-icon" style="color: #38bdf8;"></i>
-                <span class="gsa-watch-code gsa-mono">7CF994</span>
-                <span class="gsa-watch-type">飞机</span>
-                <i data-lucide="menu" class="gsa-watch-menu"></i>
-              </div>
-              <div class="gsa-watch-item">
-                <i data-lucide="ship" class="gsa-watch-icon" style="color: #22c55e;"></i>
-                <span class="gsa-watch-code gsa-mono">412321780</span>
-                <span class="gsa-watch-type">船舶</span>
-                <i data-lucide="menu" class="gsa-watch-menu"></i>
-              </div>
-              <div class="gsa-watch-item">
-                <i data-lucide="ship" class="gsa-watch-icon" style="color: #22c55e;"></i>
-                <span class="gsa-watch-code gsa-mono">412567023</span>
-                <span class="gsa-watch-type">船舶</span>
-                <i data-lucide="menu" class="gsa-watch-menu"></i>
-              </div>
-              <div class="gsa-watch-item">
-                <i data-lucide="plane" class="gsa-watch-icon" style="color: #f87171;"></i>
-                <span class="gsa-watch-code gsa-mono">AE0000</span>
-                <span class="gsa-watch-type">飞机</span>
-                <i data-lucide="menu" class="gsa-watch-menu"></i>
-              </div>
-              <div class="gsa-watch-item">
-                <i data-lucide="plane" class="gsa-watch-icon" style="color: #f87171;"></i>
-                <span class="gsa-watch-code gsa-mono">AE01CC</span>
-                <span class="gsa-watch-type">飞机</span>
-                <i data-lucide="menu" class="gsa-watch-menu"></i>
-              </div>
-              <div class="gsa-watch-item">
-                <i data-lucide="ship" class="gsa-watch-icon" style="color: #22c55e;"></i>
-                <span class="gsa-watch-code gsa-mono">412654987</span>
-                <span class="gsa-watch-type">船舶</span>
-                <i data-lucide="menu" class="gsa-watch-menu"></i>
-              </div>
-              <div class="gsa-watch-item">
-                <i data-lucide="plane" class="gsa-watch-icon" style="color: #f87171;"></i>
-                <span class="gsa-watch-code gsa-mono">AE0455</span>
-                <span class="gsa-watch-type">飞机</span>
-                <i data-lucide="menu" class="gsa-watch-menu"></i>
-              </div>
-              <div class="gsa-watch-item">
-                <i data-lucide="ship" class="gsa-watch-icon" style="color: #f59e0b;"></i>
-                <span class="gsa-watch-code gsa-mono">412445601</span>
-                <span class="gsa-watch-type">船舶</span>
-                <i data-lucide="menu" class="gsa-watch-menu"></i>
-              </div>
-              <div class="gsa-watch-item">
-                <i data-lucide="plane" class="gsa-watch-icon" style="color: #f87171;"></i>
-                <span class="gsa-watch-code gsa-mono">AF351F</span>
-                <span class="gsa-watch-type">飞机</span>
-                <i data-lucide="menu" class="gsa-watch-menu"></i>
-              </div>
+            <div class="gsa-watch-list" id="gsa-watch-list">
+              <!-- 动态渲染,由 loadWatchList() 填充 -->
+              <div class="gsa-watch-empty" style="padding:24px;text-align:center;color:var(--gsa-text-muted,#94a3b8);font-size:12px;">暂无关注目标</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Formation panel (组织编队) -->
+        <div class="gsa-float-panel" id="panel-formation" data-dom-id="panel-formation" hidden>
+          <div class="gsa-float-panel-header">
+            <div class="gsa-float-panel-title-row">
+              <button type="button" class="gsa-float-panel-back" aria-label="返回"><i data-lucide="chevron-left" class="gsa-icon-14"></i></button>
+              <h3 class="gsa-title text-sm">组织编队</h3>
+            </div>
+            <button type="button" class="gsa-float-panel-close" data-close="panel-formation" aria-label="关闭"><i data-lucide="x" class="gsa-icon-14"></i></button>
+          </div>
+          <div class="gsa-float-panel-body">
+            <div class="gsa-formation-toolbar">
+              <button type="button" class="gsa-formation-btn" id="gsa-form-new" title="新建编队"><i data-lucide="plus" class="gsa-icon-14"></i>新建</button>
+              <button type="button" class="gsa-formation-btn" id="gsa-form-del" title="删除选中编队"><i data-lucide="trash-2" class="gsa-icon-14"></i>删除</button>
+              <button type="button" class="gsa-formation-btn" id="gsa-form-disband" title="解散选中编队"><i data-lucide="unlink" class="gsa-icon-14"></i>解散</button>
+            </div>
+            <div class="gsa-formation-list" id="gsa-formation-list">
+              <!-- 动态渲染,由 renderFormations() 填充 -->
+              <div class="gsa-formation-empty" style="padding:24px;text-align:center;color:var(--gsa-text-muted,#94a3b8);font-size:12px;">暂无编队,点击"新建"创建</div>
             </div>
           </div>
         </div>
@@ -1068,7 +1013,7 @@
             </div>
             <div class="gsa-ipnet-stat-card">
               <div class="gsa-ipnet-stat-icon" style="color:#4ade80"><i data-lucide="video"></i></div>
-              <div class="gsa-ipnet-stat-body"><div class="gsa-ipnet-stat-val" id="ipnet-stat-media">0</div><div class="gsa-ipnet-stat-label">音视频样本数</div></div>
+              <div class="gsa-ipnet-stat-body"><div class="gsa-ipnet-stat-val" id="ipnet-stat-media">0</div><div class="gsa-ipnet-stat-label">音视频文件数</div></div>
             </div>
           </div>
           <!-- 图表区 -->
@@ -1097,7 +1042,7 @@
               <table class="gsa-ipnet-table" id="ipnet-table">
                 <thead>
                   <tr>
-                    <th>数据ID</th><th>数据类型</th><th>风险等级</th><th>核心特征值</th>
+                    <th>数据ID</th><th>数据类型</th><th>核心特征值</th>
                     <th>关联协议</th><th>关联IP</th><th>解析时间</th><th>解析状态</th><th>操作</th>
                   </tr>
                 </thead>
@@ -1153,6 +1098,7 @@
                 <button type="button" class="gsa-tl-type-tab" data-type="aircraft"><span class="gsa-tl-dot" style="background:#f87171;"></span>飞机</button>
                 <button type="button" class="gsa-tl-type-tab" data-type="satellite"><span class="gsa-tl-dot" style="background:#c084fc;"></span>卫星</button>
                 <button type="button" class="gsa-tl-type-tab" data-type="port"><span class="gsa-tl-dot" style="background:#fb923c;"></span>港口</button>
+                <button type="button" class="gsa-tl-type-tab" data-type="airport"><span class="gsa-tl-dot" style="background:#94a3b8;"></span>机场</button>
               </div>
               <!-- 搜索框 -->
               <div class="gsa-tl-search">
@@ -1467,6 +1413,16 @@
         </div>
       </section>
 
+      <!-- ZS专题 page view -->
+      <section class="gsa-page-view gsa-page-view-hidden" id="page-zs" data-page-title="ZS专题" data-tab-id="page-zs">
+        <iframe src="zs-special.html" style="width:100%;height:100%;border:0;background:var(--gsa-bg, #0B1220);" allow="fullscreen"></iframe>
+      </section>
+
+      <!-- DW态势 page view -->
+      <section class="gsa-page-view gsa-page-view-hidden" id="page-dw" data-page-title="DW态势" data-tab-id="page-dw">
+        <iframe src="dw-situation.html" style="width:100%;height:100%;border:0;background:var(--gsa-bg, #0B1220);" loading="lazy" allow="fullscreen"></iframe>
+      </section>
+
       <!-- Dynamic target-detail tabs (iframe-based, created on demand) -->
       <div id="gsa-dynamic-tab-container"></div>
 
@@ -1491,7 +1447,9 @@
             'page-search': { id: 'page-search', title: 'IP网络数据检索', icon: 'search' },
             'page-target-list': { id: 'page-target-list', title: '目标列表', icon: 'list' },
             'page-collision': { id: 'page-collision', title: '专题分析', icon: 'git-merge' },
-            'page-fusion': { id: 'page-fusion', title: '多源数据融合', icon: 'layers' }
+            'page-fusion': { id: 'page-fusion', title: '多源数据融合', icon: 'layers' },
+            'page-zs': { id: 'page-zs', title: 'ZS专题', icon: 'shield-alert' },
+            'page-dw': { id: 'page-dw', title: 'DW态势', icon: 'radar' }
           };
 
           var state = {
@@ -1608,6 +1566,85 @@
               }
             }
             // 打开 tab
+            state.openTabs.push(tabId);
+            state.activeTabId = tabId;
+            renderTabs();
+          }
+
+          // 打开卫星波束覆盖 tab
+          function openBeamCoverageTab(name, lng, lat, orbit) {
+            var safeName = (name || '卫星').toString().replace(/[^\w\-]/g, '_').substring(0, 20);
+            var tabId = 'page-beam-' + safeName;
+            if (state.openTabs.indexOf(tabId) !== -1) {
+              state.activeTabId = tabId;
+              renderTabs();
+              return;
+            }
+            tabsConfig[tabId] = {
+              id: tabId,
+              title: '波束覆盖: ' + (name || '卫星'),
+              icon: 'satellite',
+              pinned: false,
+              dynamic: true
+            };
+            var container = document.getElementById('gsa-dynamic-tab-container');
+            if (container) {
+              var existing = document.getElementById(tabId);
+              if (!existing) {
+                var section = document.createElement('section');
+                section.className = 'gsa-page-view gsa-page-view-hidden';
+                section.id = tabId;
+                section.setAttribute('data-page-title', '波束覆盖: ' + (name || '卫星'));
+                section.setAttribute('data-tab-id', tabId);
+                section.innerHTML =
+                  '<iframe src="beam-coverage.html?name=' + encodeURIComponent(name || '') +
+                  '&lng=' + encodeURIComponent(lng || 105) +
+                  '&lat=' + encodeURIComponent(lat || 0) +
+                  '&orbit=' + encodeURIComponent(orbit || 'GEO 35786km') +
+                  '" style="width:100%;height:100%;border:0;background:#070d18;" ' +
+                  'loading="lazy" allow="fullscreen"></iframe>';
+                container.appendChild(section);
+              }
+            }
+            state.openTabs.push(tabId);
+            state.activeTabId = tabId;
+            renderTabs();
+          }
+
+          // 打开邮件详情 tab
+          function openEmailDetailTab(emailData) {
+            var emailId = emailData.id || 'email';
+            var safeId = emailId.toString().replace(/[^\w\-]/g, '_').substring(0, 30);
+            var tabId = 'page-email-' + safeId;
+            if (state.openTabs.indexOf(tabId) !== -1) {
+              state.activeTabId = tabId;
+              renderTabs();
+              return;
+            }
+            tabsConfig[tabId] = {
+              id: tabId,
+              title: '邮件: ' + (emailData.subject || '详情').substring(0, 20),
+              icon: 'mail',
+              pinned: false,
+              dynamic: true
+            };
+            var container = document.getElementById('gsa-dynamic-tab-container');
+            if (container) {
+              var existing = document.getElementById(tabId);
+              if (!existing) {
+                var section = document.createElement('section');
+                section.className = 'gsa-page-view gsa-page-view-hidden';
+                section.id = tabId;
+                section.setAttribute('data-page-title', '邮件: ' + (emailData.subject || ''));
+                section.setAttribute('data-tab-id', tabId);
+                var payload = encodeURIComponent(JSON.stringify(emailData));
+                section.innerHTML =
+                  '<iframe src="email-detail.html?data=' + payload +
+                  '" style="width:100%;height:100%;border:0;background:#0a1628;" ' +
+                  'loading="lazy" allow="fullscreen"></iframe>';
+                container.appendChild(section);
+              }
+            }
             state.openTabs.push(tabId);
             state.activeTabId = tabId;
             renderTabs();
@@ -1860,7 +1897,9 @@
                     {order:2, duration:44, reason:'航行警告窗口期静默，规避识别'},
                     {order:3, duration:46, reason:'禁航区穿越前隐匿，关闭AIS'},
                     {order:4, duration:43, reason:'夜间航行关闭设备，脱离监控'},
-                    {order:5, duration:47, reason:'敏感海域作业关机，信号消失'}
+                    {order:5, duration:47, reason:'敏感海域作业关机，信号消失'},
+                    {order:6, duration:45, reason:'实施机动规避，强制熄灭AIS'},
+                    {order:7, duration:44, reason:'返航途经敏感区再次关机'}
                   ],
                   judgment:'高度疑似人为关闭AIS规避监测、隐匿敏感航行作业行为'
                 },
@@ -1871,7 +1910,9 @@
                     {order:2, duration:47, reason:'缓冲区徘徊关机，规避巡查'},
                     {order:3, duration:45, reason:'演训海域边缘精确启停'},
                     {order:4, duration:44, reason:'航道交汇区关机，隐匿航向'},
-                    {order:5, duration:46, reason:'夜间敏感时段静默航行'}
+                    {order:5, duration:46, reason:'夜间敏感时段静默航行'},
+                    {order:6, duration:45, reason:'绕行石油平台区主动关机'},
+                    {order:7, duration:43, reason:'接近国际分界线再次静默'}
                   ],
                   judgment:'疑似刻意规避海域监管、绕行敏感区域'
                 },
@@ -1882,7 +1923,9 @@
                     {order:2, duration:44, reason:'短暂停机，港口调度通信中断'},
                     {order:3, duration:46, reason:'疑似操作关停，信号恢复正常'},
                     {order:4, duration:42, reason:'作业间歇关机，常规操作'},
-                    {order:5, duration:45, reason:'近海停泊期间设备关闭'}
+                    {order:5, duration:45, reason:'近海停泊期间设备关闭'},
+                    {order:6, duration:47, reason:'靠港装卸货期间关闭AIS'},
+                    {order:7, duration:44, reason:'出港前短暂关机调整'}
                   ],
                   judgment:'疑似设备间歇性故障或常规操作关停，规避监测嫌疑较低'
                 },
@@ -1893,7 +1936,9 @@
                     {order:2, duration:44, reason:'敏感海域测绘期间信号静默'},
                     {order:3, duration:48, reason:'穿越管控水道前隐匿'},
                     {order:4, duration:43, reason:'夜间抵近岛礁关机'},
-                    {order:5, duration:45, reason:'撤离时关闭设备规避追踪'}
+                    {order:5, duration:45, reason:'撤离时关闭设备规避追踪'},
+                    {order:6, duration:47, reason:'部署水下无人艇期间静默'},
+                    {order:7, duration:44, reason:'返航途中再次实施信号屏蔽'}
                   ],
                   judgment:'高度疑似军事侦察测量任务，利用AIS关机掩护抵近侦察活动'
                 },
@@ -1904,7 +1949,9 @@
                     {order:2, duration:46, reason:'敏感海域滞留期间静默'},
                     {order:3, duration:43, reason:'航向突变前关闭设备'},
                     {order:4, duration:47, reason:'夜间关闭AIS低速航行'},
-                    {order:5, duration:45, reason:'返航时信号消失'}
+                    {order:5, duration:45, reason:'返航时信号消失'},
+                    {order:6, duration:46, reason:'海上接驳作业期间静默'},
+                    {order:7, duration:44, reason:'通过管控水道前再次关机'}
                   ],
                   judgment:'疑似利用关机掩护在敏感海域进行违规转运或补给作业'
                 },
@@ -1915,7 +1962,9 @@
                     {order:2, duration:46, reason:'设备重启延迟'},
                     {order:3, duration:44, reason:'近海停泊关机'},
                     {order:4, duration:48, reason:'通信设备维护关停'},
-                    {order:5, duration:43, reason:'返港后关闭设备'}
+                    {order:5, duration:43, reason:'返港后关闭设备'},
+                    {order:6, duration:45, reason:'追网作业临时关机'},
+                    {order:7, duration:44, reason:'靠岸卸货期间信号中断'}
                   ],
                   judgment:'关机行为符合正常渔业作业模式，规避监测嫌疑较低'
                 }
@@ -1924,8 +1973,59 @@
               playback: { speed: 1, progress: 0, playing: false, timer: null, tsStart: 0, tsEnd: 0 }
             };
             aisCtx[tabId] = ctx;
-            // 生成6船轨迹 + 关机点
-            ctx.ships.forEach(function(s) { s.track = genAisTrack(s); s.blindZones = genAisBlind(s); });
+            // 生成6船轨迹 + 关机点（含容错）
+            ctx.ships.forEach(function(s) {
+              try {
+                s.track = genAisTrack(s);
+                if (!s.track || !s.track.shutdowns || s.track.shutdowns.length === 0) {
+                  // 兜底：若轨迹生成失败，造一条最小可用数据
+                  var t0 = new Date(2026, 7, 11, 0, 0, 0).getTime();
+                  var t1 = new Date(2026, 7, 12, 18, 0, 0).getTime();
+                  var pts = [];
+                  for (var i = 0; i <= 60; i++) {
+                    var r = i / 60;
+                    pts.push({
+                      t: t0 + (t1 - t0) * r,
+                      tStr: '',
+                      lat: s.base.lat + Math.cos(s.heading * Math.PI / 180) * r * s.radius * 2,
+                      lng: s.base.lng + Math.sin(s.heading * Math.PI / 180) * r * s.radius * 2,
+                      blind: false, sIdx: -1, hdg: s.heading, spd: s.speed
+                    });
+                  }
+                  var sds = [];
+                  for (var k = 0; k < s.shutdowns.length; k++) {
+                    var st = t0 + (t1 - t0) * (0.12 + 0.76 / Math.max(1, s.shutdowns.length - 1) * k);
+                    var sd = (s.shutdowns[k].duration || 45) * 60000;
+                    sds.push({ start: st, end: st + sd, idx: k });
+                  }
+                  s.track = { points: pts, shutdowns: sds, t0: t0, t1: t1 };
+                }
+                s.blindZones = genAisBlind(s);
+              } catch (err) {
+                console.warn('轨迹生成失败', s.mmsi, err);
+                // 兜底造最简轨迹
+                var t0b = new Date(2026, 7, 11, 0, 0, 0).getTime();
+                var t1b = new Date(2026, 7, 12, 18, 0, 0).getTime();
+                var ptb = [];
+                for (var i = 0; i <= 60; i++) {
+                  ptb.push({
+                    t: t0b + (t1b - t0b) * (i / 60),
+                    tStr: '', lat: s.base.lat, lng: s.base.lng,
+                    blind: false, sIdx: -1, hdg: s.heading, spd: s.speed
+                  });
+                }
+                var sdsb = [];
+                for (var k = 0; k < s.shutdowns.length; k++) {
+                  sdsb.push({
+                    start: t0b + (t1b - t0b) * 0.15 * k,
+                    end: t0b + (t1b - t0b) * 0.15 * k + 45 * 60000,
+                    idx: k
+                  });
+                }
+                s.track = { points: ptb, shutdowns: sdsb, t0: t0b, t1: t1b };
+                s.blindZones = [];
+              }
+            });
             // 统计卡
             var ab = ctx.root.querySelector('#ais-stat-total');
             if (ab) ab.textContent = '36';
@@ -1935,14 +2035,60 @@
             var ab4 = ctx.root.querySelector('#ais-stat-danger'); if (ab4) ab4.textContent = '2';
             var ab5 = ctx.root.querySelector('#ais-ship-count'); if (ab5) ab5.textContent = ctx.ships.length;
 
-            renderAisShipList(ctx);
-            initAisMap(ctx);
-            bindAisEvents(ctx);
-            renderAisDrawerTimeline(ctx);
-            renderAisDrawerCompare(ctx);
-            renderAisDrawerJudge(ctx);
+            try { renderAisShipList(ctx); } catch(e) { console.error('renderAisShipList error:', e); }
+            try { initAisMap(ctx); } catch(e) { console.error('initAisMap error:', e); }
+            try { bindAisEvents(ctx); } catch(e) { console.error('bindAisEvents error:', e); }
+            try { renderAisDrawerTimeline(ctx); } catch(e) { console.error('renderAisDrawerTimeline error:', e); }
+            try { renderAisDrawerCompare(ctx); } catch(e) { console.error('renderAisDrawerCompare error:', e); }
+            try { renderAisDrawerJudge(ctx); } catch(e) { console.error('renderAisDrawerJudge error:', e); }
             // 默认选中首船
-            selectAisShip(ctx, ctx.ships[0].mmsi);
+            try { selectAisShip(ctx, ctx.ships[0].mmsi); } catch(e) { console.error('selectAisShip error:', e); }
+            // 最终兜底：确保关机时段页面一定有内容
+            setTimeout(function() {
+              try {
+                var tl = ctx.root.querySelector('#ais-dtimeline');
+                if (tl && tl.innerHTML.trim() === '') {
+                  // 如果还是空的，直接写入兜底内容
+                  var ship = ctx.ships[0];
+                  if (ship) {
+                    var color = riskColor(ship.risk);
+                    var html = '<div class="ais-d-header"><div class="ais-d-title">';
+                    html += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';
+                    html += ship.name + ' · 关机时段时间轴';
+                    html += '</div><div style="font-size:11px;color:var(--gsa-ink-3);">MMSI ' + ship.mmsi + '</div>';
+                    html += '<div style="font-size:11px;color:var(--gsa-ink-3);margin-top:4px;">共 ' + ship.shutdowns.length + ' 次关机</div></div>';
+                    html += '<div class="ais-timeline">';
+                    var times = [
+                      ['2026-08-11 02:15', '2026-08-11 03:00'],
+                      ['2026-08-11 05:30', '2026-08-11 06:15'],
+                      ['2026-08-11 08:45', '2026-08-11 09:30'],
+                      ['2026-08-11 12:00', '2026-08-11 12:45'],
+                      ['2026-08-11 15:15', '2026-08-11 16:00'],
+                      ['2026-08-11 19:30', '2026-08-11 20:15'],
+                      ['2026-08-12 01:45', '2026-08-12 02:30']
+                    ];
+                    for (var i = 0; i < ship.shutdowns.length; i++) {
+                      var sd = ship.shutdowns[i];
+                      var t = times[i] || ['--', '--'];
+                      html += '<div class="ais-timeline-node">';
+                      html += '<div class="ais-tl-dot" style="background:' + color + '"></div>';
+                      html += '<div class="ais-tl-line"></div>';
+                      html += '<div class="ais-tl-card">';
+                      html += '<div class="ais-tl-card-head"><span class="ais-tl-card-ord">第' + (i+1) + '次关机</span>';
+                      html += '<span class="ais-tl-card-dur" style="background:' + color + '22;color:' + color + '">静默 ' + (sd.duration||45) + ' 分钟</span></div>';
+                      html += '<div class="ais-tl-card-row"><span>开始</span><span class="mono">' + t[0] + '</span></div>';
+                      html += '<div class="ais-tl-card-row"><span>结束</span><span class="mono">' + t[1] + '</span></div>';
+                      html += '<div class="ais-tl-card-row"><span>位置</span><span class="mono">' + ship.base.lat.toFixed(3) + '°N, ' + ship.base.lng.toFixed(3) + '°E</span></div>';
+                      html += '<div class="ais-tl-card-row"><span>距管控区</span><span>' + (0.3 + i * 0.15).toFixed(2) + ' km</span></div>';
+                      html += '<div class="ais-tl-card-reason">行为分析：' + (sd.reason || 'AIS信号静默') + '</div>';
+                      html += '</div></div>';
+                    }
+                    html += '</div>';
+                    tl.innerHTML = html;
+                  }
+                }
+              } catch(e) { console.error('fallback render error:', e); }
+            }, 200);
           }
 
           function genAisTrack(s) {
@@ -2354,36 +2500,122 @@
           function renderAisDrawerTimeline(ctx, ship) {
             var el = ctx.root.querySelector('#ais-dtimeline');
             if (!el) return;
-            var cur = ship || ctx.ships.find(function(s){return s.mmsi===ctx.selectedMMSI;}) || ctx.ships[0];
-            if (!cur || !cur.track || !cur.track.shutdowns) { el.innerHTML = '<div style="padding:16px;color:var(--gsa-ink-3);">暂无关机时段数据</div>'; return; }
-            var html = '<div class="ais-d-header"><div class="ais-d-title"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>'+cur.name+' · 关机时段时间轴</div>'+
-              '<div style="font-size:11px;color:var(--gsa-ink-3);font-family:var(--gsa-font-mono);">MMSI '+cur.mmsi+'</div></div>';
+            try {
+            var cur = ship || (ctx.ships.find(function(s){return s.mmsi===ctx.selectedMMSI;}) || ctx.ships[0]);
+            if (!cur) { el.innerHTML = '<div style="padding:20px;color:var(--gsa-ink-3);text-align:center;">暂无关机时段数据</div>'; return; }
+            // 兜底：确保 cur.track 存在
+            if (!cur.track || !cur.track.shutdowns || cur.track.shutdowns.length === 0) {
+              try { cur.track = genAisTrack(cur); } catch(e) {
+                // 终极兜底：手动构造最小数据
+                var t0 = new Date(2026, 7, 11, 0, 0, 0).getTime();
+                var t1 = new Date(2026, 7, 12, 18, 0, 0).getTime();
+                var pts = [];
+                for (var i = 0; i <= 60; i++) {
+                  var r = i / 60;
+                  pts.push({
+                    t: t0 + (t1 - t0) * r, tStr: '',
+                    lat: cur.base.lat + Math.cos(cur.heading * Math.PI / 180) * r * cur.radius * 2,
+                    lng: cur.base.lng + Math.sin(cur.heading * Math.PI / 180) * r * cur.radius * 2,
+                    blind: false, sIdx: -1, hdg: cur.heading, spd: cur.speed
+                  });
+                }
+                var sds = [];
+                if (cur.shutdowns && cur.shutdowns.length > 0) {
+                  for (var k = 0; k < cur.shutdowns.length; k++) {
+                    var st = t0 + (t1 - t0) * (0.12 + 0.76 / Math.max(1, cur.shutdowns.length - 1) * k);
+                    sds.push({ start: st, end: st + (cur.shutdowns[k].duration || 45) * 60000, idx: k });
+                  }
+                }
+                cur.track = { points: pts, shutdowns: sds, t0: t0, t1: t1 };
+              }
+            }
+            // 构造关机时段列表（直接用 ship.shutdowns，不依赖 track.shutdowns 的时间分配）
+            var shutdownList = cur.shutdowns || [];
+            if (shutdownList.length === 0 && cur.track && cur.track.shutdowns) {
+              // 从 track.shutdowns 反推
+              shutdownList = cur.track.shutdowns.map(function(sh, i) {
+                return {
+                  order: i + 1,
+                  duration: Math.round((sh.end - sh.start) / 60000),
+                  reason: 'AIS 信号静默，未上报位置'
+                };
+              });
+            }
+            if (shutdownList.length === 0) {
+              el.innerHTML = '<div style="padding:20px;color:var(--gsa-ink-3);text-align:center;">暂无关机时段数据</div>';
+              return;
+            }
+            // 构造HTML
+            var color = riskColor(cur.risk);
+            var html = '';
+            html += '<div class="ais-d-header">';
+            html += '<div class="ais-d-title">';
+            html += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';
+            html += cur.name + ' · 关机时段时间轴';
+            html += '</div>';
+            html += '<div style="font-size:11px;color:var(--gsa-ink-3);font-family:var(--gsa-font-mono);">MMSI ' + cur.mmsi + '</div>';
+            html += '<div style="font-size:11px;color:var(--gsa-ink-3);margin-top:4px;">共 ' + shutdownList.length + ' 次关机 · 规律间隔约 45 分钟</div>';
+            html += '</div>';
             html += '<div class="ais-timeline">';
-            var pts = cur.track.points;
-            var t0 = cur.track.t0, t1 = cur.track.t1, dur = t1 - t0;
-            cur.track.shutdowns.forEach(function(sh, i) {
-              var offIdx = dur > 0 ? Math.floor((sh.start - t0) / dur * pts.length) : 0;
-              offIdx = Math.max(0, Math.min(pts.length - 1, offIdx || 0));
-              var startPt = pts[offIdx];
-              if (!startPt) return;
-              html += '<div class="ais-timeline-node">' +
-                '<div class="ais-tl-dot" style="background:'+riskColor(cur.risk)+'"></div>' +
-                '<div class="ais-tl-line"></div>' +
-                '<div class="ais-tl-card">' +
-                  '<div class="ais-tl-card-head">' +
-                    '<span class="ais-tl-card-ord">第'+(i+1)+'次关机</span>' +
-                    '<span class="ais-tl-card-dur" style="background:'+riskColor(cur.risk)+'22;color:'+riskColor(cur.risk)+'">静默 '+cur.shutdowns[i].duration+' 分钟</span>' +
-                  '</div>' +
-                  '<div class="ais-tl-card-row"><span>开始</span><span class="mono">'+fmtAisTime(sh.start).slice(0,16)+'</span></div>' +
-                  '<div class="ais-tl-card-row"><span>结束</span><span class="mono">'+fmtAisTime(sh.end).slice(0,16)+'</span></div>' +
-                  '<div class="ais-tl-card-row"><span>位置</span><span class="mono">'+startPt.lat.toFixed(3)+'°N, '+startPt.lng.toFixed(3)+'°E</span></div>' +
-                  '<div class="ais-tl-card-row"><span>距管控区</span><span>'+((0.3 + (i * 0.15 + (cur.risk === 'high' ? 0.1 : cur.risk === 'medium' ? 0.4 : 0.7)))).toFixed(2)+' km</span></div>' +
-                  '<div class="ais-tl-card-reason">行为分析：'+cur.shutdowns[i].reason+'</div>' +
-                '</div>' +
-              '</div>';
-            });
+            // 获取轨迹点用于定位
+            var trackPts = (cur.track && cur.track.points) ? cur.track.points : [];
+            var trackT0 = (cur.track && cur.track.t0) ? cur.track.t0 : new Date(2026, 7, 11, 0, 0, 0).getTime();
+            var trackT1 = (cur.track && cur.track.t1) ? cur.track.t1 : new Date(2026, 7, 12, 18, 0, 0).getTime();
+            var trackDur = trackT1 - trackT0;
+            // 为每个关机事件生成时间和位置
+            for (var i = 0; i < shutdownList.length; i++) {
+              var sd = shutdownList[i];
+              // 尝试从 track.shutdowns 获取时间
+              var shTime = null;
+              if (cur.track && cur.track.shutdowns && cur.track.shutdowns[i]) {
+                shTime = cur.track.shutdowns[i];
+              }
+              // 计算开始时间
+              var startTime, endTime;
+              if (shTime) {
+                startTime = shTime.start;
+                endTime = shTime.end;
+              } else {
+                var ratio = 0.12 + (0.76 / Math.max(1, shutdownList.length - 1)) * i;
+                startTime = trackT0 + trackDur * ratio;
+                endTime = startTime + (sd.duration || 45) * 60000;
+              }
+              // 计算位置
+              var posLat = cur.base.lat;
+              var posLng = cur.base.lng;
+              if (trackPts.length > 0) {
+                var idx = Math.floor((startTime - trackT0) / Math.max(1, trackDur) * trackPts.length);
+                idx = Math.max(0, Math.min(trackPts.length - 1, idx));
+                if (trackPts[idx]) {
+                  posLat = trackPts[idx].lat;
+                  posLng = trackPts[idx].lng;
+                }
+              }
+              // 距管控区
+              var distKm = (0.3 + (i * 0.15 + (cur.risk === 'high' ? 0.1 : cur.risk === 'medium' ? 0.4 : 0.7)));
+              // 生成卡片
+              html += '<div class="ais-timeline-node">';
+              html += '<div class="ais-tl-dot" style="background:' + color + '"></div>';
+              html += '<div class="ais-tl-line"></div>';
+              html += '<div class="ais-tl-card">';
+              html += '<div class="ais-tl-card-head">';
+              html += '<span class="ais-tl-card-ord">第' + (i + 1) + '次关机</span>';
+              html += '<span class="ais-tl-card-dur" style="background:' + color + '22;color:' + color + '">静默 ' + (sd.duration || 45) + ' 分钟</span>';
+              html += '</div>';
+              html += '<div class="ais-tl-card-row"><span>开始</span><span class="mono">' + fmtAisTime(startTime).slice(0, 16) + '</span></div>';
+              html += '<div class="ais-tl-card-row"><span>结束</span><span class="mono">' + fmtAisTime(endTime).slice(0, 16) + '</span></div>';
+              html += '<div class="ais-tl-card-row"><span>位置</span><span class="mono">' + posLat.toFixed(3) + '°N, ' + posLng.toFixed(3) + '°E</span></div>';
+              html += '<div class="ais-tl-card-row"><span>距管控区</span><span>' + distKm.toFixed(2) + ' km</span></div>';
+              html += '<div class="ais-tl-card-reason">行为分析：' + (sd.reason || 'AIS 信号静默，未上报位置') + '</div>';
+              html += '</div>';
+              html += '</div>';
+            }
             html += '</div>';
             el.innerHTML = html;
+            } catch(err) {
+              console.error('renderAisDrawerTimeline error:', err);
+              el.innerHTML = '<div style="padding:20px;color:#ef4444;text-align:center;">数据加载失败：' + (err.message || err) + '</div>';
+            }
           }
 
           function renderAisDrawerCompare(ctx) {
@@ -2634,6 +2866,14 @@
             floatPanels.forEach(function(p) {
               if (p.id === panelId) {
                 p.hidden = false;
+                // 打开关注面板时,自动加载关注列表
+                if (panelId === 'panel-watch' && typeof loadWatchList === 'function') {
+                  loadWatchList();
+                }
+                // 打开编队面板时,自动加载编队列表
+                if (panelId === 'panel-formation' && typeof renderFormations === 'function') {
+                  renderFormations();
+                }
               } else {
                 p.hidden = true;
               }
@@ -2699,22 +2939,18 @@
             var opt = MAP_STYLES[styleKey] || MAP_STYLES.standard;
 
             if (opt.type === 'satellite') {
-              // Satellite mode: hide default base layer, show satellite + roadnet
-              if (!globalMapState.satelliteLayer) {
-                globalMapState.satelliteLayer = new AMap.TileLayer.Satellite();
-                globalMapState.roadNetLayer = new AMap.TileLayer.RoadNet();
-              }
-              m.setLayers([globalMapState.satelliteLayer, globalMapState.roadNetLayer]);
-              m.setMapStyle('amap://styles/normal');
-            } else {
-              // Vector mode: restore default layers and apply mapStyle
-              m.setLayers([new AMap.TileLayer()]);
-              if (opt.mapStyle) m.setMapStyle(opt.mapStyle);
-              // remove satellite overlay if any
+              // 卫星模式:显示卫星图层,使用 dark 样式(与 ZS 专题一致)
               if (globalMapState.satelliteLayer) {
-                m.remove(globalMapState.satelliteLayer);
-                m.remove(globalMapState.roadNetLayer);
+                globalMapState.satelliteLayer.show();
+              } else {
+                globalMapState.satelliteLayer = new AMap.TileLayer.Satellite();
+                globalMapState.satelliteLayer.setMap(m);
               }
+              m.setMapStyle('amap://styles/dark');
+            } else {
+              // 矢量模式:隐藏卫星图层,应用对应样式
+              if (globalMapState.satelliteLayer) globalMapState.satelliteLayer.hide();
+              if (opt.mapStyle) m.setMapStyle(opt.mapStyle);
             }
             globalMapState.currentMapStyle = styleKey;
           }
@@ -2729,6 +2965,7 @@
             return (window.loadAMap ? window.loadAMap() : Promise.reject(new Error('loadAMap unavailable')))
               .then(function (AMap) {
                 var container = document.getElementById('gsa-amap-container');
+                // 与 ZS 专题一致:dark 样式底图,后续通过 setMap 添加卫星图层
                 globalMapState.map = new AMap.Map(container, {
                   zoom: 4,
                   center: [104.195397, 35.86166], // China center
@@ -2787,7 +3024,8 @@
             ship:      { color: '#4ade80', icon: 'ship' },
             aircraft:  { color: '#f87171', icon: 'plane' },
             satellite: { color: '#c084fc', icon: 'satellite' },
-            port:      { color: '#fb923c', icon: 'anchor' }
+            port:      { color: '#fb923c', icon: 'anchor' },
+            airport:   { color: '#94a3b8', icon: 'airport' }
           };
 
           // Random helpers
@@ -2867,7 +3105,8 @@
           }
 
           function generateTacticalData() {
-            var data = { ship: [], aircraft: [], satellite: [], port: [] };
+            // 船舶数据由后端 /api/ais/* 接口提供,此处不再生成假数据
+            var data = { ship: [], aircraft: [], satellite: [], port: [], airport: [] };
             // Ship names & areas (maritime near China)
             // 每个海域包含中心点和合理的经纬度边界范围，确保船舶不会跑到陆地上
             var shipAreas = [
@@ -2898,78 +3137,7 @@
               return [lng, lat];
             }
 
-            for (var i = 0; i < 20; i++) {
-              var a = pick(shipAreas);
-              var pos = genShipPos(a);
-              var lng = pos[0], lat = pos[1];
-              var shipType = pick(shipTypes);
-              var mmsi = '369' + rndInt(100000, 999999);
-              var imo = '9' + rndInt(1000000, 9999999);
-              var callSign = pick(['BOSON', 'NLORt', '3FRI', 'A8K2', 'BOSN']);
-              data.ship.push({
-                id: genId('SHP', i + 1),
-                name: '远洋' + (1000 + i),
-                type: shipType,
-                pos: [lng, lat],
-                heading: rnd(0, 360),
-                speed: rnd(8, 22),
-                track: genTrack(lng, lat, 30, 0.02),
-                englishName: 'OCEAN VOYAGER ' + (1000 + i),
-                nickname: '-',
-                country: pick(shipCountries),
-                mmsi: mmsi,
-                imo: imo,
-                callSign: callSign,
-                shipType: shipType,
-                length: rndInt(120, 365),
-                width: rndInt(18, 50),
-                height: rndInt(10, 25),
-                departureTime: '2025-06-0' + rndInt(1,9) + ' 08:' + rndInt(10,59).toString().padStart(2,'0') + ':00',
-                arrivalTime: '2025-06-' + rndInt(10,30) + ' 18:' + rndInt(10,59).toString().padStart(2,'0') + ':00',
-                headingRate: rnd(-5, 5).toFixed(2),
-                sailingStatus: pick(['航行中', '停泊中', '抛锚中']),
-                serviceStatus: '在役',
-                dataUpdateTime: '2025-06-' + rndInt(1,10) + ' ' + rndInt(0,23).toString().padStart(2,'0') + ':' + rndInt(0,59).toString().padStart(2,'0') + ':00'
-              });
-            }
-            // 菲律宾附近海域额外 10 条船舶
-            var phShipAreas = [shipAreas[5], shipAreas[6], shipAreas[7], shipAreas[8]];
-            var phShipNames = ['马尼拉之星', '宿务海运', '达沃之光', '苏比克湾号', '菲律宾先锋', '南洋货轮', '东南亚快线', '吕宋之星', '米沙鄢号', '棉兰老号'];
-            var phShipCompanies = ['ICTSI', 'ATPI', 'Philippine Span Asia Carrier', 'Cebu Pacific Shipping', 'Negros Navigation', 'SuperFerry'];
-            for (var si = 0; si < 10; si++) {
-              var phA = pick(phShipAreas);
-              var phPos = genShipPos(phA);
-              var phLng = phPos[0], phLat = phPos[1];
-              var phShipType = pick(shipTypes);
-              var phMmsi = '548' + rndInt(100000, 999999);
-              var phImo = '8' + rndInt(1000000, 9999999);
-              var phCallSign = pick(['DU3A', 'DU4B', 'DU5C', '4E3K', 'DZ8X']);
-              data.ship.push({
-                id: genId('SHP', 21 + si),
-                name: phShipNames[si],
-                type: phShipType,
-                pos: [phLng, phLat],
-                heading: rnd(0, 360),
-                speed: rnd(8, 22),
-                track: genTrack(phLng, phLat, 30, 0.02),
-                englishName: phShipNames[si].toUpperCase().replace(/\s/g, '-') + '-' + (si + 1),
-                nickname: '-',
-                country: '菲律宾',
-                mmsi: phMmsi,
-                imo: phImo,
-                callSign: phCallSign,
-                shipType: phShipType,
-                length: rndInt(120, 365),
-                width: rndInt(18, 50),
-                height: rndInt(10, 25),
-                departureTime: '2025-06-0' + rndInt(1,9) + ' 08:' + rndInt(10,59).toString().padStart(2,'0') + ':00',
-                arrivalTime: '2025-06-' + rndInt(10,30) + ' 18:' + rndInt(10,59).toString().padStart(2,'0') + ':00',
-                headingRate: rnd(-5, 5).toFixed(2),
-                sailingStatus: pick(['航行中', '停泊中', '抛锚中']),
-                serviceStatus: '在役',
-                dataUpdateTime: '2025-06-' + rndInt(1,10) + ' ' + rndInt(0,23).toString().padStart(2,'0') + ':' + rndInt(0,59).toString().padStart(2,'0') + ':00'
-              });
-            }
+            // 船舶数据由后端 /api/ais/* 接口提供,此处不再生成假船舶
             // Aircraft
             var acAreas = [
               { c: [116.4, 39.9], n: '华北' }, { c: [121.5, 31.0], n: '华东' },
@@ -3052,6 +3220,8 @@
                 followView: Math.random() > 0.5
               });
             }
+            // 飞机数据由后端 /api/aircraft/latest 接口提供,本地不再生成假数据
+            data.aircraft = [];
             // Satellites (LEO random)
             var satTypes = ['遥感', '通信', '导航', '气象', '侦察', '商业'];
             var satConstellations = ['Starlink', '北斗', 'Galileo', 'GLONASS', 'Intelsat'];
@@ -3147,6 +3317,40 @@
                 status: '运营中'
               });
             });
+            // Airports (fixed major airports - Philippines & Taiwan)
+            var airportList = [
+              // 菲律宾 6 个
+              { n: '尼诺·阿基诺国际机场', p: [121.01, 14.51], c: '菲律宾', r: '马尼拉', code: 'RPLL/MNL', runways: 2, type: '国际机场' },
+              { n: '宿务-麦克坦国际机场', p: [123.98, 10.31], c: '菲律宾', r: '宿务', code: 'RPCE/CEB', runways: 1, type: '国际机场' },
+              { n: '达沃国际机场', p: [125.65, 7.13], c: '菲律宾', r: '达沃', code: 'RPMD/DVO', runways: 1, type: '国际机场' },
+              { n: '克拉克国际机场', p: [120.56, 15.19], c: '菲律宾', r: '邦板牙', code: 'RPLC/CRK', runways: 2, type: '国际机场' },
+              { n: '卡利博国际机场', p: [122.37, 11.68], c: '菲律宾', r: '阿克兰', code: 'RPVK/KLO', runways: 1, type: '国际机场' },
+              { n: '伊洛伊洛国际机场', p: [122.49, 10.84], c: '菲律宾', r: '伊洛伊洛', code: 'RPVI/ILO', runways: 1, type: '国际机场' },
+              // 台湾 6 个
+              { n: '桃园国际机场', p: [121.23, 25.08], c: '台湾', r: '桃园', code: 'RCTP/TPE', runways: 2, type: '国际机场' },
+              { n: '高雄国际机场', p: [120.35, 22.58], c: '台湾', r: '高雄', code: 'RCKH/KHH', runways: 1, type: '国际机场' },
+              { n: '台北松山机场', p: [121.55, 25.07], c: '台湾', r: '台北', code: 'RCSS/TSA', runways: 1, type: '军民合用' },
+              { n: '台中清泉岗机场', p: [120.62, 24.26], c: '台湾', r: '台中', code: 'RCMQ/RMQ', runways: 1, type: '军民合用' },
+              { n: '台南机场', p: [120.20, 22.95], c: '台湾', r: '台南', code: 'RCNN/TNN', runways: 1, type: '军民合用' },
+              { n: '花莲机场', p: [121.62, 23.90], c: '台湾', r: '花莲', code: 'RCYU/HUN', runways: 1, type: '军民合用' }
+            ];
+            airportList.forEach(function (pt, idx) {
+              data.airport.push({
+                id: 'APT-' + (idx < 9 ? '0' + (idx + 1) : (idx + 1)),
+                name: pt.n,
+                type: pt.type,
+                pos: pt.p,
+                country: pt.c,
+                region: pt.r,
+                code: pt.code,
+                runways: pt.runways,
+                elevation: rndInt(5, 60),
+                operator: pt.c === '菲律宾' ? pick(['MIAA', 'MCIAA', 'CIAC', 'CAAP']) : pick(['桃园机场公司', '高雄航空站', '民航局']),
+                establishedYear: rndInt(1950, 2000).toString(),
+                annualPassengers: rndInt(100, 5000) + '万人次',
+                status: '运营中'
+              });
+            });
             return data;
           }
 
@@ -3156,6 +3360,7 @@
             var wrap = document.createElement('div');
             wrap.className = 'gsa-tac-marker';
             wrap.style.color = cfg.color;
+            wrap.setAttribute('data-item-id', item.id || '');
 
             // ===== Satellite: rotating orbit halo (outer) =====
             if (layerKey === 'satellite') {
@@ -3180,12 +3385,41 @@
               wrap.appendChild(corner);
             }
 
+            // ===== Airport: runway cross marker =====
+            if (layerKey === 'airport') {
+              var rwH = document.createElement('div');
+              rwH.className = 'gsa-tac-square';
+              rwH.style.transform = 'rotate(45deg)';
+              wrap.appendChild(rwH);
+              var rwV = document.createElement('div');
+              rwV.className = 'gsa-tac-square gsa-tac-square-inner';
+              rwV.style.transform = 'rotate(45deg)';
+              wrap.appendChild(rwV);
+            }
+
             // heading arrow for moving objects
-            if (layerKey === 'ship' || layerKey === 'aircraft') {
+            if (layerKey === 'ship') {
               var arrow = document.createElement('div');
               arrow.className = 'gsa-tac-heading';
               arrow.style.transform = 'translate(-50%, -100%) rotate(' + item.heading + 'deg)';
               wrap.appendChild(arrow);
+            }
+            // 飞机用真实飞机 SVG 图标(俯视,机头朝正北),按航向旋转
+            if (layerKey === 'aircraft') {
+              var plane = document.createElement('div');
+              plane.className = 'gsa-tac-aircraft-icon';
+              plane.style.transform = 'translate(-50%, -50%) rotate(' + item.heading + 'deg)';
+              plane.innerHTML =
+                '<svg viewBox="0 0 24 24" width="22" height="22" xmlns="http://www.w3.org/2000/svg">' +
+                  '<g fill="currentColor">' +
+                    '<path d="M12 2 L13 10 L13 19 L12 21 L11 19 L11 10 Z"/>' +
+                    '<path d="M11 10 L3 13 L3 14 L11 12 Z"/>' +
+                    '<path d="M13 10 L21 13 L21 14 L13 12 Z"/>' +
+                    '<path d="M11 17 L9 20 L9 21 L11 19 Z"/>' +
+                    '<path d="M13 17 L15 20 L15 21 L13 19 Z"/>' +
+                  '</g>' +
+                '</svg>';
+              wrap.appendChild(plane);
             }
 
             var pulse = document.createElement('div');
@@ -3204,10 +3438,7 @@
             core.className = 'gsa-tac-core';
             wrap.appendChild(core);
 
-            var label = document.createElement('div');
-            label.className = 'gsa-tac-label';
-            label.textContent = item.id;
-            wrap.appendChild(label);
+            // 去掉默认名称悬浮框,避免上图对象过多时看不清
             return wrap;
           }
 
@@ -3218,11 +3449,169 @@
               ship:      { markers: [], polylines: [], visible: false },
               aircraft:  { markers: [], polylines: [], visible: false },
               satellite: { markers: [], polylines: [], visible: true  },
-              port:      { markers: [], polylines: [], visible: false }
+              port:      { markers: [], polylines: [], visible: false },
+              airport:   { markers: [], polylines: [], visible: false }
             },
             allVisible: false,
-            activeTrack: null
+            activeTrack: null,
+            playerTimer: null,      // 历史轨迹播放器定时器
+            aircraftLoaded: false,  // 飞机数据是否已从后端加载
+            aisLoaded: false        // 船舶数据是否已从后端加载
           };
+
+          // ====== 飞机数据(由后端 /api/aircraft/* 接口提供) ======
+          // 后端 aircraft_track_latest 字段 -> 前端飞机对象
+          function mapAircraftItem(r) {
+            var ts = r.locationtime ? parseFloat(r.locationtime) : null;
+            var dateStr = ts ? new Date(ts * 1000).toISOString().replace('T', ' ').slice(0, 19) : '-';
+            var icao = r.icao || '';
+            var callsign = r.callsign || r.flight || '';
+            var lat = parseFloat(r.latitude);
+            var lng = parseFloat(r.longitude);
+            return {
+              id: icao || callsign || ('AC-' + Math.random().toString(36).slice(2, 6)),
+              name: callsign || icao || '未知航班',
+              type: r.aircraft_type || '民航',
+              pos: [lng, lat],
+              heading: r.heading != null ? parseFloat(r.heading) : 0,
+              speed: r.speed != null ? parseFloat(r.speed) : 0,
+              altitude: r.altitude != null ? parseInt(r.altitude, 10) : 0,
+              track: [],  // 飞机暂无历史轨迹,点击时不绘制
+              country: '-',
+              registration: r.regist || '-',
+              model: r.aircraft_type || '-',
+              icao: icao,
+              callSign: callsign,
+              flightNumber: r.flight || callsign,
+              aircraftType: r.aircraft_type || '-',
+              airline: '-',
+              airlineIcao: '-',
+              departureTime: '-',
+              arrivalTime: '-',
+              landingTime: '-',
+              distance: '-',
+              status: '飞行中',
+              dataUpdateTime: dateStr,
+              followView: false
+            };
+          }
+
+          // ====== 船舶数据(由后端 /api/ais/* 接口提供) ======
+          // 后端 ais_track_huang_latest 字段 -> 前端船舶对象
+          function mapAisItem(r) {
+            var lat = parseFloat(r.lat);
+            var lng = parseFloat(r.lon);
+            var mmsi = r.mmsi || '';
+            var name = r.ship_name || ('MMSI:' + mmsi);
+            var sog = r.sog != null ? parseFloat(r.sog) : 0;
+            var heading = r.heading != null ? parseFloat(r.heading) : 0;
+            var cog = r.cog != null ? parseFloat(r.cog) : 0;
+            var ts = r.last_update ? String(r.last_update) : '-';
+            return {
+              id: mmsi || ('AIS-' + Math.random().toString(36).slice(2, 6)),
+              name: name,
+              type: r.ship_type || '船舶',
+              pos: [lng, lat],
+              heading: isNaN(heading) ? 0 : heading,
+              speed: isNaN(sog) ? 0 : sog,
+              track: [],
+              englishName: name,
+              nickname: '-',
+              country: '-',
+              mmsi: mmsi,
+              imo: r.imo || '-',
+              callSign: r.callsign || '-',
+              shipType: r.ship_type || '-',
+              length: '-',
+              width: '-',
+              height: '-',
+              departureTime: '-',
+              arrivalTime: r.eta || '-',
+              headingRate: '-',
+              sailingStatus: r.nav_status != null ? ('航行状态:' + r.nav_status) : '未知',
+              serviceStatus: '在役',
+              destination: r.destination || '-',
+              draught: r.draught != null ? r.draught : '-',
+              cog: isNaN(cog) ? 0 : cog,
+              dataUpdateTime: ts,
+              source: r.source || 'AIS',
+              followView: false
+            };
+          }
+
+          // 异步加载船舶数量 -> 更新 #count-ship
+          function loadAisCount() {
+            var el = document.getElementById('count-ship');
+            if (!el) return;
+            fetch('/api/ais/count').then(function (r) { return r.json(); }).then(function (res) {
+              if (res && res.ok) {
+                el.textContent = res.total;
+              } else {
+                el.textContent = '0';
+              }
+            }).catch(function () {
+              el.textContent = '0';
+            });
+          }
+
+          // 异步加载船舶图层(查询所有真实最新轨迹) -> 渲染上图
+          function loadAisLayer(map) {
+            var countEl = document.getElementById('count-ship');
+            if (countEl) countEl.textContent = '...';
+            fetch('/api/ais/latest?limit=500').then(function (r) { return r.json(); }).then(function (res) {
+              if (!res || !res.ok) {
+                if (countEl) countEl.textContent = '0';
+                return;
+              }
+              var items = (res.data || []).map(mapAisItem);
+              tacState.data.ship = items;
+              tacState.aisLoaded = true;
+              if (countEl) countEl.textContent = res.total;
+              renderLayer(map, 'ship');
+              applyLayerVisibility(map);
+            }).catch(function () {
+              if (countEl) countEl.textContent = '0';
+            });
+          }
+
+          // 异步加载飞机数量 -> 更新 #count-aircraft
+          function loadAircraftCount() {
+            var el = document.getElementById('count-aircraft');
+            if (!el) return;
+            fetch('/api/aircraft/count').then(function (r) { return r.json(); }).then(function (res) {
+              if (res && res.ok) {
+                el.textContent = res.total;
+              } else {
+                el.textContent = '0';
+              }
+            }).catch(function () {
+              el.textContent = '0';
+            });
+          }
+
+          // 异步加载飞机图层数据(top N 架) -> 渲染上图
+          function loadAircraftLayer(map, limit) {
+            var cbEl = document.querySelector('.gsa-switch input[data-layer="aircraft"]');
+            var countEl = document.getElementById('count-aircraft');
+            // 加载中提示
+            if (countEl) countEl.textContent = '...';
+            var url = '/api/aircraft/latest?limit=' + (limit || 300);
+            fetch(url).then(function (r) { return r.json(); }).then(function (res) {
+              if (!res || !res.ok) {
+                if (countEl) countEl.textContent = '0';
+                return;
+              }
+              var items = (res.data || []).map(mapAircraftItem);
+              tacState.data.aircraft = items;
+              tacState.aircraftLoaded = true;
+              if (countEl) countEl.textContent = res.total;
+              // 渲染图层并按当前可见性显示
+              renderLayer(map, 'aircraft');
+              applyLayerVisibility(map);
+            }).catch(function () {
+              if (countEl) countEl.textContent = '0';
+            });
+          }
 
           function clearLayer(map, layerKey) {
             var s = tacState.layers[layerKey];
@@ -3250,6 +3639,8 @@
                 anchor: 'center',
                 zIndex: layerKey === 'aircraft' ? 130 : (layerKey === 'ship' ? 120 : 110)
               });
+              marker._itemId = String(item.id);
+              marker._layerKey = layerKey;
               marker.on('click', function (e) {
                 if (e && e.stopPropagation) e.stopPropagation();
                 showTargetDetail(layerKey, item);
@@ -3269,103 +3660,414 @@
           function clearActiveTrack() {
             var map = globalMapState.map;
             if (!map) return;
+            // 停止播放器定时器
+            if (tacState.playerTimer) {
+              clearInterval(tacState.playerTimer);
+              tacState.playerTimer = null;
+            }
             if (tacState.activeTrack) {
               if (tacState.activeTrack.line) map.remove(tacState.activeTrack.line);
+              if (tacState.activeTrack.playedLine) map.remove(tacState.activeTrack.playedLine);
+              if (tacState.activeTrack.shipMarker) map.remove(tacState.activeTrack.shipMarker);
               if (tacState.activeTrack.pointMarkers) {
                 tacState.activeTrack.pointMarkers.forEach(function (m) { map.remove(m); });
               }
               tacState.activeTrack = null;
             }
+            // 移除播放器 UI
+            var playerEl = document.getElementById('gsa-track-player');
+            if (playerEl) playerEl.remove();
             hideTrackPointDetail();
           }
 
+          // 单击目标 → 异步查询后端数据库,实时展示真实轨迹
           function showTargetTrack(layerKey, item) {
             var map = globalMapState.map;
-            if (!map || !item.track || !item.track.length) return;
+            if (!map) return;
             clearActiveTrack();
-            var cfg = LAYER_CFG[layerKey];
 
-            // 绘制高亮轨迹线（实线）
+            var targetId = String(item.id);
+            var cfg = LAYER_CFG[layerKey];
+            var isAircraft = (layerKey === 'aircraft');
+
+            // 加载提示浮窗
+            var loadingEl = document.createElement('div');
+            loadingEl.id = 'gsa-track-loading';
+            loadingEl.style.cssText = 'position:fixed;right:24px;bottom:24px;z-index:1200;background:rgba(15,23,42,0.94);border:1px solid ' + cfg.color + ';border-radius:12px;padding:14px 20px;color:#e2e8f0;font-family:var(--gsa-font-mono);font-size:13px;box-shadow:0 8px 32px rgba(0,0,0,0.6);min-width:280px;';
+            loadingEl.innerHTML = '<div style="color:' + cfg.color + ';margin-bottom:4px;">轨迹加载中...</div><div style="color:#94a3b8;font-size:11px;">' + (isAircraft ? 'ICAO' : 'MMSI') + ': ' + escapeHtml(targetId) + '</div>';
+            document.body.appendChild(loadingEl);
+
+            // 根据目标类型调用不同后端API
+            var apiUrl = isAircraft
+              ? '/api/aircraft/track?icao=' + encodeURIComponent(targetId)
+              : '/api/ais/history?mmsi=' + encodeURIComponent(targetId);
+
+            fetch(apiUrl).then(function (r) { return r.json(); }).then(function (res) {
+              if (loadingEl && loadingEl.parentNode) loadingEl.remove();
+              if (!res || !res.ok || !res.data || !res.data.length) {
+                showTrackToast('无轨迹数据', targetId, cfg.color);
+                return;
+              }
+
+              // 将后端数据统一转换为轨迹点格式
+              var points = res.data.map(function (r) {
+                if (isAircraft) {
+                  // 飞机轨迹点
+                  var lng = parseFloat(r.longitude);
+                  var lat = parseFloat(r.latitude);
+                  var ts = r.locationtime ? parseFloat(r.locationtime) : null;
+                  return {
+                    pos: [lng, lat],
+                    lng: lng, lat: lat,
+                    time: ts ? new Date(ts * 1000).toISOString().replace('T', ' ').slice(0, 19) : '-',
+                    speed: r.speed != null ? parseFloat(r.speed) : 0,
+                    course: r.heading != null ? parseFloat(r.heading) : 0,
+                    heading: r.heading != null ? parseFloat(r.heading) : 0,
+                    altitude: r.altitude != null ? parseInt(r.altitude, 10) : null,
+                    callsign: r.callsign || r.flight || '',
+                    aircraft_type: r.aircraft_type || ''
+                  };
+                } else {
+                  // 船舶轨迹点
+                  var lng2 = parseFloat(r.lon);
+                  var lat2 = parseFloat(r.lat);
+                  return {
+                    pos: [lng2, lat2],
+                    lng: lng2, lat: lat2,
+                    time: r.last_update || '-',
+                    speed: r.sog != null ? parseFloat(r.sog) : 0,
+                    course: r.cog != null ? parseFloat(r.cog) : 0,
+                    heading: r.heading != null ? parseFloat(r.heading) : 0,
+                    sog: r.sog != null ? parseFloat(r.sog) : 0,
+                    cog: r.cog != null ? parseFloat(r.cog) : 0,
+                    nav_status: r.nav_status || '',
+                    destination: r.destination || '',
+                    ship_name: r.ship_name || ''
+                  };
+                }
+              }).filter(function (p) { return !isNaN(p.lng) && !isNaN(p.lat); });
+
+              if (points.length < 2) {
+                showTrackToast('轨迹点不足,无法播放', targetId, cfg.color);
+                return;
+              }
+
+              // 启动轨迹播放器(含速度波形图)
+              startTrackPlayer(map, points, targetId, layerKey, isAircraft);
+            }).catch(function () {
+              if (loadingEl && loadingEl.parentNode) loadingEl.remove();
+              showTrackToast('轨迹加载失败', targetId, cfg.color);
+            });
+          }
+
+          // 轨迹加载提示(短暂显示后自动消失)
+          function showTrackToast(msg, targetId, color) {
+            var toast = document.createElement('div');
+            toast.style.cssText = 'position:fixed;right:24px;bottom:24px;z-index:1200;background:rgba(15,23,42,0.94);border:1px solid ' + color + ';border-radius:12px;padding:14px 20px;color:#e2e8f0;font-family:var(--gsa-font-mono);font-size:13px;box-shadow:0 8px 32px rgba(0,0,0,0.6);min-width:280px;';
+            toast.innerHTML = '<div style="color:' + color + ';">' + escapeHtml(msg) + '</div><div style="color:#94a3b8;font-size:11px;margin-top:4px;">ID: ' + escapeHtml(targetId) + '</div>';
+            document.body.appendChild(toast);
+            setTimeout(function () { if (toast.parentNode) toast.remove(); }, 2500);
+          }
+
+          // ====== 历史轨迹播放(查询 ais_track_huang 表) ======
+          // 调用 /api/ais/history?mmsi=xxx 获取历史轨迹并播放
+          function playShipHistory(map, mmsi, title) {
+            clearActiveTrack();
+            var playerEl = document.getElementById('gsa-track-player');
+            if (playerEl) playerEl.remove();
+            // 加载提示浮窗
+            var loadingEl = document.createElement('div');
+            loadingEl.id = 'gsa-track-player';
+            loadingEl.style.cssText = 'position:fixed;right:24px;bottom:24px;z-index:1200;background:rgba(15,23,42,0.94);border:1px solid #38bdf8;border-radius:12px;padding:14px 20px;color:#e2e8f0;font-family:var(--gsa-font-mono);font-size:13px;box-shadow:0 8px 32px rgba(0,0,0,0.6);min-width:320px;';
+            loadingEl.innerHTML = '<div style="color:#38bdf8;margin-bottom:4px;">历史轨迹加载中</div><div style="color:#94a3b8;font-size:11px;">MMSI: ' + escapeHtml(mmsi) + '</div>';
+            document.body.appendChild(loadingEl);
+
+            fetch('/api/ais/history?mmsi=' + encodeURIComponent(mmsi)).then(function (r) { return r.json(); }).then(function (res) {
+              if (!res || !res.ok || !res.data || !res.data.length) {
+                loadingEl.innerHTML = '<div style="color:#f87171;">无历史轨迹数据</div><div style="color:#94a3b8;font-size:11px;margin-top:4px;">MMSI: ' + escapeHtml(mmsi) + '</div>';
+                setTimeout(function () { if (loadingEl.parentNode) loadingEl.remove(); }, 2500);
+                return;
+              }
+              var points = res.data.map(function (r) {
+                return {
+                  lng: parseFloat(r.lon),
+                  lat: parseFloat(r.lat),
+                  sog: r.sog != null ? parseFloat(r.sog) : 0,
+                  cog: r.cog != null ? parseFloat(r.cog) : 0,
+                  heading: r.heading != null ? parseFloat(r.heading) : 0,
+                  ts: r.last_update,
+                  nav: r.nav_status
+                };
+              }).filter(function (p) { return !isNaN(p.lng) && !isNaN(p.lat); });
+              if (points.length < 2) {
+                loadingEl.innerHTML = '<div style="color:#f87171;">轨迹点不足,无法播放</div>';
+                setTimeout(function () { if (loadingEl.parentNode) loadingEl.remove(); }, 2500);
+                return;
+              }
+              loadingEl.remove();
+              startTrackPlayer(map, points, mmsi, 'ship', false);
+            }).catch(function () {
+              loadingEl.innerHTML = '<div style="color:#f87171;">加载失败</div>';
+              setTimeout(function () { if (loadingEl.parentNode) loadingEl.remove(); }, 2500);
+            });
+          }
+
+          // 启动轨迹播放器:绘制虚线全轨迹 + 实线已播放段 + 目标图标 + 播放控制 + 速度波形图
+          function startTrackPlayer(map, points, targetId, layerKey, isAircraft) {
+            var cfg = LAYER_CFG[layerKey] || LAYER_CFG.aircraft;
+            var themeColor = isAircraft ? '#38bdf8' : '#22c55e';
+            var path = points.map(function (p) { return [p.lng, p.lat]; });
+
+            // 计算每段航向(相邻点 bearing)
+            function bearingBetween(a, b) {
+              var dx = b[0] - a[0], dy = b[1] - a[1];
+              if (dx === 0 && dy === 0) return 0;
+              return (Math.atan2(dx, dy) * 180 / Math.PI + 360) % 360;
+            }
+
+            // 构建目标图标 SVG (飞机俯视图 / 船舶俯视图:尖头船体+驾驶舱)
+            // 旋转通过 CSS transform 内嵌到 SVG,确保旋转中心在图标正中
+            var iconSize = isAircraft ? 24 : 22;
+            function buildMarkerSvg(hdg) {
+              var rot = 'transform:rotate(' + hdg + 'deg);transform-origin:12px 12px;';
+              if (isAircraft) {
+                return '<svg viewBox="0 0 24 24" width="' + iconSize + '" height="' + iconSize + '" style="' + rot + 'display:block;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.5));">' +
+                  '<g fill="' + themeColor + '" stroke="#fff" stroke-width="0.5" stroke-linejoin="round">' +
+                  '<path d="M12 2 L13.5 10 L22 13 L22 14 L13.5 12 L13 19 L15 21 L15 22 L12 21 L9 22 L9 21 L11 19 L10.5 12 L2 14 L2 13 L10.5 10 Z"/>' +
+                  '</g></svg>';
+              }
+              return '<svg viewBox="0 0 24 24" width="' + iconSize + '" height="' + iconSize + '" style="' + rot + 'display:block;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.5));">' +
+                '<g fill="' + themeColor + '" stroke="#fff" stroke-width="0.6" stroke-linejoin="round">' +
+                '<path d="M12 2 L14 6 L14 17 L16 20 L16 22 L8 22 L8 20 L10 17 L10 6 Z"/>' +
+                '<rect x="10.5" y="9" width="3" height="5" rx="0.5" fill="#fff" opacity="0.7"/>' +
+                '</g></svg>';
+            }
+
+            // 1. 完整轨迹(虚线,未播放段)
             var line = new AMap.Polyline({
-              path: item.track,
-              isOutline: true,
-              outlineColor: cfg.color,
-              outlineOpacity: 0.25,
-              strokeColor: cfg.color,
-              strokeOpacity: 0.9,
+              path: path,
+              strokeColor: themeColor,
+              strokeOpacity: 0.4,
               strokeWeight: 3,
-              strokeStyle: 'solid',
+              strokeStyle: 'dashed',
               lineJoin: 'round',
-              lineCap: 'round',
-              zIndex: 60,
-              showDir: true
+              zIndex: 60
             });
             map.add(line);
 
-            // 采样轨迹点，添加可悬浮的标记
-            var total = item.track.length;
-            var sampleStep = Math.max(1, Math.floor(total / 12));
-            var pointMarkers = [];
-            for (var idx = 0; idx < total; idx += sampleStep) {
-              (function (pointIdx) {
-                var pos = item.track[pointIdx];
-                var point = buildTrackPoint(item, pointIdx, layerKey);
-                var pMarker = new AMap.Marker({
-                  position: pos,
-                  content: '<div class="gsa-track-point-dot"></div>',
-                  offset: new AMap.Pixel(-6, -6),
-                  anchor: 'center',
-                  zIndex: 70
-                });
-                pMarker.on('mouseover', function (e) {
-                  showTrackPointDetail(e.target.getPosition(), point, layerKey);
-                });
-                pMarker.on('mouseout', function () {
-                  hideTrackPointDetail();
-                });
-                pMarker.on('click', function (e) {
-                  e.stopPropagation();
-                  showTrackPointDetail(e.target.getPosition(), point, layerKey);
-                });
-                map.add(pMarker);
-                pointMarkers.push(pMarker);
-              })(idx);
+            // 2. 已播放段(实线)
+            var playedLine = new AMap.Polyline({
+              path: [path[0]],
+              strokeColor: themeColor,
+              strokeOpacity: 0.95,
+              strokeWeight: 4,
+              strokeStyle: 'solid',
+              lineJoin: 'round',
+              lineCap: 'round',
+              zIndex: 61
+            });
+            map.add(playedLine);
+
+            // 3. 目标图标(旋转内嵌在 SVG 中,用 offset 居中,不设 anchor 避免冲突)
+            var initHdg = points[0].heading || bearingBetween(path[0], path[1]);
+            var shipMarker = new AMap.Marker({
+              position: path[0],
+              content: buildMarkerSvg(initHdg),
+              offset: new AMap.Pixel(-iconSize / 2, -iconSize / 2),
+              zIndex: 80
+            });
+            map.add(shipMarker);
+
+            // 4. 自适应视野
+            map.setFitView([line]);
+
+            // 5. 速度数据(采样最多 200 点用于波形图)
+            var speedData = points.map(function (p) { return p.speed || 0; });
+            var waveSamples = speedData.length > 200 ? resampleSpeedArray(speedData, 200) : speedData.slice();
+            var maxSpeed = Math.max.apply(null, waveSamples.concat([1]));
+
+            // 6. 播放器 UI
+            var playerEl = document.createElement('div');
+            playerEl.id = 'gsa-track-player';
+            playerEl.className = 'gsa-track-player';
+            playerEl.style.cssText = 'position:fixed;right:24px;bottom:24px;z-index:1200;background:rgba(15,23,42,0.96);border:1px solid ' + themeColor + ';border-radius:14px;padding:16px 18px;color:#e2e8f0;font-family:var(--gsa-font-mono);font-size:12px;box-shadow:0 8px 32px rgba(0,0,0,0.6);min-width:420px;max-width:520px;';
+            playerEl.innerHTML =
+              '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">' +
+                '<span style="color:' + themeColor + ';font-size:13px;font-weight:600;">轨迹播放 · ' + (isAircraft ? '飞机' : '船舶') + '</span>' +
+                '<span id="gsa-tp-close" style="color:#94a3b8;cursor:pointer;font-size:18px;line-height:1;padding:0 4px;">×</span>' +
+              '</div>' +
+              '<div style="color:#cbd5e1;margin-bottom:10px;font-size:11px;">ID: ' + escapeHtml(targetId) + ' · 共 ' + points.length + ' 点</div>' +
+              // 速度波形图
+              '<div style="margin-bottom:10px;">' +
+                '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">' +
+                  '<span style="color:#94a3b8;font-size:10px;">速度波形</span>' +
+                  '<span id="gsa-tp-speed-val" style="color:' + themeColor + ';font-size:11px;font-weight:600;">0 ' + (isAircraft ? 'km/h' : 'kn') + '</span>' +
+                '</div>' +
+                '<canvas id="gsa-tp-wave" width="480" height="40" style="width:100%;height:40px;border-radius:4px;background:rgba(0,0,0,0.3);"></canvas>' +
+              '</div>' +
+              // 控制栏
+              '<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">' +
+                '<button id="gsa-tp-play" style="background:' + themeColor + ';color:#0f172a;border:none;border-radius:6px;padding:6px 16px;cursor:pointer;font-size:12px;font-weight:700;">播放</button>' +
+                '<button id="gsa-tp-reset" style="background:transparent;color:#94a3b8;border:1px solid #475569;border-radius:6px;padding:5px 10px;cursor:pointer;font-size:11px;">重置</button>' +
+                '<select id="gsa-tp-speed-sel" style="background:#1e293b;color:#e2e8f0;border:1px solid #475569;border-radius:4px;padding:4px 6px;font-size:11px;">' +
+                  '<option value="0.5">0.5x</option><option value="1" selected>1x</option><option value="2">2x</option><option value="4">4x</option>' +
+                '</select>' +
+                '<span id="gsa-tp-info" style="color:#94a3b8;font-size:11px;flex:1;text-align:right;">-</span>' +
+              '</div>' +
+              // 进度条
+              '<input id="gsa-tp-progress" type="range" min="0" max="' + (points.length - 1) + '" value="0" step="1" ' +
+                'style="width:100%;accent-color:' + themeColor + ';cursor:pointer;" />';
+            document.body.appendChild(playerEl);
+
+            // 7. 绘制速度波形图
+            var waveCanvas = document.getElementById('gsa-tp-wave');
+            var waveCtx = waveCanvas ? waveCanvas.getContext('2d') : null;
+            var W = waveCanvas ? waveCanvas.width : 480;
+            var H = waveCanvas ? waveCanvas.height : 40;
+
+            function drawWave(progressIdx) {
+              if (!waveCtx) return;
+              waveCtx.clearRect(0, 0, W, H);
+              var n = waveSamples.length;
+              if (n === 0) return;
+              var barW = W / n;
+              var playedX = (progressIdx / (points.length - 1)) * W;
+              for (var i = 0; i < n; i++) {
+                var h = (waveSamples[i] / maxSpeed) * (H - 4);
+                var x = i * barW;
+                var y = H - h - 2;
+                waveCtx.fillStyle = (x <= playedX) ? themeColor : 'rgba(100,116,139,0.4)';
+                waveCtx.fillRect(x, y, Math.max(1, barW - 0.5), h);
+              }
+              // 播放位置指示线
+              waveCtx.strokeStyle = '#fff';
+              waveCtx.lineWidth = 1.5;
+              waveCtx.beginPath();
+              waveCtx.moveTo(playedX, 0);
+              waveCtx.lineTo(playedX, H);
+              waveCtx.stroke();
             }
 
-            // 确保最后一个轨迹点（当前位置）也被采样
-            if ((total - 1) % sampleStep !== 0 && total > 1) {
-              (function () {
-                var pointIdx = total - 1;
-                var pos = item.track[pointIdx];
-                var point = buildTrackPoint(item, pointIdx, layerKey);
-                var pMarker = new AMap.Marker({
-                  position: pos,
-                  content: '<div class="gsa-track-point-dot gsa-track-point-dot-current"></div>',
-                  offset: new AMap.Pixel(-6, -6),
-                  anchor: 'center',
-                  zIndex: 71
-                });
-                pMarker.on('mouseover', function (e) {
-                  showTrackPointDetail(e.target.getPosition(), point, layerKey);
-                });
-                pMarker.on('mouseout', function () {
-                  hideTrackPointDetail();
-                });
-                pMarker.on('click', function (e) {
-                  e.stopPropagation();
-                  showTrackPointDetail(e.target.getPosition(), point, layerKey);
-                });
-                map.add(pMarker);
-                pointMarkers.push(pMarker);
-              })();
+            // 8. 播放状态
+            var idx = 0;
+            var playing = false;
+            var speed = 1;
+            var baseInterval = 500;
+
+            function updateView(i) {
+              idx = Math.max(0, Math.min(points.length - 1, i));
+              var p = points[idx];
+              var pos = [p.lng, p.lat];
+              // 已播放段
+              playedLine.setPath(path.slice(0, idx + 1));
+              // 目标位置和航向
+              shipMarker.setPosition(pos);
+              var hdg;
+              if (idx < points.length - 1) {
+                hdg = bearingBetween(path[idx], path[idx + 1]);
+              } else if (idx > 0) {
+                hdg = bearingBetween(path[idx - 1], path[idx]);
+              } else {
+                hdg = p.heading || 0;
+              }
+              shipMarker.setContent(buildMarkerSvg(hdg));
+              // 更新 UI
+              var progEl = document.getElementById('gsa-tp-progress');
+              var infoEl = document.getElementById('gsa-tp-info');
+              var spdEl = document.getElementById('gsa-tp-speed-val');
+              if (progEl) progEl.value = idx;
+              var unit = isAircraft ? 'km/h' : 'kn';
+              if (infoEl) infoEl.textContent = '时间 ' + (p.time || '-') + ' | 航向 ' + Math.round(hdg) + '°';
+              if (spdEl) spdEl.textContent = (p.speed || 0).toFixed(1) + ' ' + unit;
+              // 更新波形图
+              drawWave(idx);
             }
 
+            function tick() {
+              if (!playing) return;
+              if (idx >= points.length - 1) {
+                playing = false;
+                var playBtn = document.getElementById('gsa-tp-play');
+                if (playBtn) playBtn.textContent = '重播';
+                return;
+              }
+              updateView(idx + 1);
+            }
+
+            function startTimer() {
+              if (tacState.playerTimer) clearInterval(tacState.playerTimer);
+              tacState.playerTimer = setInterval(tick, baseInterval / speed);
+            }
+
+            // 9. 绑定事件
+            var playBtn = document.getElementById('gsa-tp-play');
+            if (playBtn) {
+              playBtn.onclick = function () {
+                if (idx >= points.length - 1) { updateView(0); }
+                playing = !playing;
+                playBtn.textContent = playing ? '暂停' : '播放';
+                if (playing) startTimer();
+                else if (tacState.playerTimer) { clearInterval(tacState.playerTimer); tacState.playerTimer = null; }
+              };
+            }
+            var resetBtn = document.getElementById('gsa-tp-reset');
+            if (resetBtn) {
+              resetBtn.onclick = function () {
+                playing = false;
+                if (tacState.playerTimer) { clearInterval(tacState.playerTimer); tacState.playerTimer = null; }
+                if (playBtn) playBtn.textContent = '播放';
+                updateView(0);
+              };
+            }
+            var speedSel = document.getElementById('gsa-tp-speed-sel');
+            if (speedSel) {
+              speedSel.onchange = function () {
+                speed = parseFloat(speedSel.value) || 1;
+                if (playing) startTimer();
+              };
+            }
+            var progEl = document.getElementById('gsa-tp-progress');
+            if (progEl) {
+              progEl.oninput = function () {
+                playing = false;
+                if (playBtn) playBtn.textContent = '播放';
+                if (tacState.playerTimer) { clearInterval(tacState.playerTimer); tacState.playerTimer = null; }
+                updateView(parseInt(progEl.value, 10));
+              };
+            }
+            var closeBtn = document.getElementById('gsa-tp-close');
+            if (closeBtn) {
+              closeBtn.onclick = function () { clearActiveTrack(); };
+            }
+
+            // 10. 记录到 activeTrack(便于 clearActiveTrack 统一清理)
             tacState.activeTrack = {
               layerKey: layerKey,
-              itemId: item.id,
+              itemId: targetId,
               line: line,
-              pointMarkers: pointMarkers
+              playedLine: playedLine,
+              shipMarker: shipMarker,
+              pointMarkers: []
             };
+
+            // 11. 初始化绘制并自动播放
+            updateView(0);
+            drawWave(0);
+            playing = true;
+            if (playBtn) playBtn.textContent = '暂停';
+            startTimer();
+          }
+
+          // 速度数组等距采样(用于波形图,最多200点)
+          function resampleSpeedArray(arr, samples) {
+            if (!arr || arr.length === 0) return [];
+            if (arr.length <= samples) return arr.slice();
+            var step = arr.length / samples;
+            var out = [];
+            for (var i = 0; i < samples; i++) {
+              out.push(arr[Math.floor(i * step)]);
+            }
+            return out;
           }
 
           // 根据轨迹点索引构建详情数据（时间、速度、航向）
@@ -3414,14 +4116,24 @@
                 closeWhenClickMap: false
               });
             }
+            var isAircraft = (layerKey === 'aircraft');
+            var unit = isAircraft ? 'km/h' : 'kn';
+            var title = isAircraft ? ('轨迹点 ' + (point.callsign || '')) : ('轨迹点 ' + (point.ship_name || ''));
             var content = '<div class="gsa-track-point-detail">' +
-              '<div class="gsa-track-point-title">轨迹点 #' + point.idx + '</div>' +
-              '<div class="gsa-track-point-row"><span class="gsa-track-point-key">时间</span><span class="gsa-track-point-val">' + formatTrackTime(point.time) + '</span></div>' +
-              '<div class="gsa-track-point-row"><span class="gsa-track-point-key">经度</span><span class="gsa-track-point-val">' + point.pos[0].toFixed(4) + '°</span></div>' +
-              '<div class="gsa-track-point-row"><span class="gsa-track-point-key">纬度</span><span class="gsa-track-point-val">' + point.pos[1].toFixed(4) + '°</span></div>' +
-              '<div class="gsa-track-point-row"><span class="gsa-track-point-key">速度</span><span class="gsa-track-point-val">' + point.speed.toFixed(1) + ' ' + point.unit + '</span></div>' +
-              '<div class="gsa-track-point-row"><span class="gsa-track-point-key">航向</span><span class="gsa-track-point-val">' + point.course.toFixed(0) + '°</span></div>' +
-              '</div>';
+              '<div class="gsa-track-point-title">' + escapeHtml(title) + '</div>' +
+              '<div class="gsa-track-point-row"><span class="gsa-track-point-key">时间</span><span class="gsa-track-point-val">' + escapeHtml(point.time || '-') + '</span></div>' +
+              '<div class="gsa-track-point-row"><span class="gsa-track-point-key">经度</span><span class="gsa-track-point-val">' + (point.pos[0] != null ? point.pos[0].toFixed(4) + '°' : '-') + '</span></div>' +
+              '<div class="gsa-track-point-row"><span class="gsa-track-point-key">纬度</span><span class="gsa-track-point-val">' + (point.pos[1] != null ? point.pos[1].toFixed(4) + '°' : '-') + '</span></div>' +
+              '<div class="gsa-track-point-row"><span class="gsa-track-point-key">速度</span><span class="gsa-track-point-val">' + (point.speed != null ? point.speed.toFixed(1) + ' ' + unit : '-') + '</span></div>' +
+              '<div class="gsa-track-point-row"><span class="gsa-track-point-key">航向</span><span class="gsa-track-point-val">' + (point.course != null ? point.course.toFixed(0) + '°' : '-') + '</span></div>';
+            if (isAircraft) {
+              if (point.altitude != null) content += '<div class="gsa-track-point-row"><span class="gsa-track-point-key">高度</span><span class="gsa-track-point-val">' + point.altitude + ' ft</span></div>';
+              if (point.aircraft_type) content += '<div class="gsa-track-point-row"><span class="gsa-track-point-key">机型</span><span class="gsa-track-point-val">' + escapeHtml(point.aircraft_type) + '</span></div>';
+            } else {
+              if (point.nav_status) content += '<div class="gsa-track-point-row"><span class="gsa-track-point-key">导航状态</span><span class="gsa-track-point-val">' + escapeHtml(point.nav_status) + '</span></div>';
+              if (point.destination) content += '<div class="gsa-track-point-row"><span class="gsa-track-point-key">目的港</span><span class="gsa-track-point-val">' + escapeHtml(point.destination) + '</span></div>';
+            }
+            content += '</div>';
             trackInfoWindow.setContent(content);
             trackInfoWindow.open(map, position);
           }
@@ -3477,8 +4189,8 @@
             var panel = document.getElementById('gsa-target-detail-panel');
             if (!panel) return;
             var cfg = LAYER_CFG[type] || { color: '#94a3b8', icon: 'circle' };
-            var typeLabel = { ship: '船舶', aircraft: '飞机', satellite: '卫星', port: '港口' }[type] || type;
-            var typeIcons = { ship: '🚢', aircraft: '✈️', satellite: '🛰️', port: '⚓' };
+            var typeLabel = { ship: '船舶', aircraft: '飞机', satellite: '卫星', port: '港口', airport: '机场' }[type] || type;
+            var typeIcons = { ship: '🚢', aircraft: '✈️', satellite: '🛰️', port: '⚓', airport: '🛫' };
             var typeIcon = typeIcons[type] || '📡';
             var typeImages = { ship: '/assets/ship.jpg', aircraft: '/assets/aircraft.jpg', satellite: '/assets/satellite.jpg' };
             var typeImg = typeImages[type] || null;
@@ -3488,6 +4200,9 @@
             var displayName = type === 'satellite'
               ? 'Starlink V1.0-L6-' + (item.id ? item.id.slice(-2) : '01')
               : item.name;
+            var detailTitle = type === 'satellite'
+              ? 'Starlink ' + (item.id ? item.id.slice(-2) : '01')
+              : (item.name || item.id);
             html += '<div class="gsa-detail-header">';
             html += '  <div class="gsa-detail-title-row">';
             if (typeImg) {
@@ -3497,7 +4212,13 @@
             }
             html += '    <h2 class="gsa-detail-title">' + escapeHtml(displayName) + '</h2>';
             html += '    <span class="gsa-detail-badge">' + typeLabel + '</span>';
-            html += '    <button class="gsa-detail-fav-btn" title="收藏">☆</button>';
+            // 仅飞机/船舶支持关注功能
+            var canWatch = (type === 'aircraft' || type === 'ship');
+            if (canWatch) {
+              html += '    <button class="gsa-detail-fav-btn" id="btn-watch-fav" data-type="' + escapeHtml(type) + '" data-id="' + escapeHtml(item.id) + '" data-name="' + escapeHtml(detailTitle) + '" data-watched="0" title="关注/取消关注">☆</button>';
+            } else {
+              html += '    <button class="gsa-detail-fav-btn" title="收藏" disabled style="opacity:0.35;cursor:default;">☆</button>';
+            }
             html += '  </div>';
             html += '  <div class="gsa-detail-subtitle">';
             if (type === 'satellite') {
@@ -3515,6 +4236,12 @@
               html += '    <span class="gsa-detail-sep">|</span>';
               html += '    <span>类型: ' + item.shipType + '</span>';
             } else if (type === 'port') {
+              html += '    <span>代码: ' + item.code + '</span>';
+              html += '    <span class="gsa-detail-sep">|</span>';
+              html += '    <span>国家: ' + item.country + '</span>';
+              html += '    <span class="gsa-detail-sep">|</span>';
+              html += '    <span>区域: ' + item.region + '</span>';
+            } else if (type === 'airport') {
               html += '    <span>代码: ' + item.code + '</span>';
               html += '    <span class="gsa-detail-sep">|</span>';
               html += '    <span>国家: ' + item.country + '</span>';
@@ -3556,6 +4283,12 @@
               html += '    <div><span class="gsa-detail-stat-val">' + item.capacity + '</span></div>';
               html += '    <div><span class="gsa-detail-stat-val">' + item.waterDepth + '</span></div>';
               html += '    <div><span class="gsa-detail-stat-val">' + item.berths + '泊位</span></div>';
+              html += '  </div>';
+            } else if (type === 'airport') {
+              html += '  <div class="gsa-detail-media-stats">';
+              html += '    <div><span class="gsa-detail-stat-val">' + item.runways + '跑道</span></div>';
+              html += '    <div><span class="gsa-detail-stat-val">' + item.elevation + 'm</span></div>';
+              html += '    <div><span class="gsa-detail-stat-val">' + item.annualPassengers + '</span></div>';
               html += '  </div>';
             }
             html += '</div>';
@@ -3611,6 +4344,16 @@
                 ['起重设备', item.cranes + '台'],
                 ['年吞吐量', item.annualThroughput]
               ]);
+            } else if (type === 'airport') {
+              html += buildDetailSection('机场信息', [
+                ['机场代码', item.code],
+                ['所属国家', item.country],
+                ['所在区域', item.region],
+                ['运营状态', item.status],
+                ['跑道数量', item.runways + '条'],
+                ['海拔高度', item.elevation + 'm'],
+                ['年旅客量', item.annualPassengers]
+              ]);
             }
 
             // Section 2 - Attributes
@@ -3663,13 +4406,28 @@
                 ['港口类型', item.type],
                 ['地理位置', item.pos[0].toFixed(4) + ', ' + item.pos[1].toFixed(4)]
               ]);
+            } else if (type === 'airport') {
+              html += buildDetailSection('属性', [
+                ['机场名称', item.name],
+                ['运营方', item.operator],
+                ['建立年份', item.establishedYear],
+                ['机场类型', item.type],
+                ['地理位置', item.pos[0].toFixed(4) + ', ' + item.pos[1].toFixed(4)]
+              ]);
             }
 
             // "更多数据" link — 在系统 tab 页栏中打开
-            var detailTitle = type === 'satellite'
-              ? 'Starlink ' + (item.id ? item.id.slice(-2) : '01')
-              : (item.name || item.id);
-            html += '<a class="gsa-detail-more" data-type="' + escapeHtml(type) + '" data-id="' + escapeHtml(item.id) + '" data-title="' + escapeHtml(detailTitle) + '" href="javascript:void(0)">查看更多数据</a>';
+            html += '<div style="display:flex;gap:10px;align-items:center;margin-top:10px;">';
+            // 仅飞机/船舶支持加入编队
+            if (canWatch) {
+              html += '<a class="gsa-detail-join-form" data-type="' + escapeHtml(type) + '" data-id="' + escapeHtml(item.id) + '" data-name="' + escapeHtml(detailTitle) + '" href="javascript:void(0)" style="flex:0 0 auto;">' +
+                '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/><circle cx="17" cy="7" r="3"/><path d="M21 21v-2a3 3 0 0 0-3-3"/></svg>' +
+                '加入编队</a>';
+            }
+            html += '<a class="gsa-detail-more" data-type="' + escapeHtml(type) + '" data-id="' + escapeHtml(item.id) + '" data-title="' + escapeHtml(detailTitle) + '" href="javascript:void(0)" style="flex:1;">' +
+              '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>' +
+              '查看更多数据</a>';
+            html += '</div>';
             html += '</div>';
 
             panel.innerHTML = html;
@@ -3688,7 +4446,800 @@
                 openTargetDetailTab(t, i, ttl);
               });
             }
+
+            // 绑定顶部星标关注按钮
+            var favBtn = panel.querySelector('#btn-watch-fav');
+            if (favBtn) {
+              var wType = favBtn.getAttribute('data-type');
+              var wId = favBtn.getAttribute('data-id');
+              var wName = favBtn.getAttribute('data-name');
+              // 检查当前关注状态,更新星标样式
+              checkWatchStatus(wType, wId, favBtn);
+              favBtn.addEventListener('click', function () {
+                toggleWatch(wType, wId, wName, favBtn);
+              });
+            }
+
+            // 绑定"加入编队"按钮 → 弹出编队选择 / 新建编队
+            var joinFormBtn = panel.querySelector('.gsa-detail-join-form');
+            if (joinFormBtn) {
+              var jType = joinFormBtn.getAttribute('data-type');
+              var jId = joinFormBtn.getAttribute('data-id');
+              joinFormBtn.addEventListener('click', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                showJoinFormationDialog(jType, jId);
+              });
+            }
           }
+
+          // ====== 目标关注功能(调用后端 /api/watch/* 接口) ======
+          // 高亮/取消高亮地图上的目标标记
+          var highlightedMarker = null;
+          function highlightTargetMarker(layerKey, itemId) {
+            // 先清除之前的高亮
+            if (highlightedMarker) {
+              var prevContent = highlightedMarker.getContent();
+              if (prevContent) {
+                prevContent.classList.remove('gsa-tac-marker-highlight');
+              }
+              highlightedMarker.setzIndex(highlightedMarker._origZ || 110);
+              highlightedMarker = null;
+            }
+            // 查找并高亮目标
+            var markers = tacState.layers[layerKey] ? tacState.layers[layerKey].markers : [];
+            for (var i = 0; i < markers.length; i++) {
+              if (markers[i]._itemId === String(itemId)) {
+                var content = markers[i].getContent();
+                if (content) {
+                  content.classList.add('gsa-tac-marker-highlight');
+                }
+                markers[i]._origZ = markers[i].getzIndex();
+                markers[i].setzIndex(500);
+                highlightedMarker = markers[i];
+                break;
+              }
+            }
+          }
+          // 加载关注列表 → 渲染到 panel-watch 面板
+          function loadWatchList() {
+            var listEl = document.getElementById('gsa-watch-list');
+            if (!listEl) return;
+            listEl.innerHTML = '<div style="padding:24px;text-align:center;color:#94a3b8;font-size:12px;">加载中...</div>';
+            fetch('/api/watch/list').then(function (r) { return r.json(); }).then(function (res) {
+              if (!res || !res.ok) { listEl.innerHTML = '<div style="padding:24px;text-align:center;color:#f87171;font-size:12px;">加载失败</div>'; return; }
+              if (!res.data || !res.data.length) {
+                listEl.innerHTML = '<div style="padding:24px;text-align:center;color:#94a3b8;font-size:12px;">暂无关注目标</div>';
+                return;
+              }
+              var html = '';
+              res.data.forEach(function (item) {
+                var isShip = (item.target_type === 'ship');
+                var iconColor = isShip ? '#22c55e' : '#38bdf8';
+                var iconSvg = isShip
+                  ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="' + iconColor + '" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 15h18M5 15l2-8h10l2 8M5 15v3h14v-3"/></svg>'
+                  : '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="' + iconColor + '" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5-.3.4-.2.9.1 1.2L9 12l-4 4-3-.5L1 17l2 1 1 2 1.5-1L5 16l4-4 4.1 5.2c.3.3.8.4 1.2.1.4-.2.6-.6.5-1.1z"/></svg>';
+                html += '<div class="gsa-watch-item" data-type="' + escapeHtml(item.target_type) + '" data-id="' + escapeHtml(item.target_id) + '" style="cursor:pointer;">' +
+                  iconSvg +
+                  '<span class="gsa-watch-code gsa-mono">' + escapeHtml(item.target_id) + '</span>' +
+                  '<span class="gsa-watch-type">' + (isShip ? '船舶' : '飞机') + '</span>' +
+                  '<span class="gsa-watch-unwatch" data-type="' + escapeHtml(item.target_type) + '" data-id="' + escapeHtml(item.target_id) + '" style="color:#f87171;cursor:pointer;font-size:14px;margin-left:auto;padding:0 4px;" title="取消关注">×</span>' +
+                  '</div>';
+              });
+              listEl.innerHTML = html;
+              // 绑定取消关注按钮
+              listEl.querySelectorAll('.gsa-watch-unwatch').forEach(function (btn) {
+                btn.addEventListener('click', function (e) {
+                  e.stopPropagation();
+                  var t = btn.getAttribute('data-type');
+                  var i = btn.getAttribute('data-id');
+                  fetch('/api/watch/remove', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ target_type: t, target_id: i }) })
+                    .then(function (r) { return r.json(); })
+                    .then(function () { loadWatchList(); })
+                    .catch(function () {});
+                });
+              });
+              // 点击关注项 → 在地图上定位并高亮
+              listEl.querySelectorAll('.gsa-watch-item').forEach(function (row) {
+                row.addEventListener('click', function () {
+                  var t = row.getAttribute('data-type');
+                  var i = row.getAttribute('data-id');
+                  var key = (t === 'ship') ? 'ship' : 'aircraft';
+                  var arr = tacState.data[key] || [];
+                  var found = null;
+                  for (var k = 0; k < arr.length; k++) {
+                    if (arr[k] && String(arr[k].id) === String(i)) { found = arr[k]; break; }
+                  }
+                  if (found && globalMapState.map) {
+                    // 确保该图层可见
+                    if (!tacState.layers[key].visible) {
+                      tacState.layers[key].visible = true;
+                      renderLayer(globalMapState.map, key);
+                    }
+                    // 放大到足够级别(飞机15级,船舶14级),确保目标不拥挤
+                    var zoomLevel = (key === 'aircraft') ? 15 : 14;
+                    globalMapState.map.setZoomAndCenter(zoomLevel, found.pos, false, 800);
+                    // 高亮标记
+                    highlightTargetMarker(key, i);
+                    showTargetDetail(t, found);
+                  }
+                });
+              });
+            }).catch(function () {
+              listEl.innerHTML = '<div style="padding:24px;text-align:center;color:#f87171;font-size:12px;">加载失败</div>';
+            });
+          }
+
+          // 切换关注状态(关注/取消关注)
+          function toggleWatch(type, id, name, btn) {
+            var isWatched = (btn.getAttribute('data-watched') === '1');
+            var url = isWatched ? '/api/watch/remove' : '/api/watch/add';
+            var body = { target_type: type, target_id: id, target_name: name };
+            fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+              .then(function (r) { return r.json(); })
+              .then(function (res) {
+                if (res && res.ok) {
+                  updateWatchBtn(btn, !isWatched);
+                  loadWatchList(); // 刷新关注列表
+                }
+              }).catch(function () {});
+          }
+
+          // 检查目标关注状态 → 更新按钮
+          function checkWatchStatus(type, id, btn) {
+            if (!btn) return;
+            fetch('/api/watch/check?target_type=' + encodeURIComponent(type) + '&target_id=' + encodeURIComponent(id))
+              .then(function (r) { return r.json(); })
+              .then(function (res) {
+                if (res && res.ok) {
+                  updateWatchBtn(btn, res.watched);
+                }
+              }).catch(function () {});
+          }
+
+          // 更新关注按钮样式(星标图标)
+          function updateWatchBtn(btn, watched) {
+            if (!btn) return;
+            btn.setAttribute('data-watched', watched ? '1' : '0');
+            if (watched) {
+              btn.textContent = '★';
+              btn.style.color = '#f59e0b';
+              btn.title = '已关注,点击取消';
+            } else {
+              btn.textContent = '☆';
+              btn.style.color = '';
+              btn.title = '点击关注';
+            }
+          }
+
+          // ====== 组织编队功能(移植自 DW 态势模块) ======
+          // 编队数据结构: {id, name, targetType(aircraft/ship), members:[targetId,...]}
+          // 样例目标数据(迁移自 DW 态势模块,含原始坐标,用于在地图上原样展示)
+          var sampleTargets = {
+            '412345678': {id:'412345678', name:'海巡31', type:'ship', aff:'我方', lng:117.52, lat:15.11, heading:45, speed:18, flag:'中国', shipType:'公务船'},
+            '412456789': {id:'412456789', name:'中国渔政310', type:'ship', aff:'我方', lng:117.48, lat:15.08, heading:90, speed:15, flag:'中国', shipType:'渔政船'},
+            '548912345': {id:'548912345', name:'BRP Gregorio del Pilar', type:'ship', aff:'外方', lng:117.60, lat:15.05, heading:285, speed:12, flag:'菲律宾', shipType:'巡逻舰'},
+            '548923456': {id:'548923456', name:'BRP Teresa Magbanua', type:'ship', aff:'外方', lng:117.65, lat:15.12, heading:200, speed:8, flag:'菲律宾', shipType:'海警船'},
+            '780456':    {id:'780456', name:'Z-9EC', type:'aircraft', aff:'我方', lng:117.50, lat:15.05, heading:135, speed:220, acType:'Z-9EC', alt:800},
+            '780123':    {id:'780123', name:'PA-200 Orion', type:'aircraft', aff:'外方', lng:117.62, lat:14.85, heading:315, speed:380, acType:'P-3C Orion', alt:3500}
+          };
+          // 编队样例(迁移自 DW 态势模块)
+          var formations = [
+            {id:'F1', name:'我方海上编队A', targetType:'ship', aff:'我方', members:['412345678','412456789','780456']},
+            {id:'F2', name:'外方海上编队B', targetType:'ship', aff:'外方', members:['548912345','548923456','780123']}
+          ];
+          var selectedFormationId = null;
+          var formationOverlays = {}; // 编队包围框 {formationId: AMap.Polygon}
+          var formationSampleMarkers = {}; // 样例目标临时marker {targetId: AMap.Marker}
+
+          // 按目标类型配色
+          var FORMATION_COLOR = { aircraft: '#38bdf8', ship: '#22c55e' };
+          // 按归属配色(用于样例目标 marker)
+          var AFF_COLOR_MAP = { '我方': '#22c55e', '外方': '#ef4444', '中立': '#eab308', '未知': '#94a3b8' };
+
+          // "加入编队"弹窗 → 自定义美化弹窗(选择已有编队或新建编队)
+          function showJoinFormationDialog(targetType, targetId) {
+            try {
+            // 过滤同类型的编队
+            var sameTypeFormations = formations.filter(function (f) { return f.targetType === targetType; });
+            var typeLabel = targetType === 'ship' ? '船舶' : '飞机';
+            var targetItem = sampleTargets[targetId] || findTargetById(targetId, targetType);
+            var targetName = targetItem ? (targetItem.name || targetId) : targetId;
+
+            // 创建遮罩层(全部内联样式,避免 CSS 类冲突)
+            var overlay = document.createElement('div');
+            overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(8,14,24,0.7);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);z-index:99999;display:flex;align-items:center;justify-content:center;animation:gsaModalFadeIn .18s ease-out;';
+
+            // 弹窗主体
+            var box = document.createElement('div');
+            box.style.cssText = 'width:420px;max-width:calc(100vw-40px);max-height:calc(100vh-60px);background:linear-gradient(180deg,#1e2d42 0%,#182233 100%);border:1px solid rgba(56,189,248,0.25);border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,0.6),0 0 0 1px rgba(56,189,248,0.08) inset;overflow:hidden;display:flex;flex-direction:column;animation:gsaModalSlideUp .22s ease-out;';
+
+            // 头部
+            var header = document.createElement('div');
+            header.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid rgba(255,255,255,0.06);background:rgba(56,189,248,0.04);';
+            header.innerHTML =
+              '<div style="display:flex;align-items:center;gap:8px;font-size:15px;font-weight:600;color:#e2e8f0;letter-spacing:.3px;">' +
+                '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/><circle cx="17" cy="7" r="3"/><path d="M21 21v-2a3 3 0 0 0-3-3"/></svg>' +
+                '加入编队' +
+              '</div>' +
+              '<div style="width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:6px;color:#94a3b8;font-size:20px;line-height:1;cursor:pointer;transition:all .15s;" class="gsa-modal-close" title="关闭">×</div>';
+            box.appendChild(header);
+
+            // 正文
+            var body = document.createElement('div');
+            body.style.cssText = 'padding:16px 20px;overflow-y:auto;flex:1;';
+
+            // 目标信息
+            var targetInfo = document.createElement('div');
+            targetInfo.style.cssText = 'display:flex;align-items:center;gap:8px;padding:10px 12px;background:rgba(56,189,248,0.08);border:1px solid rgba(56,189,248,0.18);border-radius:8px;margin-bottom:14px;';
+            targetInfo.innerHTML =
+              '<span style="font-size:11px;font-weight:600;color:#38bdf8;text-transform:uppercase;letter-spacing:.5px;">目标</span>' +
+              '<span style="flex:1;font-size:13px;font-weight:600;color:#e2e8f0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + escapeHtml(targetName) + '</span>' +
+              '<span style="font-size:11px;padding:2px 8px;background:rgba(56,189,248,0.15);color:#38bdf8;border-radius:4px;font-weight:500;">' + typeLabel + '</span>';
+            body.appendChild(targetInfo);
+
+            // 编队列表标题
+            var sectionLabel = document.createElement('div');
+            sectionLabel.style.cssText = 'font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;';
+            sectionLabel.textContent = '选择编队';
+            body.appendChild(sectionLabel);
+
+            // 编队列表
+            var listEl = document.createElement('div');
+            listEl.id = 'gsa-modal-form-list';
+            listEl.style.cssText = 'display:flex;flex-direction:column;gap:6px;';
+            body.appendChild(listEl);
+
+            box.appendChild(body);
+
+            // 底部
+            var footer = document.createElement('div');
+            footer.style.cssText = 'display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 20px;border-top:1px solid rgba(255,255,255,0.06);background:rgba(0,0,0,0.15);';
+            footer.innerHTML =
+              '<button class="gsa-modal-btn-ghost" style="height:34px;padding:0 18px;border-radius:8px;font-size:12px;font-weight:600;border:none;cursor:pointer;transition:all .15s;font-family:inherit;background:transparent;color:#94a3b8;border:1px solid rgba(255,255,255,0.12);">+ 新建编队</button>' +
+              '<button class="gsa-modal-btn-primary" style="height:34px;padding:0 18px;border-radius:8px;font-size:12px;font-weight:600;border:none;cursor:pointer;font-family:inherit;background:linear-gradient(180deg,#38bdf8,#0ea5e9);color:#0b1220;box-shadow:0 2px 8px rgba(56,189,248,0.35);">请选择编队</button>';
+            box.appendChild(footer);
+
+            overlay.appendChild(box);
+            document.body.appendChild(overlay);
+
+            // 绑定关闭
+            var closeBtn = box.querySelector('.gsa-modal-close');
+            function closeDialog() {
+              overlay.style.animation = 'gsaModalFadeOut .18s ease-in';
+              box.style.animation = 'gsaModalSlideUp .18s ease-in';
+              box.style.transform = 'scale(0.95)';
+              box.style.opacity = '0';
+              setTimeout(function () { if (overlay.parentNode) overlay.parentNode.removeChild(overlay); }, 180);
+            }
+            closeBtn.addEventListener('click', closeDialog);
+            overlay.addEventListener('click', function (e) { if (e.target === overlay) closeDialog(); });
+
+            // 渲染编队列表
+            var selectedIdx = -1;
+            var confirmBtn = footer.querySelector('.gsa-modal-btn-primary');
+            var createBtn = footer.querySelector('.gsa-modal-btn-ghost');
+
+            function renderFormList() {
+              listEl.innerHTML = '';
+              if (!sameTypeFormations.length) {
+                listEl.innerHTML = '<div style="padding:20px;text-align:center;color:#64748b;font-size:12px;background:rgba(255,255,255,0.02);border-radius:8px;border:1px dashed rgba(255,255,255,0.08);">暂无' + typeLabel + '编队,请点击下方"新建编队"</div>';
+                return;
+              }
+              sameTypeFormations.forEach(function (f, idx) {
+                var inIt = f.members.indexOf(targetId) !== -1;
+                var item = document.createElement('div');
+                var active = idx === selectedIdx;
+                item.style.cssText = 'display:flex;align-items:center;gap:10px;padding:10px 12px;background:' + (active ? 'rgba(56,189,248,0.14)' : 'rgba(255,255,255,0.03)') + ';border:1px solid ' + (active ? 'rgba(56,189,248,0.5)' : 'rgba(255,255,255,0.06)') + ';border-radius:8px;cursor:pointer;transition:all .15s;';
+                item.innerHTML =
+                  '<span style="display:flex;align-items:center;justify-content:center;color:' + (active ? '#38bdf8' : '#475569') + ';flex-shrink:0;">' +
+                    (active
+                      ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6" fill="currentColor" stroke="none"/></svg>'
+                      : '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>') +
+                  '</span>' +
+                  '<span style="flex:1;font-size:13px;font-weight:500;color:#e2e8f0;">' + escapeHtml(f.name) + '</span>' +
+                  '<span style="font-size:11px;color:#64748b;padding:2px 8px;background:rgba(255,255,255,0.05);border-radius:10px;">' + f.members.length + ' 成员</span>' +
+                  (inIt ? '<span style="font-size:10px;font-weight:600;color:#22c55e;padding:2px 6px;background:rgba(34,197,94,0.15);border-radius:4px;">已加入</span>' : '');
+                item.addEventListener('click', function () {
+                  selectedIdx = idx;
+                  renderFormList();
+                  updateConfirmState();
+                });
+                // hover
+                item.addEventListener('mouseenter', function () {
+                  if (idx !== selectedIdx) {
+                    item.style.background = 'rgba(56,189,248,0.08)';
+                    item.style.borderColor = 'rgba(56,189,248,0.2)';
+                  }
+                });
+                item.addEventListener('mouseleave', function () {
+                  if (idx !== selectedIdx) {
+                    item.style.background = 'rgba(255,255,255,0.03)';
+                    item.style.borderColor = 'rgba(255,255,255,0.06)';
+                  }
+                });
+                listEl.appendChild(item);
+              });
+            }
+
+            function updateConfirmState() {
+              if (selectedIdx >= 0 && selectedIdx < sameTypeFormations.length) {
+                var f = sameTypeFormations[selectedIdx];
+                var inIt = f.members.indexOf(targetId) !== -1;
+                confirmBtn.textContent = inIt ? '已加入 · 切换' : '确认加入';
+                confirmBtn.style.opacity = '1';
+                confirmBtn.style.pointerEvents = 'auto';
+                confirmBtn.style.background = 'linear-gradient(180deg,#38bdf8,#0ea5e9)';
+              } else {
+                confirmBtn.textContent = '请选择编队';
+                confirmBtn.style.opacity = '0.5';
+                confirmBtn.style.pointerEvents = 'none';
+                confirmBtn.style.background = 'rgba(56,189,248,0.3)';
+              }
+            }
+
+            // 确认按钮
+            confirmBtn.addEventListener('click', function () {
+              if (selectedIdx < 0) return;
+              var f = sameTypeFormations[selectedIdx];
+              var inIt = f.members.indexOf(targetId) !== -1;
+              if (!inIt) {
+                joinFormation(f.id, targetId);
+              }
+              selectedFormationId = f.id;
+              closeDialog();
+              openPanel('panel-formation');
+            });
+
+            // 新建按钮
+            createBtn.addEventListener('click', function () {
+              closeDialog();
+              createFormation(targetType, targetId);
+              openPanel('panel-formation');
+            });
+
+            renderFormList();
+            updateConfirmState();
+
+            // 重新渲染 lucide 图标
+            if (typeof lucide !== 'undefined' && lucide.createIcons) {
+              lucide.createIcons();
+            }
+            } catch (err) {
+              console.error('showJoinFormationDialog error:', err);
+              alert('加入编队出错: ' + err.message);
+            }
+          }
+
+          // 渲染编队列表到 panel-formation 面板
+          function renderFormations() {
+            var listEl = document.getElementById('gsa-formation-list');
+            if (!listEl) return;
+            if (!formations.length) {
+              listEl.innerHTML = '<div style="padding:24px;text-align:center;color:#94a3b8;font-size:12px;">暂无编队,点击"新建"创建</div>';
+              return;
+            }
+            var html = '';
+            formations.forEach(function (f) {
+              var isSelected = (f.id === selectedFormationId);
+              // 编队配色:优先按归属(样例编队),否则按目标类型
+              var formColor = (f.aff && AFF_COLOR_MAP[f.aff]) ? AFF_COLOR_MAP[f.aff] : (FORMATION_COLOR[f.targetType] || '#94a3b8');
+              var typeLabel = f.targetType === 'ship' ? '船舶' : '飞机';
+              html += '<div class="gsa-formation-card' + (isSelected ? ' gsa-formation-card-selected' : '') + '" data-id="' + escapeHtml(f.id) + '">';
+              html += '  <div class="gsa-formation-head">';
+              html += '    <span class="gsa-formation-fcolor" style="background:' + formColor + '"></span>';
+              html += '    <span class="gsa-formation-name">' + escapeHtml(f.name) + '</span>';
+              html += '    <span class="gsa-formation-count">' + (f.members ? f.members.length : 0) + ' 单元</span>';
+              html += '    <i data-lucide="chevron-right" class="gsa-icon-12 gsa-formation-chev"></i>';
+              html += '  </div>';
+              html += '  <div class="gsa-formation-members">';
+              if (f.members && f.members.length) {
+                f.members.forEach(function (mid) {
+                  // 从样例数据或地图数据获取成员信息
+                  var memberItem = sampleTargets[mid] || findTargetById(mid, f.targetType);
+                  var memberName = memberItem ? (memberItem.name || mid) : mid;
+                  var memberType = memberItem ? (memberItem.type || f.targetType) : f.targetType;
+                  var memberAff = memberItem ? (memberItem.aff || '') : '';
+                  // 成员配色:按归属(如有)或按目标类型
+                  var memberColor = (memberAff && AFF_COLOR_MAP[memberAff]) ? AFF_COLOR_MAP[memberAff] : (FORMATION_COLOR[memberType] || '#94a3b8');
+                  var memberTypeLabel = memberType === 'ship' ? '船舶' : '飞机';
+                  html += '<div class="gsa-formation-member" data-type="' + escapeHtml(memberType) + '" data-id="' + escapeHtml(mid) + '">';
+                  html += '  <span class="gsa-formation-mdot" style="background:' + memberColor + '"></span>';
+                  html += '  <span class="gsa-formation-mname">' + escapeHtml(memberName) + '</span>';
+                  html += '  <span class="gsa-formation-mtype" style="color:#64748b;font-size:10px;">' + memberTypeLabel + (memberAff ? '·' + memberAff : '') + '</span>';
+                  html += '  <span class="gsa-formation-mid gsa-mono">' + escapeHtml(mid) + '</span>';
+                  html += '  <span class="gsa-formation-unjoin" data-type="' + escapeHtml(memberType) + '" data-id="' + escapeHtml(mid) + '" data-fid="' + escapeHtml(f.id) + '" title="移出编队">×</span>';
+                  html += '</div>';
+                });
+              } else {
+                html += '<div style="padding:4px 0;color:#64748b;font-size:11px;">无成员</div>';
+              }
+              html += '  </div>';
+              html += '</div>';
+            });
+            listEl.innerHTML = html;
+
+            // 绑定编队卡片点击(选中/展开)
+            listEl.querySelectorAll('.gsa-formation-card').forEach(function (card) {
+              card.querySelector('.gsa-formation-head').addEventListener('click', function () {
+                selectFormation(card.getAttribute('data-id'));
+              });
+            });
+
+            // 绑定成员点击(定位地图)和移出编队按钮
+            listEl.querySelectorAll('.gsa-formation-member').forEach(function (m) {
+              m.addEventListener('click', function (e) {
+                if (e.target.classList.contains('gsa-formation-unjoin')) return;
+                var t = m.getAttribute('data-type');
+                var i = m.getAttribute('data-id');
+                locateTargetOnMap(t, i);
+              });
+            });
+            listEl.querySelectorAll('.gsa-formation-unjoin').forEach(function (btn) {
+              btn.addEventListener('click', function (e) {
+                e.stopPropagation();
+                var fid = btn.getAttribute('data-fid');
+                var mid = btn.getAttribute('data-id');
+                unjoinFormation(fid, mid);
+              });
+            });
+
+            // 重新渲染 lucide 图标
+            if (typeof lucide !== 'undefined' && lucide.createIcons) {
+              lucide.createIcons();
+            }
+          }
+
+          // 查找目标(按 id 和类型) — 优先从地图数据查找,回退到样例数据
+          function findTargetById(id, type) {
+            var key = (type === 'ship') ? 'ship' : 'aircraft';
+            var arr = tacState.data ? (tacState.data[key] || []) : [];
+            for (var k = 0; k < arr.length; k++) {
+              if (arr[k] && String(arr[k].id) === String(id)) return arr[k];
+            }
+            // 回退到样例数据
+            if (sampleTargets[id]) {
+              var s = sampleTargets[id];
+              return {
+                id: s.id,
+                name: s.name,
+                type: s.type,
+                aff: s.aff,
+                pos: [s.lng, s.lat],
+                heading: s.heading,
+                speed: s.speed,
+                _isSample: true
+              };
+            }
+            return null;
+          }
+
+          // 构建样例目标 marker 的 DOM(适配态势感知模块风格)
+          function buildSampleMarkerDom(target) {
+            var color = AFF_COLOR_MAP[target.aff] || '#94a3b8';
+            var wrap = document.createElement('div');
+            wrap.className = 'gsa-tac-marker gsa-tac-sample-marker';
+            wrap.style.color = color;
+            wrap.setAttribute('data-item-id', target.id);
+
+            // 飞机用真实飞机 SVG 图标
+            if (target.type === 'aircraft') {
+              var plane = document.createElement('div');
+              plane.className = 'gsa-tac-aircraft-icon';
+              plane.style.transform = 'translate(-50%, -50%) rotate(' + (target.heading || 0) + 'deg)';
+              plane.innerHTML =
+                '<svg viewBox="0 0 24 24" width="22" height="22" xmlns="http://www.w3.org/2000/svg">' +
+                  '<g fill="currentColor">' +
+                    '<path d="M12 2 L13 10 L13 19 L12 21 L11 19 L11 10 Z"/>' +
+                    '<path d="M11 10 L3 13 L3 14 L11 12 Z"/>' +
+                    '<path d="M13 10 L21 13 L21 14 L13 12 Z"/>' +
+                    '<path d="M11 17 L9 20 L9 21 L11 19 Z"/>' +
+                    '<path d="M13 17 L15 20 L15 21 L13 19 Z"/>' +
+                  '</g>' +
+                '</svg>';
+              wrap.appendChild(plane);
+            } else {
+              // 船舶用航向箭头
+              var arrow = document.createElement('div');
+              arrow.className = 'gsa-tac-heading';
+              arrow.style.transform = 'translate(-50%, -100%) rotate(' + (target.heading || 0) + 'deg)';
+              wrap.appendChild(arrow);
+            }
+
+            var pulse = document.createElement('div');
+            pulse.className = 'gsa-tac-pulse';
+            wrap.appendChild(pulse);
+
+            var pulse2 = document.createElement('div');
+            pulse2.className = 'gsa-tac-pulse gsa-tac-pulse-2';
+            wrap.appendChild(pulse2);
+
+            var ring = document.createElement('div');
+            ring.className = 'gsa-tac-ring';
+            wrap.appendChild(ring);
+
+            var core = document.createElement('div');
+            core.className = 'gsa-tac-core';
+            wrap.appendChild(core);
+
+            return wrap;
+          }
+
+          // 为样例目标在地图上创建/确保存在 marker
+          function ensureSampleMarker(target) {
+            if (!globalMapState.map) return null;
+            var tid = String(target.id);
+            // 已存在则直接返回
+            if (formationSampleMarkers[tid]) return formationSampleMarkers[tid];
+            // 检查是否已在地图图层中(避免重复)
+            var layerKey = (target.type === 'ship') ? 'ship' : 'aircraft';
+            if (tacState.layers[layerKey]) {
+              for (var i = 0; i < tacState.layers[layerKey].markers.length; i++) {
+                if (tacState.layers[layerKey].markers[i]._itemId === tid) {
+                  return tacState.layers[layerKey].markers[i];
+                }
+              }
+            }
+            // 创建临时样例 marker
+            var marker = new AMap.Marker({
+              position: target.pos,
+              content: buildSampleMarkerDom(target),
+              offset: new AMap.Pixel(0, 0),
+              anchor: 'center',
+              zIndex: layerKey === 'aircraft' ? 135 : 125,
+              map: globalMapState.map
+            });
+            marker._itemId = tid;
+            marker._layerKey = layerKey;
+            marker._isSample = true;
+            marker.on('click', function (e) {
+              if (e && e.stopPropagation) e.stopPropagation();
+              showSampleTargetDetail(target);
+            });
+            formationSampleMarkers[tid] = marker;
+            return marker;
+          }
+
+          // 清除所有样例目标 marker
+          function clearSampleMarkers() {
+            Object.keys(formationSampleMarkers).forEach(function (k) {
+              if (formationSampleMarkers[k]) {
+                formationSampleMarkers[k].setMap(null);
+                delete formationSampleMarkers[k];
+              }
+            });
+          }
+
+          // 显示样例目标详情(简易面板,适配态势感知风格)
+          function showSampleTargetDetail(target) {
+            var panel = document.getElementById('gsa-target-detail-panel');
+            var overlay = document.getElementById('gsa-detail-overlay');
+            if (!panel || !overlay) return;
+            var isShip = (target.type === 'ship');
+            var typeLabel = isShip ? '船舶' : '飞机';
+            var affLabel = target.aff || '未知';
+            var html = '';
+            html += '<button class="gsa-detail-close" id="gsa-detail-close" aria-label="关闭"><i data-lucide="x" class="gsa-icon-14"></i></button>';
+            html += '<div class="gsa-detail-header">';
+            html += '  <div class="gsa-detail-title-row">';
+            html += '    <span class="gsa-detail-type" style="color:' + (AFF_COLOR_MAP[affLabel] || '#94a3b8') + '">' + typeLabel + ' · ' + affLabel + '</span>';
+            html += '    <h3 class="gsa-detail-title">' + escapeHtml(target.name) + '</h3>';
+            html += '  </div>';
+            html += '</div>';
+            html += buildDetailSection('属性', [
+              ['名称', target.name],
+              ['类型', typeLabel],
+              ['归属', affLabel],
+              [isShip ? 'MMSI' : 'ICAO', target.id],
+              ['经度', target.pos[0]],
+              ['纬度', target.pos[1]],
+              ['航向', (target.heading || 0) + '°'],
+              ['速度', (target.speed != null ? target.speed + (isShip ? ' 节' : ' km/h') : '-')]
+            ]);
+            panel.innerHTML = html;
+            panel.classList.remove('gsa-detail-panel-hidden');
+            overlay.classList.add('gsa-detail-overlay-visible');
+            panel.querySelector('#gsa-detail-close').addEventListener('click', function () {
+              hideTargetDetail();
+            });
+            if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
+          }
+
+          // 选中编队 → 绘制包围框 + 自适应视图 + 原样展示样例目标
+          function selectFormation(fid) {
+            // 切换选中状态
+            selectedFormationId = (selectedFormationId === fid) ? null : fid;
+            // 清除已有包围框
+            Object.keys(formationOverlays).forEach(function (k) {
+              if (formationOverlays[k]) {
+                formationOverlays[k].setMap(null);
+                delete formationOverlays[k];
+              }
+            });
+            // 取消选中时,清除样例目标 marker
+            if (!selectedFormationId) {
+              clearSampleMarkers();
+              renderFormations();
+              return;
+            }
+            var f = formations.find(function (x) { return x.id === selectedFormationId; });
+            if (f && f.members && f.members.length && globalMapState.map) {
+              // 查找成员(含样例数据回退),并确保每个样例目标在地图上有 marker
+              var members = f.members.map(function (mid) {
+                // 先按编队 targetType 查找,找不到再按另一种类型查找(支持混合编队)
+                var target = findTargetById(mid, f.targetType);
+                if (!target) {
+                  // 回退:直接从样例数据查找(不依赖类型)
+                  if (sampleTargets[mid]) {
+                    var s = sampleTargets[mid];
+                    target = {
+                      id: s.id, name: s.name, type: s.type, aff: s.aff,
+                      pos: [s.lng, s.lat], heading: s.heading, speed: s.speed, _isSample: true
+                    };
+                  }
+                }
+                return target;
+              }).filter(Boolean);
+              if (members.length) {
+                // 为样例目标创建临时 marker(地图上原样展示)
+                members.forEach(function (m) {
+                  if (m._isSample) ensureSampleMarker(m);
+                });
+                var lats = members.map(function (m) { return m.pos[1]; });
+                var lngs = members.map(function (m) { return m.pos[0]; });
+                var minLat = Math.min.apply(null, lats) - 0.02;
+                var maxLat = Math.max.apply(null, lats) + 0.02;
+                var minLng = Math.min.apply(null, lngs) - 0.02;
+                var maxLng = Math.max.apply(null, lngs) + 0.02;
+                // 包围框颜色按归属(样例编队)或目标类型
+                var color = (f.aff && AFF_COLOR_MAP[f.aff]) ? AFF_COLOR_MAP[f.aff] : (FORMATION_COLOR[f.targetType] || '#94a3b8');
+                var bbox = new AMap.Polygon({
+                  path: [[minLng, minLat], [maxLng, minLat], [maxLng, maxLat], [minLng, maxLat]],
+                  fillColor: color,
+                  fillOpacity: 0.06,
+                  strokeColor: color,
+                  strokeWeight: 2,
+                  strokeStyle: 'dashed',
+                  strokeDasharray: [8, 4],
+                  map: globalMapState.map,
+                  zIndex: 70
+                });
+                formationOverlays[f.id] = bbox;
+                globalMapState.map.setFitView([bbox]);
+              }
+            }
+            renderFormations();
+          }
+
+          // 新建编队
+          function createFormation(targetType, firstMemberId) {
+            var typeLabel = targetType === 'ship' ? '船舶' : '飞机';
+            var name = typeLabel + '编队' + (formations.length + 1);
+            var fid = 'F' + Date.now();
+            var f = {
+              id: fid,
+              name: name,
+              targetType: targetType,
+              members: firstMemberId ? [firstMemberId] : []
+            };
+            formations.push(f);
+            selectedFormationId = fid;
+            renderFormations();
+            selectFormation(fid);
+          }
+
+          // 删除编队
+          function deleteFormation(fid) {
+            var idx = formations.findIndex(function (x) { return x.id === fid; });
+            if (idx < 0) return;
+            formations.splice(idx, 1);
+            if (selectedFormationId === fid) {
+              selectedFormationId = null;
+              // 清除包围框
+              if (formationOverlays[fid]) {
+                formationOverlays[fid].setMap(null);
+                delete formationOverlays[fid];
+              }
+            }
+            renderFormations();
+          }
+
+          // 解散编队(仅清空成员,保留空壳)
+          function disbandFormation(fid) {
+            var f = formations.find(function (x) { return x.id === fid; });
+            if (!f) return;
+            f.members = [];
+            if (formationOverlays[fid]) {
+              formationOverlays[fid].setMap(null);
+              delete formationOverlays[fid];
+            }
+            renderFormations();
+          }
+
+          // 加入编队
+          function joinFormation(fid, targetId) {
+            var f = formations.find(function (x) { return x.id === fid; });
+            if (!f) return;
+            if (!f.members.includes(targetId)) {
+              f.members.push(targetId);
+            }
+            renderFormations();
+          }
+
+          // 移出编队
+          function unjoinFormation(fid, targetId) {
+            var f = formations.find(function (x) { return x.id === fid; });
+            if (!f) return;
+            var idx = f.members.indexOf(targetId);
+            if (idx >= 0) f.members.splice(idx, 1);
+            renderFormations();
+          }
+
+          // 定位目标到地图(支持地图数据目标和样例数据目标)
+          function locateTargetOnMap(type, id) {
+            // 优先从地图数据查找
+            var key = (type === 'ship') ? 'ship' : 'aircraft';
+            var arr = tacState.data ? (tacState.data[key] || []) : [];
+            var found = null;
+            for (var k = 0; k < arr.length; k++) {
+              if (arr[k] && String(arr[k].id) === String(id)) { found = arr[k]; break; }
+            }
+            if (found && globalMapState.map) {
+              if (!tacState.layers[key].visible) {
+                tacState.layers[key].visible = true;
+                renderLayer(globalMapState.map, key);
+              }
+              var zoomLevel = (key === 'aircraft') ? 15 : 14;
+              globalMapState.map.setZoomAndCenter(zoomLevel, found.pos, false, 800);
+              highlightTargetMarker(key, id);
+              showTargetDetail(type, found);
+              return;
+            }
+            // 回退:样例数据目标
+            if (sampleTargets[id] && globalMapState.map) {
+              var s = sampleTargets[id];
+              var sampleTarget = {
+                id: s.id, name: s.name, type: s.type, aff: s.aff,
+                pos: [s.lng, s.lat], heading: s.heading, speed: s.speed, _isSample: true
+              };
+              // 确保样例 marker 存在
+              ensureSampleMarker(sampleTarget);
+              globalMapState.map.setZoomAndCenter(14, sampleTarget.pos, false, 800);
+              showSampleTargetDetail(sampleTarget);
+              return;
+            }
+          }
+
+          // 绑定编队工具栏按钮事件
+          (function bindFormationToolbar() {
+            var newBtn = document.getElementById('gsa-form-new');
+            var delBtn = document.getElementById('gsa-form-del');
+            var disBtn = document.getElementById('gsa-form-disband');
+            if (newBtn) {
+              newBtn.addEventListener('click', function () {
+                var targetType = (tacState.data && tacState.data.ship && tacState.data.ship.length) ? 'ship' : 'aircraft';
+                createFormation(targetType, null);
+              });
+            }
+            if (delBtn) {
+              delBtn.addEventListener('click', function () {
+                if (!selectedFormationId) { alert('请先选中一个编队'); return; }
+                var f = formations.find(function (x) { return x.id === selectedFormationId; });
+                if (confirm('确认删除编队"' + (f ? f.name : '') + '"?')) {
+                  deleteFormation(selectedFormationId);
+                }
+              });
+            }
+            if (disBtn) {
+              disBtn.addEventListener('click', function () {
+                if (!selectedFormationId) { alert('请先选中一个编队'); return; }
+                var f = formations.find(function (x) { return x.id === selectedFormationId; });
+                if (confirm('确认解散编队"' + (f ? f.name : '') + '"的所有成员?')) {
+                  disbandFormation(selectedFormationId);
+                }
+              });
+            }
+          })();
 
           function buildDetailSection(title, rows) {
             var html = '<div class="gsa-detail-section">';
@@ -3705,8 +5256,9 @@
           }
 
           function escapeHtml(str) {
+            if (str == null) return '';
             var div = document.createElement('div');
-            div.appendChild(document.createTextNode(str));
+            div.appendChild(document.createTextNode(String(str)));
             return div.innerHTML;
           }
 
@@ -3731,11 +5283,12 @@
               window.localStorage.removeItem('ts_tac_data_v3');
               window.localStorage.removeItem('ts_tac_data_v4');
               window.localStorage.removeItem('ts_tac_data_v5');
+              window.localStorage.removeItem('ts_tac_data_v6');
               window.localStorage.removeItem('ts_tac_snapshot_at');
             } catch (e) { /* ignore */ }
             tacState.data = generateTacticalData();
             try {
-              window.localStorage.setItem('ts_tac_data_v6', JSON.stringify(tacState.data));
+              window.localStorage.setItem('ts_tac_data_v7', JSON.stringify(tacState.data));
               window.localStorage.setItem('ts_tac_snapshot_at', String(Date.now()));
             } catch (e) { /* ignore quota */ }
             Object.keys(LAYER_CFG).forEach(function (key) {
@@ -3744,13 +5297,19 @@
             applyLayerVisibility(map);
             bindLayerSwitches(map);
             // 更新图层数量显示
-            var countMap = { ship: 'count-ship', aircraft: 'count-aircraft', satellite: 'count-satellite', port: 'count-port' };
+            var countMap = { ship: 'count-ship', aircraft: 'count-aircraft', satellite: 'count-satellite', port: 'count-port', airport: 'count-airport' };
             Object.keys(countMap).forEach(function (key) {
+              // 飞机数量由后端 /api/aircraft/count 接口提供,跳过本地数据
+              if (key === 'aircraft') return;
               var el = document.getElementById(countMap[key]);
               if (el && tacState.data[key]) {
                 el.textContent = tacState.data[key].length;
               }
             });
+            // 飞机数量异步从后端查询(aircraft_track_latest 表)
+            loadAircraftCount();
+            // 船舶数量异步从后端查询(ais_track_huang_latest 表)
+            loadAisCount();
             // 初始化目标列表页（按钮事件、筛选下拉、数据打平）
             ensureTargetListFlat();
             initTargetListPage();
@@ -3770,11 +5329,27 @@
                     if (other !== cb && tacState.layers[otherLayer]) {
                       other.checked = allChecked;
                       tacState.layers[otherLayer].visible = allChecked;
+                      // 全显触发飞机图层时,需先加载数据
+                      if (allChecked && otherLayer === 'aircraft' && !tacState.aircraftLoaded) {
+                        loadAircraftLayer(map, 300);
+                      }
+                      // 全显触发船舶图层时,需先加载数据
+                      if (allChecked && otherLayer === 'ship' && !tacState.aisLoaded) {
+                        loadAisLayer(map);
+                      }
                     }
                   });
                 } else {
                   if (tacState.layers[layer]) {
                     tacState.layers[layer].visible = cb.checked;
+                  }
+                  // 飞机图层:首次勾选时调用后端接口加载 top 300 架飞机
+                  if (layer === 'aircraft' && cb.checked && !tacState.aircraftLoaded) {
+                    loadAircraftLayer(map, 300);
+                  }
+                  // 船舶图层:首次勾选时调用后端接口加载所有真实最新轨迹
+                  if (layer === 'ship' && cb.checked && !tacState.aisLoaded) {
+                    loadAisLayer(map);
                   }
                   // sync "all" checkbox: 所有子图层都勾选时全显才勾选
                   var allOn = Object.keys(tacState.layers).every(function (k) {
@@ -3852,8 +5427,8 @@
             if (!tacState.data) return;
             var q = query.toLowerCase();
             var results = [];
-            var typeLabels = { ship: '船舶', aircraft: '飞机', satellite: '卫星', port: '港口' };
-            var typeIcons = { ship: '🚢', aircraft: '✈️', satellite: '🛰️', port: '⚓' };
+            var typeLabels = { ship: '船舶', aircraft: '飞机', satellite: '卫星', port: '港口', airport: '机场' };
+            var typeIcons = { ship: '🚢', aircraft: '✈️', satellite: '🛰️', port: '⚓', airport: '🛫' };
 
             Object.keys(tacState.data).forEach(function (type) {
               var items = tacState.data[type];
@@ -4098,10 +5673,10 @@
             }
 
             // 统计数据
-            var typeLabels = { ship: '船舶', aircraft: '飞机', satellite: '卫星', port: '港口' };
-            var typeColors = { ship: '#4ade80', aircraft: '#f87171', satellite: '#c084fc', port: '#fb923c' };
-            var typeIcons = { ship: '🚢', aircraft: '✈️', satellite: '🛰️', port: '⚓' };
-            var stats = { ship: 0, aircraft: 0, satellite: 0, port: 0 };
+            var typeLabels = { ship: '船舶', aircraft: '飞机', satellite: '卫星', port: '港口', airport: '机场' };
+            var typeColors = { ship: '#4ade80', aircraft: '#f87171', satellite: '#c084fc', port: '#fb923c', airport: '#94a3b8' };
+            var typeIcons = { ship: '🚢', aircraft: '✈️', satellite: '🛰️', port: '⚓', airport: '🛫' };
+            var stats = { ship: 0, aircraft: 0, satellite: 0, port: 0, airport: 0 };
             var subTypeStats = {};  // 子类型统计（如货船、战斗机等）
             var matchedItems = [];
 
@@ -4282,12 +5857,13 @@
           function flattenAllTargets() {
             var flat = [];
             if (!tacState.data) return flat;
-            var typeLabelMap = { ship: '船舶', aircraft: '飞机', satellite: '卫星', port: '港口' };
+            var typeLabelMap = { ship: '船舶', aircraft: '飞机', satellite: '卫星', port: '港口', airport: '机场' };
             var typeStatusField = {
               ship: 'sailingStatus',
               aircraft: 'status',
               satellite: 'status',
-              port: 'status'
+              port: 'status',
+              airport: 'status'
             };
             Object.keys(tacState.data).forEach(function (type) {
               var arr = tacState.data[type] || [];
@@ -4586,7 +6162,7 @@
               if (arr[i].id === id) { item = arr[i]; break; }
             }
             if (!item) return;
-            var typeLabelMap = { ship: '船舶', aircraft: '飞机', satellite: '卫星', port: '港口' };
+            var typeLabelMap = { ship: '船舶', aircraft: '飞机', satellite: '卫星', port: '港口', airport: '机场' };
             var title = (typeLabelMap[type] || type) + ' · ' + (item.name || id);
             // 先关闭右侧详情面板，防止遮挡
             if (detailPanelState.currentType) hideTargetDetail();
@@ -4788,6 +6364,8 @@
           window.openTab = openTab;
           window.switchTab = switchTab;
           window.openTargetDetailTab = openTargetDetailTab;
+          window.openBeamCoverageTab = openBeamCoverageTab;
+          window.openEmailDetailTab = openEmailDetailTab;
         })();
       </script>
     </main>
@@ -6413,23 +7991,306 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        width: 100%;
+        gap: 6px;
         height: 34px;
-        margin-top: 4px;
-        background: var(--gsa-primary-dim);
-        border: 1px solid var(--gsa-primary);
+        background: var(--gsa-surface-hover);
+        border: 1px solid var(--gsa-border);
         border-radius: var(--gsa-radius-md);
-        color: var(--gsa-primary);
-        font-size: 13px;
+        color: var(--gsa-ink);
+        font-size: 12px;
         font-weight: 500;
         text-decoration: none;
         cursor: pointer;
-        transition: background-color 150ms, color 150ms;
+        transition: all 150ms ease;
       }
 
       .gsa-detail-more:hover {
         background: var(--gsa-primary);
+        border-color: var(--gsa-primary);
         color: var(--gsa-primary-ink);
+        box-shadow: 0 2px 8px rgba(56, 189, 248, 0.25);
+      }
+
+      .gsa-detail-join-form {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 0 16px;
+        height: 34px;
+        border-radius: 8px;
+        font-size: 12px;
+        font-weight: 600;
+        text-decoration: none;
+        border: 1px solid rgba(56, 189, 248, 0.5);
+        background: linear-gradient(180deg, rgba(56, 189, 248, 0.22), rgba(56, 189, 248, 0.08));
+        color: #38bdf8;
+        cursor: pointer;
+        transition: all 150ms ease;
+      }
+
+      .gsa-detail-join-form:hover {
+        background: linear-gradient(180deg, rgba(56, 189, 248, 0.35), rgba(56, 189, 248, 0.15));
+        border-color: #38bdf8;
+        box-shadow: 0 2px 10px rgba(56, 189, 248, 0.35);
+        transform: translateY(-1px);
+      }
+
+      /* ====== 加入编队自定义弹窗 ====== */
+      .gsa-modal-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(8, 14, 24, 0.65);
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+        animation: gsaModalFadeIn 0.18s ease-out;
+      }
+
+      .gsa-modal-overlay.gsa-modal-fadeout {
+        animation: gsaModalFadeOut 0.18s ease-in forwards;
+      }
+
+      @keyframes gsaModalFadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+
+      @keyframes gsaModalFadeOut {
+        from { opacity: 1; }
+        to { opacity: 0; }
+      }
+
+      .gsa-modal-box {
+        width: 420px;
+        max-width: calc(100vw - 40px);
+        max-height: calc(100vh - 60px);
+        background: linear-gradient(180deg, #1e2d42 0%, #182233 100%);
+        border: 1px solid rgba(56, 189, 248, 0.25);
+        border-radius: 14px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(56, 189, 248, 0.08) inset;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        animation: gsaModalSlideUp 0.22s ease-out;
+      }
+
+      @keyframes gsaModalSlideUp {
+        from { transform: translateY(16px) scale(0.98); opacity: 0; }
+        to { transform: translateY(0) scale(1); opacity: 1; }
+      }
+
+      .gsa-modal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 20px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        background: rgba(56, 189, 248, 0.04);
+      }
+
+      .gsa-modal-title {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 15px;
+        font-weight: 600;
+        color: #e2e8f0;
+        letter-spacing: 0.3px;
+      }
+
+      .gsa-modal-close {
+        width: 28px;
+        height: 28px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 6px;
+        color: #94a3b8;
+        font-size: 20px;
+        line-height: 1;
+        cursor: pointer;
+        transition: all 0.15s ease;
+      }
+
+      .gsa-modal-close:hover {
+        background: rgba(255, 255, 255, 0.08);
+        color: #e2e8f0;
+      }
+
+      .gsa-modal-body {
+        padding: 16px 20px;
+        overflow-y: auto;
+        flex: 1;
+      }
+
+      .gsa-modal-target-info {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 12px;
+        background: rgba(56, 189, 248, 0.08);
+        border: 1px solid rgba(56, 189, 248, 0.18);
+        border-radius: 8px;
+        margin-bottom: 14px;
+      }
+
+      .gsa-modal-target-label {
+        font-size: 11px;
+        font-weight: 600;
+        color: #38bdf8;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .gsa-modal-target-name {
+        flex: 1;
+        font-size: 13px;
+        font-weight: 600;
+        color: #e2e8f0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .gsa-modal-target-type {
+        font-size: 11px;
+        padding: 2px 8px;
+        background: rgba(56, 189, 248, 0.15);
+        color: #38bdf8;
+        border-radius: 4px;
+        font-weight: 500;
+      }
+
+      .gsa-modal-section-label {
+        font-size: 11px;
+        font-weight: 600;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        margin-bottom: 8px;
+      }
+
+      .gsa-modal-form-list {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      .gsa-modal-empty {
+        padding: 20px;
+        text-align: center;
+        color: #64748b;
+        font-size: 12px;
+        background: rgba(255, 255, 255, 0.02);
+        border-radius: 8px;
+        border: 1px dashed rgba(255, 255, 255, 0.08);
+      }
+
+      .gsa-modal-form-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 12px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.15s ease;
+      }
+
+      .gsa-modal-form-item:hover {
+        background: rgba(56, 189, 248, 0.08);
+        border-color: rgba(56, 189, 248, 0.2);
+      }
+
+      .gsa-modal-form-item-active {
+        background: rgba(56, 189, 248, 0.14);
+        border-color: rgba(56, 189, 248, 0.5) !important;
+        box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.2) inset;
+      }
+
+      .gsa-modal-form-radio {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #38bdf8;
+        flex-shrink: 0;
+      }
+
+      .gsa-modal-form-item:not(.gsa-modal-form-item-active) .gsa-modal-form-radio {
+        color: #475569;
+      }
+
+      .gsa-modal-form-name {
+        flex: 1;
+        font-size: 13px;
+        font-weight: 500;
+        color: #e2e8f0;
+      }
+
+      .gsa-modal-form-count {
+        font-size: 11px;
+        color: #64748b;
+        padding: 2px 8px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 10px;
+      }
+
+      .gsa-modal-form-tag {
+        font-size: 10px;
+        font-weight: 600;
+        color: #22c55e;
+        padding: 2px 6px;
+        background: rgba(34, 197, 94, 0.15);
+        border-radius: 4px;
+      }
+
+      .gsa-modal-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 14px 20px;
+        border-top: 1px solid rgba(255, 255, 255, 0.06);
+        background: rgba(0, 0, 0, 0.15);
+      }
+
+      .gsa-modal-btn {
+        height: 34px;
+        padding: 0 18px;
+        border-radius: 8px;
+        font-size: 12px;
+        font-weight: 600;
+        border: none;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        font-family: inherit;
+      }
+
+      .gsa-modal-btn-primary {
+        background: linear-gradient(180deg, #38bdf8, #0ea5e9);
+        color: #0b1220;
+        box-shadow: 0 2px 8px rgba(56, 189, 248, 0.35);
+      }
+
+      .gsa-modal-btn-primary:hover {
+        box-shadow: 0 4px 14px rgba(56, 189, 248, 0.5);
+        transform: translateY(-1px);
+      }
+
+      .gsa-modal-btn-ghost {
+        background: transparent;
+        color: #94a3b8;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+      }
+
+      .gsa-modal-btn-ghost:hover {
+        background: rgba(255, 255, 255, 0.06);
+        color: #e2e8f0;
+        border-color: rgba(56, 189, 248, 0.4);
       }
 
       /* Timeline bar */
@@ -7382,10 +9243,204 @@
         filter: drop-shadow(0 0 4px currentColor);
       }
 
+      /* 飞机真实图标(俯视,机头朝正北,按航向旋转) */
+      .gsa-tac-aircraft-icon {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        z-index: 5;
+        pointer-events: none;
+        filter: drop-shadow(0 0 4px currentColor);
+      }
+      .gsa-tac-aircraft-icon svg {
+        display: block;
+      }
+
       /* 2nd pulse (delayed) for all layers -> double ring effect */
       .gsa-tac-pulse-2 {
         animation-delay: 1s;
         animation-duration: 2.2s;
+      }
+
+      /* ===== 高亮标记(关注列表点击后) ===== */
+      .gsa-tac-marker.gsa-tac-marker-highlight {
+        z-index: 500;
+      }
+      .gsa-tac-marker.gsa-tac-marker-highlight .gsa-tac-core {
+        width: 16px;
+        height: 16px;
+        background: #f59e0b;
+        box-shadow: 0 0 12px #f59e0b, 0 0 24px #f59e0b, 0 0 40px rgba(245, 158, 11, 0.5);
+        animation: gsa-tac-highlight-pulse 1.2s ease-out infinite;
+      }
+      .gsa-tac-marker.gsa-tac-marker-highlight .gsa-tac-ring {
+        width: 40px;
+        height: 40px;
+        border: 2px solid #f59e0b;
+        opacity: 1;
+        box-shadow: 0 0 16px rgba(245, 158, 11, 0.6);
+      }
+      .gsa-tac-marker.gsa-tac-marker-highlight .gsa-tac-pulse {
+        background: #f59e0b;
+        opacity: 0.8;
+      }
+      .gsa-tac-marker.gsa-tac-marker-highlight .gsa-tac-pulse-2 {
+        background: #fbbf24;
+        opacity: 0.6;
+      }
+      .gsa-tac-marker.gsa-tac-marker-highlight .gsa-tac-heading {
+        border-bottom-color: #f59e0b;
+        filter: drop-shadow(0 0 8px #f59e0b);
+      }
+      .gsa-tac-marker.gsa-tac-marker-highlight .gsa-tac-aircraft-icon {
+        filter: drop-shadow(0 0 8px #f59e0b) drop-shadow(0 0 16px rgba(245, 158, 11, 0.6));
+      }
+      @keyframes gsa-tac-highlight-pulse {
+        0%, 100% { transform: translate(-50%, -50%) scale(1); }
+        50% { transform: translate(-50%, -50%) scale(1.3); }
+      }
+
+      /* ===== 组织编队面板样式 ===== */
+      .gsa-formation-toolbar {
+        display: flex;
+        gap: 6px;
+        padding: 0 0 10px 0;
+        border-bottom: 1px solid var(--gsa-border, rgba(255,255,255,0.12));
+        margin-bottom: 10px;
+      }
+      .gsa-formation-btn {
+        flex: 1;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        padding: 6px 8px;
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--gsa-ink-2, rgba(232,234,237,0.72));
+        background: rgba(255,255,255,0.04);
+        border: 1px solid var(--gsa-border, rgba(255,255,255,0.12));
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.15s;
+      }
+      .gsa-formation-btn:hover {
+        background: rgba(56,189,248,0.12);
+        border-color: var(--gsa-primary, #38bdf8);
+        color: var(--gsa-primary, #38bdf8);
+      }
+
+      .gsa-formation-list {
+        max-height: 60vh;
+        overflow-y: auto;
+      }
+
+      .gsa-formation-card {
+        background: rgba(15,23,42,0.6);
+        border: 1px solid var(--gsa-border, rgba(255,255,255,0.12));
+        border-radius: 6px;
+        margin-bottom: 8px;
+        overflow: hidden;
+        transition: all 0.15s;
+      }
+      .gsa-formation-card:hover {
+        border-color: rgba(255,255,255,0.22);
+      }
+      .gsa-formation-card-selected {
+        border-color: var(--gsa-primary, #38bdf8) !important;
+        box-shadow: 0 0 0 1px rgba(56,189,248,0.3);
+      }
+      .gsa-formation-card-selected .gsa-formation-head {
+        background: rgba(56,189,248,0.12);
+      }
+      .gsa-formation-head {
+        padding: 8px 10px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        cursor: pointer;
+        background: rgba(255,255,255,0.04);
+        font-weight: 600;
+        font-size: 12px;
+        color: var(--gsa-ink, #e8eaed);
+        transition: background 0.15s;
+      }
+      .gsa-formation-head:hover {
+        background: rgba(56,189,248,0.08);
+      }
+      .gsa-formation-fcolor {
+        width: 8px;
+        height: 8px;
+        border-radius: 2px;
+        flex-shrink: 0;
+      }
+      .gsa-formation-name {
+        flex: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .gsa-formation-count {
+        color: var(--gsa-ink-3, rgba(232,234,237,0.48));
+        font-size: 10px;
+        flex-shrink: 0;
+      }
+      .gsa-formation-chev {
+        color: var(--gsa-ink-3, rgba(232,234,237,0.48));
+        transition: transform 0.15s;
+        flex-shrink: 0;
+      }
+      .gsa-formation-card-selected .gsa-formation-chev {
+        transform: rotate(90deg);
+      }
+
+      .gsa-formation-members {
+        display: none;
+        padding: 6px 10px 8px 22px;
+      }
+      .gsa-formation-card-selected .gsa-formation-members {
+        display: block;
+      }
+      .gsa-formation-member {
+        padding: 4px 0;
+        font-size: 11px;
+        color: var(--gsa-ink-2, rgba(232,234,237,0.72));
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        cursor: pointer;
+        transition: color 0.15s;
+      }
+      .gsa-formation-member:hover {
+        color: var(--gsa-primary, #38bdf8);
+      }
+      .gsa-formation-mdot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
+      .gsa-formation-mname {
+        flex: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .gsa-formation-mid {
+        color: var(--gsa-ink-3, rgba(232,234,237,0.48));
+        font-size: 10px;
+      }
+      .gsa-formation-unjoin {
+        color: #f87171;
+        cursor: pointer;
+        font-size: 14px;
+        padding: 0 4px;
+        flex-shrink: 0;
+        transition: color 0.15s, transform 0.15s;
+      }
+      .gsa-formation-unjoin:hover {
+        color: #ef4444;
+        transform: scale(1.2);
       }
 
       /* ===== Satellite orbit halo ===== */
@@ -7473,6 +9528,16 @@
           linear-gradient(currentColor, currentColor) bottom right / 7px 3px no-repeat;
         opacity: 0.7;
         filter: drop-shadow(0 0 2px currentColor);
+      }
+
+      /* ====== 去掉态势感知所有图标的动画效果 ====== */
+      .gsa-tac-pulse,
+      .gsa-tac-pulse-2,
+      .gsa-tac-orbit,
+      .gsa-tac-orbit-2,
+      .gsa-tac-square,
+      .gsa-tac-square-inner {
+        animation: none !important;
       }
 
       /* ====== Target Detail Panel ====== */
@@ -7598,11 +9663,18 @@
         font-size: 16px;
         cursor: pointer;
         padding: 2px;
-        transition: color 0.15s;
+        transition: color 0.15s, transform 0.15s;
+        line-height: 1;
+        margin-left: auto;
       }
 
       .gsa-detail-fav-btn:hover {
-        color: var(--gsa-unknown);
+        color: #f59e0b;
+        transform: scale(1.15);
+      }
+
+      .gsa-detail-fav-btn[data-watched="1"] {
+        color: #f59e0b;
       }
 
       .gsa-detail-subtitle {
@@ -7758,16 +9830,17 @@
         text-align: center;
         padding: 12px;
         margin-top: 8px;
-        font-size: 13px;
-        font-weight: 600;
-        color: var(--gsa-primary);
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--gsa-ink);
         cursor: pointer;
         border-radius: 8px;
-        transition: background 0.15s;
+        transition: all 0.15s ease;
       }
 
       .gsa-detail-more:hover {
-        background: var(--gsa-primary-dim);
+        background: var(--gsa-primary);
+        color: var(--gsa-primary-ink);
       }
 
       /* Overlay visibility handled via JS class toggling */
@@ -8640,6 +10713,14 @@
       .gsa-ipnet-email-time { font-size: 11px; color: var(--gsa-ink-3); font-family: var(--gsa-font-mono); margin-left: auto; }
       .gsa-ipnet-email-subject { font-size: 12px; color: var(--gsa-ink-2); margin-bottom: 4px; }
       .gsa-ipnet-email-preview { font-size: 11px; color: var(--gsa-ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .gsa-ipnet-email-attach-indicator {
+        display: inline-flex; align-items: center; gap: 3px; margin-left: 8px;
+        font-size: 10px; color: var(--gsa-ink-3); vertical-align: middle;
+      }
+      .gsa-ipnet-email-clickable:hover {
+        background: rgba(56,189,248,0.08);
+        box-shadow: inset 0 0 0 1px rgba(56,189,248,0.25);
+      }
 
       /* 通用详情页 */
       .gsa-ipnet-detail-wrap { display: flex; flex-direction: column; gap: 16px; }
@@ -8868,7 +10949,7 @@
       .ais-dtab-icon { width: 13px; height: 13px; }
       .ais-d-tab.active { background: var(--gsa-surface-solid); color: var(--gsa-primary); box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
       .ais-drawer-body {
-        flex: 1; overflow-y: auto; min-height: 0; position: relative;
+        flex: 1; overflow-y: auto; min-height: 300px; position: relative;
         background: var(--gsa-surface-solid); border: 1px solid var(--gsa-border);
         border-radius: var(--gsa-radius-lg); padding: 14px;
       }
@@ -8888,6 +10969,29 @@
       .ais-timeline-node { position: relative; padding-bottom: 18px; padding-left: 20px; }
       .ais-timeline-node:last-child { padding-bottom: 0; }
       .ais-timeline-node:last-child .ais-tl-line { display: none; }
+      .ais-tl-card {
+        background: rgba(20,42,77,0.5); border: 1px solid var(--gsa-border);
+        border-radius: 8px; padding: 10px 12px; margin-bottom: 8px;
+      }
+      .ais-tl-card-head {
+        display: flex; justify-content: space-between; align-items: center;
+        margin-bottom: 6px;
+      }
+      .ais-tl-card-ord { font-size: 13px; font-weight: 600; color: var(--gsa-ink); }
+      .ais-tl-card-dur {
+        font-size: 10px; padding: 2px 8px; border-radius: 4px; font-weight: 500;
+      }
+      .ais-tl-card-row {
+        display: flex; justify-content: space-between;
+        font-size: 11px; color: var(--gsa-ink-3);
+        padding: 2px 0;
+      }
+      .ais-tl-card-row .mono { font-family: var(--gsa-font-mono); color: var(--gsa-ink-2); }
+      .ais-tl-card-reason {
+        margin-top: 6px; padding: 6px 10px;
+        background: rgba(56,189,248,0.06); border-radius: 6px;
+        font-size: 11px; color: var(--gsa-ink-2); line-height: 1.5;
+      }
       .ais-tl-dot {
         position: absolute; left: 0; top: 4px; width: 10px; height: 10px;
         border-radius: 50%; background: var(--gsa-primary);
@@ -9406,7 +11510,7 @@
           return d.getFullYear()+'-'+z(d.getMonth()+1)+'-'+z(d.getDate())+' '+z(d.getHours())+':'+z(d.getMinutes());
         }
         var base = [
-          { name: '南海航运态势监控', desc: '监控南海海域船舶动态、航道安全及军事活动，覆盖主要航运通道与争议海域。', rules: [
+          { name: '某海域实时监控预警', desc: '监控南海海域船舶动态、航道安全及军事活动，覆盖主要航运通道与争议海域。', rules: [
             { type:'region',  vals:{area:'南海', radius:'800'} },
             { type:'target',   vals:{type:'船舶', threat:'全部'} },
             { type:'time',     vals:{range:'近7天', granularity:'天'} }
@@ -9477,7 +11581,14 @@
           var raw = localStorage.getItem(TOPIC_STORAGE_KEY);
           if (raw) {
             var parsed = JSON.parse(raw);
-            if (Array.isArray(parsed) && parsed.length) return parsed;
+            if (Array.isArray(parsed) && parsed.length) {
+              // 数据迁移：修复第一个专题标题
+              if (parsed[0] && parsed[0].name === '南海航运态势监控') {
+                parsed[0].name = '某海域实时监控预警';
+                try { localStorage.setItem(TOPIC_STORAGE_KEY, JSON.stringify(parsed)); } catch (e) {}
+              }
+              return parsed;
+            }
           }
         } catch (e) {}
         var defaults = getDefaultTopics();
@@ -10478,7 +12589,6 @@
           return '<tr>' +
             '<td class="mono">'+d.id+'</td>' +
             '<td>'+typeTag(d.type)+'</td>' +
-            '<td>'+riskTag(d.risk)+'</td>' +
             '<td class="mono">'+d.feature+'</td>' +
             '<td>'+d.proto+'</td>' +
             '<td class="mono">'+d.ip+'</td>' +
@@ -10695,22 +12805,47 @@
         ];
         // 10封关联邮件
         var emails = [];
+        var attachNames = [
+          ['任务部署计划_v2.pdf','加密通道配置.docx','频率扫描日志.xlsx'],
+          ['目标坐标更新.kml','卫星调度表.pdf'],
+          ['异常活动分析报告.pdf','流量抓包数据.pcap','系统日志.zip'],
+          ['会议纪要_0812.docx','附件照片.jpg'],
+          ['证书更新通知.pdf','链路测试报告.xlsx'],
+          ['周会汇报.pptx','项目进度表.xlsx','风险评估.docx'],
+          ['频率监测数据.csv','信号分析.pdf'],
+          ['安全策略说明.pdf','登录日志.txt'],
+          ['部署清单.xlsx','网络拓扑图.png','配置文件.conf'],
+          ['综合分析报告.pdf','数据快照.tar.gz']
+        ];
         for (var i = 0; i < 10; i++) {
           var to = users[r(0,users.length-1)] + '@' + pick(domains);
           var subj = subjects[r(0,subjects.length-1)];
           var risky = Math.random() < 0.4;
           var yellow = !risky && Math.random() < 0.3;
           var mm = r(0, 23), ss = r(0, 59);
+          var attachList = attachNames[i] || [attachNames[0][0]];
           emails.push({
+            id: 'MAIL-' + d.id + '-' + (i+1),
             from: fromEmail, to: to, subject: subj,
             time: '08-12 ' + (mm<10?'0':'')+mm + ':' + (ss<10?'0':'')+ss,
-            preview: '内容预览：包含附件 ' + (1+r(0,3)) + ' 个，正文摘要已加密传输。涉及关键字：' + pick(['目标','调度','频率','加密','证书','链路','任务']) + '...',
-            risky: risky, yellow: yellow
+            preview: '内容预览：包含附件 ' + attachList.length + ' 个，正文摘要已加密传输。涉及关键字：' + pick(['目标','调度','频率','加密','证书','链路','任务']) + '...',
+            risky: risky, yellow: yellow,
+            attachments: attachList.map(function(name, ai) {
+              var ext = name.split('.').pop().toLowerCase();
+              var sizes = {pdf:'1.2-4.8MB',docx:'200-500KB',xlsx:'80-320KB',pptx:'5-15MB',kml:'50-120KB',pcap:'10-50MB',zip:'5-20MB',conf:'2-10KB',csv:'50-200KB','tar.gz':'10-100MB',png:'1-5MB',jpg:'500KB-3MB',txt:'1-20KB'};
+              return {
+                name: name,
+                size: sizes[ext] || r(100, 5000) + 'KB',
+                ext: ext,
+                type: ext
+              };
+            }),
+            body: '尊敬的相关负责人：\n\n本邮件涉及近期重要任务部署与协调工作。附件中包含详细的执行计划与相关配置文件，请仔细查阅并按要求执行。\n\n如有疑问请及时回复确认。所有通信记录已加密存档，可作为溯源证据。\n\n此致\n敬礼'
           });
         }
         var red = emails.filter(function(e){return e.risky;}).length;
         var warn = emails.filter(function(e){return e.yellow;}).length;
-        var attachCount = emails.map(function(){return r(0,3);}).reduce(function(a,b){return a+b;},0);
+        var attachCount = emails.reduce(function(a, e) { return a + (e.attachments ? e.attachments.length : 0); }, 0);
 
         el.innerHTML =
           '<div class="gsa-ipnet-email-summary">' +
@@ -10764,8 +12899,23 @@
           '</div>' +
 
           '<div class="gsa-ipnet-email-list">' +
-            emails.map(function(e) {
-              return '<div class="gsa-ipnet-email-item">' +
+            emails.map(function(e, ei) {
+              var attachCount = (e.attachments || []).length;
+              var attHtml = '';
+              if (attachCount > 0) {
+                attHtml = '<div class="gsa-ipnet-email-attach-indicator">' +
+                  '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>' +
+                  attachCount +
+                '</div>';
+              }
+              return '<div class="gsa-ipnet-email-item gsa-ipnet-email-clickable" ' +
+                'data-email-index="' + ei + '" ' +
+                'data-json="' + encodeURIComponent(JSON.stringify({
+                  id: e.id, from: e.from, to: e.to, subject: e.subject,
+                  time: e.time, preview: e.preview, risky: e.risky, yellow: e.yellow,
+                  attachments: e.attachments, body: e.body
+                })) + '" ' +
+                'style="cursor:pointer;' + (e.risky?'border-left:3px solid #ef4444;':e.yellow?'border-left:3px solid #f59e0b;':'') + '">' +
                 '<div class="gsa-ipnet-email-dot '+(e.risky?'red':e.yellow?'yellow':'')+'"></div>' +
                 '<div class="gsa-ipnet-email-body">' +
                   '<div class="gsa-ipnet-email-h">' +
@@ -10777,12 +12927,33 @@
                     (e.risky ? '<span class="gsa-ipnet-risk-tag gsa-ipnet-risk-high" style="margin-right:6px;">敏感</span>' : '') +
                     (e.yellow ? '<span class="gsa-ipnet-risk-tag gsa-ipnet-risk-medium" style="margin-right:6px;">待核实</span>' : '') +
                     e.subject +
+                    attHtml +
                   '</div>' +
                   '<div class="gsa-ipnet-email-preview">' + e.preview + '</div>' +
                 '</div>' +
               '</div>';
             }).join('') +
           '</div>';
+
+          // 绑定邮件列表点击事件委托
+          setTimeout(function() {
+            var listEl = el.querySelector('.gsa-ipnet-email-list');
+            if (listEl && !listEl._emailBound) {
+              listEl._emailBound = true;
+              listEl.addEventListener('click', function(ev) {
+                var item = ev.target.closest('.gsa-ipnet-email-clickable');
+                if (!item) return;
+                var jsonStr = item.getAttribute('data-json');
+                if (!jsonStr) return;
+                try {
+                  var emailData = JSON.parse(decodeURIComponent(jsonStr));
+                  if (window.openEmailDetailTab) {
+                    window.openEmailDetailTab(emailData);
+                  }
+                } catch(e) { console.error('Failed to parse email data:', e); }
+              });
+            }
+          }, 0);
       }
 
       function openTrace(d) {
@@ -11337,7 +13508,7 @@
 
       function updateStats() {
         function set(id,v){var e=document.getElementById(id);if(e)e.textContent=v;}
-        set('ipnet-stat-total', ipnetState.data.length);
+        set('ipnet-stat-total', '129M');
         var countries = {}; ipnetState.data.forEach(function(d){ if (d.country) countries[d.country] = true; });
         set('ipnet-stat-high', Object.keys(countries).length);
         set('ipnet-stat-ipport', ipnetState.data.filter(function(d){return d.type==='ipport';}).length);
@@ -11511,14 +13682,29 @@
       function genEvents() {
         var titles = [
           '航班高度异常下降事件', '船舶AIS位置篡改事件', '海空近距离交汇事件',
-          '海上船舶异常聚集', '航空器信号丢失事件', '无人机闯入禁飞区事件',
+          '航空器信号丢失事件', '无人机闯入禁飞区事件',
           '船舶闯入禁航区事件', 'ADS-B虚假目标事件'
         ];
         var events = [];
-        for (var i = 0; i < 12; i++) {
+        // 第一个固定为"海上船舶异常聚集"
+        events.push({
+          id: 'EVT-2001', title: '海上船舶异常聚集',
+          type: 'sea', time: timeAgo(45),
+          targets: 3, intelCount: 8,
+          score: 95, status: 'researching'
+        });
+        // 第二个固定为"海空近距离交汇事件"
+        events.push({
+          id: 'EVT-2002', title: '海空近距离交汇事件',
+          type: 'mixed', time: timeAgo(120),
+          targets: 4, intelCount: 6,
+          score: 88, status: 'researching'
+        });
+        // 其余随机生成
+        for (var i = 0; i < 10; i++) {
           var type = pick(['air','sea','mixed']);
           events.push({
-            id: 'EVT-' + String(2000+i), title: pick(titles),
+            id: 'EVT-' + String(2003+i), title: pick(titles),
             type: type, time: timeAgo(rand(30, 600)),
             targets: rand(2, 6), intelCount: rand(3, 15),
             score: rand(45, 95), status: pick(['open','researching','researching','closed'])

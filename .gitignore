@@ -80,3 +80,26 @@ temp/
 coverage/
 .nyc_output/
 server.pid
+
+# ---- Temporary work scripts (ad-hoc debugging/fixes) ----
+check-js.js
+check-mapstyle.js
+check-vm.js
+final-check.js
+fix-*.js
+fix[0-9]*.js
+bisect.js
+
+# ---- Temporary data directories ----
+3702/
+ais_data/
+
+# ---- Temporary text / scratch files ----
+*.txt
+!requirements.txt
+!custom-algorithm*.txt
+!datasource*.txt
+
+# ---- Temporary markdown (scratch notes) ----
+趋势.md
+dw总览.md

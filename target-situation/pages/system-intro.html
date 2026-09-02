@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>系统核心能力介绍 - 态势分析</title>
+<style>
+  :root {
+    --bg: #0a1426;
+    --bg2: #0f1d38;
+    --bg3: #142a4d;
+    --accent: #38bdf8;
+    --accent2: #06b6d4;
+    --accent3: #818cf8;
+    --text: #f1f5f9;
+    --text2: #94a3b8;
+    --text3: #64748b;
+    --border: rgba(56,189,248,0.15);
+    --green: #22c55e;
+    --orange: #f59e0b;
+    --red: #ef4444;
+    --purple: #a855f7;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html, body { width:100%; height:100%; overflow:hidden; background:var(--bg); font-family:'Microsoft YaHei','PingFang SC',sans-serif; color:var(--text); }
+  body { display:flex; align-items:center; justify-content:center; }
+
+  .deck { width:100%; height:100%; position:relative; }
+  .slide {
+    position:absolute; inset:0; display:none;
+    flex-direction:column; padding:50px 70px;
+    background:linear-gradient(135deg, var(--bg) 0%, var(--bg2) 100%);
+    animation:fadeIn .4s ease;
+  }
+  .slide.active { display:flex; }
+  @keyframes fadeIn { from{opacity:0;transform:translateX(20px)} to{opacity:1;transform:translateX(0)} }
+
+  /* —— 通用元素 —— */
+  .s-badge { display:inline-block; font-size:13px; color:var(--accent); background:rgba(56,189,248,0.1); border:1px solid var(--border); padding:4px 14px; border-radius:20px; margin-bottom:18px; letter-spacing:1px; }
+  .s-title { font-size:36px; font-weight:700; margin-bottom:8px; background:linear-gradient(90deg,var(--text),var(--accent)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+  .s-sub { font-size:16px; color:var(--text2); margin-bottom:30px; }
+  .s-body { flex:1; display:flex; gap:30px; }
+
+  /* —— 卡片 —— */
+  .card { background:rgba(20,42,77,0.5); border:1px solid var(--border); border-radius:12px; padding:24px; flex:1; position:relative; overflow:hidden; }
+  .card::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg,transparent,var(--accent),transparent); opacity:.5; }
+  .card-icon { font-size:28px; margin-bottom:10px; }
+  .card-title { font-size:16px; font-weight:600; margin-bottom:8px; color:var(--text); }
+  .card-desc { font-size:13px; color:var(--text2); line-height:1.7; }
+
+  /* —— 网格 —— */
+  .grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+  .grid-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:20px; }
+  .grid-4 { display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:16px; }
+  .grid-5 { display:grid; grid-template-columns:repeat(5,1fr); gap:14px; }
+
+  /* —— 数字指标 —— */
+  .stat { text-align:center; }
+  .stat-num { font-size:32px; font-weight:700; color:var(--accent); }
+  .stat-lbl { font-size:12px; color:var(--text2); margin-top:4px; }
+
+  /* —— 列表 —— */
+  .feat-list { list-style:none; }
+  .feat-list li { font-size:14px; color:var(--text2); line-height:2; padding-left:22px; position:relative; }
+  .feat-list li::before { content:''; position:absolute; left:0; top:13px; width:8px; height:8px; border-radius:50%; background:var(--accent); box-shadow:0 0 8px var(--accent); }
+
+  /* —— 流程箭头 —— */
+  .arrow { color:var(--accent); font-size:20px; display:flex; align-items:center; }
+
+  /* —— 导航 —— */
+  .nav { position:fixed; bottom:20px; left:50%; transform:translateX(-50%); display:flex; align-items:center; gap:16px; z-index:100; }
+  .nav-btn { width:40px; height:40px; border-radius:50%; border:1px solid var(--border); background:rgba(20,42,77,0.8); color:var(--text); font-size:18px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all .2s; backdrop-filter:blur(8px); }
+  .nav-btn:hover { background:var(--accent); color:var(--bg); }
+  .nav-info { font-size:13px; color:var(--text2); min-width:60px; text-align:center; }
+  .nav-fs { font-size:13px; color:var(--text3); cursor:pointer; padding:4px 10px; border:1px solid var(--border); border-radius:6px; }
+
+  /* —— 封面 —— */
+  .cover { align-items:center; justify-content:center; text-align:center; }
+  .cover-title { font-size:48px; font-weight:700; letter-spacing:2px; background:linear-gradient(90deg,var(--accent),var(--accent3)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; margin-bottom:12px; }
+  .cover-sub { font-size:20px; color:var(--text2); letter-spacing:1px; }
+  .cover-line { width:80px; height:3px; background:linear-gradient(90deg,var(--accent),transparent); margin:30px auto; border-radius:2px; }
+  .cover-meta { font-size:14px; color:var(--text3); margin-top:40px; }
+
+  /* —— 目录 —— */
+  .toc-item { display:flex; align-items:center; gap:12px; padding:10px 16px; border-radius:8px; transition:background .2s; }
+  .toc-item:hover { background:rgba(56,189,248,0.08); }
+  .toc-num { font-size:18px; font-weight:700; color:var(--accent); min-width:30px; }
+  .toc-text { font-size:15px; color:var(--text); }
+
+  /* —— 架构图 —— */
+  .arch-box { background:rgba(56,189,248,0.08); border:1px solid var(--border); border-radius:10px; padding:16px; text-align:center; }
+  .arch-box-title { font-size:15px; font-weight:600; color:var(--accent); margin-bottom:6px; }
+  .arch-box-desc { font-size:12px; color:var(--text2); }
+
+  /* —— 标签 —— */
+  .tag { display:inline-block; font-size:11px; padding:2px 8px; border-radius:4px; margin:2px; }
+  .tag-blue { background:rgba(56,189,248,0.15); color:var(--accent); }
+  .tag-green { background:rgba(34,197,94,0.15); color:var(--green); }
+  .tag-orange { background:rgba(245,158,11,0.15); color:var(--orange); }
+  .tag-red { background:rgba(239,68,68,0.15); color:var(--red); }
+  .tag-purple { background:rgba(168,85,247,0.15); color:var(--purple); }
+
+  /* —— 背景装饰 —— */
+  .bg-deco { position:absolute; pointer-events:none; opacity:.06; }
+  .bg-deco-tl { top:-50px; left:-50px; width:300px; height:300px; border:2px solid var(--accent); border-radius:50%; }
+  .bg-deco-br { bottom:-80px; right:-80px; width:400px; height:400px; border:2px solid var(--accent3); border-radius:50%; }
+
+  /* —— 全屏适配 —— */
+  @media (max-width:1200px) { .slide{padding:40px 50px;} .s-title{font-size:30px;} }
+</style>
+</head>
+<body>
+<div class="deck" id="deck">
+
+<!-- ============ 1. 封面 ============ -->
+<div class="slide cover active">
+  <div class="bg-deco bg-deco-tl"></div>
+  <div class="bg-deco bg-deco-br"></div>
+  <div style="font-size:60px;margin-bottom:20px;">🛰️</div>
+  <div class="cover-title">态势分析</div>
+  <div class="cover-line"></div>
+  <div class="cover-sub">多源数据融合 · 全域态势感知 · 智能情报研判</div>
+  <div class="cover-meta">系统核心能力介绍 · 2026</div>
+</div>
+
+<!-- ============ 2. 目录 ============ -->
+<div class="slide">
+  <div class="s-badge">CONTENTS</div>
+  <div class="s-title">目录</div>
+  <div class="s-body" style="flex-direction:column;gap:0;">
+    <div class="grid-2" style="gap:0 40px;">
+      <div class="toc-item"><span class="toc-num">01</span><span class="toc-text">系统定位与核心价值</span></div>
+      <div class="toc-item"><span class="toc-num">11</span><span class="toc-text">IP网络数据检索 · 虚拟实体与溯源</span></div>
+      <div class="toc-item"><span class="toc-num">02</span><span class="toc-text">系统架构总览</span></div>
+      <div class="toc-item"><span class="toc-num">12</span><span class="toc-text">专题分析 · 规则引擎</span></div>
+      <div class="toc-item"><span class="toc-num">03</span><span class="toc-text">态势感知 · 全球态势监控</span></div>
+      <div class="toc-item"><span class="toc-num">13</span><span class="toc-text">多源数据融合 · 情报流与告警</span></div>
+      <div class="toc-item"><span class="toc-num">04</span><span class="toc-text">态势感知 · 数据图层与统计</span></div>
+      <div class="toc-item"><span class="toc-num">14</span><span class="toc-text">事件关联分析 · 回溯详情</span></div>
+      <div class="toc-item"><span class="toc-num">05</span><span class="toc-text">目标监视 · 多类型目标管理</span></div>
+      <div class="toc-item"><span class="toc-num">15</span><span class="toc-text">证据链时间轴与异常研判</span></div>
+      <div class="toc-item"><span class="toc-num">06</span><span class="toc-text">船舶详情 · 历史轨迹回放</span></div>
+      <div class="toc-item"><span class="toc-num">16</span><span class="toc-text">溯源取证能力</span></div>
+      <div class="toc-item"><span class="toc-num">07</span><span class="toc-text">轨迹回放核心能力</span></div>
+      <div class="toc-item"><span class="toc-num">17</span><span class="toc-text">系统技术特点</span></div>
+      <div class="toc-item"><span class="toc-num">08</span><span class="toc-text">AIS连续间断分析</span></div>
+      <div class="toc-item"><span class="toc-num">18</span><span class="toc-text">应用场景与价值</span></div>
+      <div class="toc-item"><span class="toc-num">09</span><span class="toc-text">IP网络数据检索 · 数据概览</span></div>
+      <div class="toc-item"><span class="toc-num">19</span><span class="toc-text">总结</span></div>
+      <div class="toc-item"><span class="toc-num">10</span><span class="toc-text">IP网络数据检索 · 多维筛选</span></div>
+      <div class="toc-item"><span class="toc-num">20</span><span class="toc-text">展望与结语</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 3. 系统定位 ============ -->
+<div class="slide">
+  <div class="s-badge">01 · 系统定位</div>
+  <div class="s-title">系统定位与核心价值</div>
+  <div class="s-sub">面向全域情报数据的采集、融合、研判与溯源一体化平台</div>
+  <div class="s-body">
+    <div class="grid-2" style="width:100%;">
+      <div class="card">
+        <div class="card-icon">🎯</div>
+        <div class="card-title">系统定位</div>
+        <div class="card-desc">
+          态势分析是一套面向海上/空中/网络全域的情报综合分析平台。系统整合 AIS 船舶数据、ADS-B 航空数据、卫星通信网络数据、射频信号等多源情报，为分析人员提供从态势感知到事件回溯的全链路支撑。
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-icon">💡</div>
+        <div class="card-title">核心价值</div>
+        <ul class="feat-list" style="margin-top:8px;">
+          <li>多源异构数据统一接入与融合展示</li>
+          <li>全目标类型覆盖：船舶 / 航空器 / 卫星 / 地面设施</li>
+          <li>事件级回溯与证据链可视化</li>
+          <li>智能研判标签与风险分级</li>
+          <li>一键溯源取证，支持报告导出</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 4. 架构总览 ============ -->
+<div class="slide">
+  <div class="s-badge">02 · 架构总览</div>
+  <div class="s-title">系统架构总览</div>
+  <div class="s-sub">五大核心模块协同工作，构成完整的情报分析闭环</div>
+  <div class="s-body" style="flex-direction:column;justify-content:center;gap:24px;">
+    <div class="grid-5" style="width:100%;">
+      <div class="arch-box">
+        <div style="font-size:24px;margin-bottom:6px;">🌍</div>
+        <div class="arch-box-title">态势感知</div>
+        <div class="arch-box-desc">全球卫星地图<br>实时目标分布</div>
+      </div>
+      <div class="arch-box">
+        <div style="font-size:24px;margin-bottom:6px;">📡</div>
+        <div class="arch-box-title">目标监视</div>
+        <div class="arch-box-desc">船舶/航空器<br>轨迹回放与详情</div>
+      </div>
+      <div class="arch-box">
+        <div style="font-size:24px;margin-bottom:6px;">🌐</div>
+        <div class="arch-box-title">IP网络检索</div>
+        <div class="arch-box-desc">卫星链路数据<br>国家分布与溯源</div>
+      </div>
+      <div class="arch-box">
+        <div style="font-size:24px;margin-bottom:6px;">📊</div>
+        <div class="arch-box-title">专题分析</div>
+        <div class="arch-box-desc">规则引擎驱动<br>11个默认专题</div>
+      </div>
+      <div class="arch-box">
+        <div style="font-size:24px;margin-bottom:6px;">🔗</div>
+        <div class="arch-box-title">多源融合</div>
+        <div class="arch-box-desc">事件关联<br>证据链与研判</div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:center;gap:20px;font-size:13px;color:var(--text2);">
+      <span style="padding:6px 16px;border:1px solid var(--border);border-radius:20px;">数据采集层</span>
+      <span class="arrow">→</span>
+      <span style="padding:6px 16px;border:1px solid var(--border);border-radius:20px;">融合处理层</span>
+      <span class="arrow">→</span>
+      <span style="padding:6px 16px;border:1px solid var(--border);border-radius:20px;">分析研判层</span>
+      <span class="arrow">→</span>
+      <span style="padding:6px 16px;border:1px solid var(--border);border-radius:20px;">展示溯源层</span>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 5. 态势感知 - 全球态势 ============ -->
+<div class="slide">
+  <div class="s-badge">03 · 态势感知</div>
+  <div class="s-title">全球态势监控</div>
+  <div class="s-sub">默认卫星图层，全域目标一图掌握</div>
+  <div class="s-body">
+    <div class="grid-2" style="width:100%;">
+      <div class="card">
+        <div class="card-icon">🛰️</div>
+        <div class="card-title">卫星影像底图</div>
+        <div class="card-desc">
+          系统默认加载高德卫星影像图层叠加路网图层，提供真实地理环境下的态势展示。支持卫星影像与标准地图一键切换，满足不同分析场景需求。
+        </div>
+        <ul class="feat-list" style="margin-top:12px;">
+          <li>默认卫星图层 + 路网叠加</li>
+          <li>一键切换标准地图 / 卫星影像</li>
+          <li>页面加载自动选中"态势感知"菜单</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-icon">🗺️</div>
+        <div class="card-title">全域目标可视化</div>
+        <div class="card-desc">
+          在全球地图上实时展示船舶、航空器、卫星、港口、机场、基地、地面站、发射场等多类目标，图标与类型严格匹配，支持悬停查看详情。
+        </div>
+        <div style="margin-top:14px;">
+          <span class="tag tag-blue">船舶</span>
+          <span class="tag tag-red">飞机</span>
+          <span class="tag tag-purple">卫星</span>
+          <span class="tag tag-green">港口</span>
+          <span class="tag tag-orange">机场</span>
+          <span class="tag tag-blue">基地</span>
+          <span class="tag tag-green">地面站</span>
+          <span class="tag tag-orange">发射场</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 6. 态势感知 - 数据图层与统计 ============ -->
+<div class="slide">
+  <div class="s-badge">04 · 态势感知</div>
+  <div class="s-title">数据图层与圈选统计</div>
+  <div class="s-sub">灵活的图层控制与区域分析能力</div>
+  <div class="s-body">
+    <div class="grid-3" style="width:100%;">
+      <div class="card">
+        <div class="card-icon">🎚️</div>
+        <div class="card-title">数据图层控制</div>
+        <div class="card-desc">支持 9 类目标图层的独立显隐切换，包括全显、船舶、飞机、卫星、港口、机场、基地、地面站、发射场。分析人员可按需组合，聚焦关注目标类型。</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">⭕</div>
+        <div class="card-title">圈选区域统计</div>
+        <div class="card-desc">在地图上框选任意区域，即时统计区域内目标总量、区域面积及类型分布。支持快速评估特定海域/空域的目标密度与构成。</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">⭐</div>
+        <div class="card-title">关注目标面板</div>
+        <div class="card-desc">支持将飞机和船舶混合加入关注列表，图标与目标类型严格匹配。提供按条件搜索功能，快速定位关注目标并查看实时状态。</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 7. 目标监视 ============ -->
+<div class="slide">
+  <div class="s-badge">05 · 目标监视</div>
+  <div class="s-title">多类型目标管理</div>
+  <div class="s-sub">船舶 / 航空器 / 卫星统一管理，详情一目了然</div>
+  <div class="s-body">
+    <div class="grid-2" style="width:100%;">
+      <div class="card">
+        <div class="card-icon">📋</div>
+        <div class="card-title">目标列表</div>
+        <div class="card-desc">左侧列表展示所有目标，支持按编号或名称检索。点击目标在地图上聚焦定位，右侧详情面板同步展示该目标的完整信息。</div>
+        <ul class="feat-list" style="margin-top:10px;">
+          <li>船舶类型：货船 / 集装箱船 / 油轮 / 散货船 / 军舰等</li>
+          <li>航空器：战斗机 / 侦察机 / 运输机 / 民航 / 预警机</li>
+          <li>实时位置、航向、速度、状态</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-icon">📊</div>
+        <div class="card-title">目标详情面板</div>
+        <div class="card-desc">四大信息分区全面覆盖目标情报：</div>
+        <div style="margin-top:12px;">
+          <div style="padding:8px 12px;margin-bottom:6px;background:rgba(56,189,248,0.08);border-radius:6px;font-size:13px;">
+            <span style="color:var(--accent);font-weight:600;">识别信息</span> · 国旗 / MMSI / IMO / 呼号 / 船型
+          </div>
+          <div style="padding:8px 12px;margin-bottom:6px;background:rgba(34,197,94,0.08);border-radius:6px;font-size:13px;">
+            <span style="color:var(--green);font-weight:600;">实时遥测</span> · 位置 / 航向 / 速度 / 状态
+          </div>
+          <div style="padding:8px 12px;margin-bottom:6px;background:rgba(239,68,68,0.08);border-radius:6px;font-size:13px;">
+            <span style="color:var(--red);font-weight:600;">威胁评估</span> · 风险等级 / 异常行为标记
+          </div>
+          <div style="padding:8px 12px;background:rgba(168,85,247,0.08);border-radius:6px;font-size:13px;">
+            <span style="color:var(--purple);font-weight:600;">航迹历史</span> · 历史轨迹回放入口
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 8. 船舶详情 - 历史轨迹回放 ============ -->
+<div class="slide">
+  <div class="s-badge">06 · 船舶详情</div>
+  <div class="s-title">历史轨迹回放</div>
+  <div class="s-sub">真实卫星影像上的全要素轨迹回放系统</div>
+  <div class="s-body">
+    <div class="grid-2" style="width:100%;">
+      <div class="card">
+        <div class="card-icon">🚢</div>
+        <div class="card-title">轨迹回放核心功能</div>
+        <ul class="feat-list" style="margin-top:8px;">
+          <li>已播放段（实线）/ 未播放段（虚线）双轨显示</li>
+          <li>船舶图标随实时航向自动旋转</li>
+          <li>播放 / 暂停 / 重置 + 进度条拖拽</li>
+          <li>支持 0.5x ~ 4.0x 倍速调节</li>
+          <li>卫星影像 / 标准地图一键切换</li>
+          <li>时间范围筛选：1 / 7 / 30 / 90 天</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-icon">📈</div>
+        <div class="card-title">速度波形可视化</div>
+        <div class="card-desc">轨迹回放同步展示速度波形图，直观呈现船舶在航行过程中的速度变化趋势，辅助识别异常减速、停船等可疑行为。</div>
+        <div style="margin-top:16px;padding:16px;background:rgba(20,42,77,0.6);border-radius:8px;">
+          <div style="font-size:12px;color:var(--text2);margin-bottom:8px;">速度波形示意</div>
+          <svg viewBox="0 0 280 60" style="width:100%;height:60px;">
+            <polyline points="0,40 30,35 60,20 90,25 120,15 150,30 180,45 210,38 240,22 280,28" fill="none" stroke="var(--accent)" stroke-width="2"/>
+            <polyline points="0,40 30,35 60,20 90,25 120,15 150,30 180,45 210,38 240,22 280,28" fill="none" stroke="var(--accent)" stroke-width="0.5" opacity="0.3" stroke-dasharray="2,2"/>
+          </svg>
+          <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin-top:4px;">
+            <span>开始</span><span>当前帧</span><span>结束</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 9. 轨迹回放核心能力 ============ -->
+<div class="slide">
+  <div class="s-badge">07 · 核心算法</div>
+  <div class="s-title">轨迹陆地规避算法</div>
+  <div class="s-sub">确保船舶轨迹始终在海域内，杜绝"跑上陆地"</div>
+  <div class="s-body">
+    <div class="grid-3" style="width:100%;">
+      <div class="card">
+        <div class="card-icon">🌊</div>
+        <div class="card-title">海域模型</div>
+        <div class="card-desc">定义东海、南海、黄海、台湾海峡、北部湾五大海域，每个海域包含深海中心点与沿岸港口坐标列表，覆盖中国主要近海区域。</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">📐</div>
+        <div class="card-title">吸附算法</div>
+        <div class="card-desc">对每个轨迹点计算距最近港口的距离，若低于安全阈值（0.20°≈22km），则沿"港口→海心"方向推至安全距离外，确保 100% 落入海域。</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">✅</div>
+        <div class="card-title">验证结果</div>
+        <div class="stat" style="margin-top:8px;">
+          <div class="stat-num">100%</div>
+          <div class="stat-lbl">海域通过率</div>
+        </div>
+        <div class="stat" style="margin-top:8px;">
+          <div class="stat-num">800</div>
+          <div class="stat-lbl">轨迹点验证</div>
+        </div>
+        <div class="stat" style="margin-top:8px;">
+          <div class="stat-num">≥20km</div>
+          <div class="stat-lbl">距岸最近距离</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 10. AIS连续间断 ============ -->
+<div class="slide">
+  <div class="s-badge">08 · 专题研判</div>
+  <div class="s-title">AIS 连续间断分析</div>
+  <div class="s-sub">南海敏感管控海域 AIS 异常关机行为监测与研判</div>
+  <div class="s-body" style="flex-direction:column;gap:20px;">
+    <div class="grid-5" style="width:100%;">
+      <div class="card" style="padding:16px;">
+        <div class="stat"><div class="stat-num" style="font-size:24px;">—</div><div class="stat-lbl">海域总船舶数</div></div>
+      </div>
+      <div class="card" style="padding:16px;">
+        <div class="stat"><div class="stat-num" style="font-size:24px;color:var(--orange);">—</div><div class="stat-lbl">AIS异常关机</div></div>
+      </div>
+      <div class="card" style="padding:16px;">
+        <div class="stat"><div class="stat-num" style="font-size:24px;color:var(--red);">—</div><div class="stat-lbl">累计关机事件</div></div>
+      </div>
+      <div class="card" style="padding:16px;">
+        <div class="stat"><div class="stat-num" style="font-size:24px;color:var(--red);">—</div><div class="stat-lbl">典型可疑目标</div></div>
+      </div>
+      <div class="card" style="padding:16px;">
+        <div class="stat"><div class="stat-num" style="font-size:24px;color:var(--red);">—</div><div class="stat-lbl">高危规避目标</div></div>
+      </div>
+    </div>
+    <div class="grid-2" style="width:100%;">
+      <div class="card">
+        <div class="card-title">📊 异常行为特征</div>
+        <div class="card-desc" style="margin-top:8px;">
+          <span class="tag tag-red">规律性静默</span>
+          <span class="tag tag-orange">敏感海域作业</span>
+          <span class="tag tag-red">双船同步关机</span>
+          <span class="tag tag-orange">轨迹异常偏移</span>
+          <span class="tag tag-red">规避监测模式</span>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">🔍 关机时段数据</div>
+        <div class="card-desc" style="margin-top:8px;">系统对 AIS 关机时段进行专项数据补全与展示，确保分析人员在关机窗口内仍能看到历史轨迹与上下文情报，不遗漏关键时段。</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 11. IP网络 - 数据概览 ============ -->
+<div class="slide">
+  <div class="s-badge">09 · IP网络检索</div>
+  <div class="s-title">IP 网络数据检索 · 数据概览</div>
+  <div class="s-sub">卫星链路网络数据的全景统计与可视化</div>
+  <div class="s-body" style="flex-direction:column;gap:20px;">
+    <div class="grid-3" style="width:100%;">
+      <div class="card" style="padding:16px;">
+        <div class="stat"><div class="stat-num">—</div><div class="stat-lbl">总数据量</div></div>
+      </div>
+      <div class="card" style="padding:16px;">
+        <div class="stat"><div class="stat-num" style="color:var(--accent3);">—</div><div class="stat-lbl">涉及国家</div></div>
+      </div>
+      <div class="card" style="padding:16px;">
+        <div class="stat"><div class="stat-num">—</div><div class="stat-lbl">IP端口映射数</div></div>
+      </div>
+    </div>
+    <div class="grid-3" style="width:100%;">
+      <div class="card" style="padding:16px;">
+        <div class="stat"><div class="stat-num">—</div><div class="stat-lbl">账号口令组数</div></div>
+      </div>
+      <div class="card" style="padding:16px;">
+        <div class="stat"><div class="stat-num">—</div><div class="stat-lbl">IMSI特征数</div></div>
+      </div>
+      <div class="card" style="padding:16px;">
+        <div class="stat"><div class="stat-num">—</div><div class="stat-lbl">音视频样本数</div></div>
+      </div>
+    </div>
+    <div class="grid-3" style="width:100%;">
+      <div class="card">
+        <div class="card-title" style="font-size:14px;">🥧 IP所属国家分布</div>
+        <div class="card-desc" style="margin-top:6px;">Top 7 国家饼图可视化，直观展示 IP 地理分布</div>
+      </div>
+      <div class="card">
+        <div class="card-title" style="font-size:14px;">📊 数据类型分布</div>
+        <div class="card-desc" style="margin-top:6px;">网络协议 / IP+端口 / 域名 / 邮箱等类型占比</div>
+      </div>
+      <div class="card">
+        <div class="card-title" style="font-size:14px;">📡 协议占比</div>
+        <div class="card-desc" style="margin-top:6px;">Ku / Ka / C / X 波段协议分布统计</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 12. IP网络 - 筛选与实体 ============ -->
+<div class="slide">
+  <div class="s-badge">10 · IP网络检索</div>
+  <div class="s-title">多维筛选与虚拟实体</div>
+  <div class="s-sub">灵活的多维筛选体系 + 实体聚合分析</div>
+  <div class="s-body">
+    <div class="grid-2" style="width:100%;">
+      <div class="card">
+        <div class="card-icon">🛰️</div>
+        <div class="card-title">所属卫星筛选</div>
+        <div class="card-desc" style="margin-bottom:12px;">支持按 5 颗卫星筛选数据：</div>
+        <div>
+          <span class="tag tag-blue">亚太六号 (APSTAR-6)</span>
+          <span class="tag tag-blue">中星十号 (ZX-10)</span>
+          <span class="tag tag-blue">国际通信卫星19 (INTELSAT-19)</span>
+          <span class="tag tag-blue">亚洲五号 (ASIASAT-5)</span>
+          <span class="tag tag-blue">天链二号 (TL-2)</span>
+        </div>
+        <div style="margin-top:12px;">
+          <span class="tag tag-green">Ku波段</span>
+          <span class="tag tag-green">Ka波段</span>
+          <span class="tag tag-green">C波段</span>
+          <span class="tag tag-green">X波段</span>
+        </div>
+        <div style="margin-top:12px;font-size:13px;color:var(--text2);">数据类型：网络协议 / IP+端口 / 域名 / 邮箱 / 账号口令 / SSL证书 / IMSI / 音频 / 视频</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">🏢</div>
+        <div class="card-title">虚拟实体分析</div>
+        <div class="card-desc">将全量数据按 IP / 域名 / 账号等维度聚合为"虚拟实体"，每个实体展示关联国家标签与核心特征值，帮助分析人员快速识别高危实体群。</div>
+        <ul class="feat-list" style="margin-top:10px;">
+          <li>全量数据表 + 虚拟实体双视图切换</li>
+          <li>实体列表展示国家标签与特征值</li>
+          <li>支持溯源分析（类 Wireshark 报文追踪）</li>
+          <li>音视频播放详情 / 邮件组报详情</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 13. 专题分析 ============ -->
+<div class="slide">
+  <div class="s-badge">12 · 专题分析</div>
+  <div class="s-title">专题分析 · 规则引擎</div>
+  <div class="s-sub">拖拽式规则组合，快速构建分析专题</div>
+  <div class="s-body">
+    <div class="grid-2" style="width:100%;">
+      <div class="card">
+        <div class="card-icon">🔧</div>
+        <div class="card-title">规则引擎</div>
+        <div class="card-desc" style="margin-bottom:12px;">五大规则维度自由组合，覆盖时空/环境/目标/行为全要素：</div>
+        <div class="grid-3" style="gap:8px;">
+          <div style="padding:10px;background:rgba(56,189,248,0.08);border-radius:6px;text-align:center;">
+            <div style="font-size:18px;">⏰</div>
+            <div style="font-size:12px;color:var(--accent);margin-top:4px;">时间</div>
+          </div>
+          <div style="padding:10px;background:rgba(34,197,94,0.08);border-radius:6px;text-align:center;">
+            <div style="font-size:18px;">📍</div>
+            <div style="font-size:12px;color:var(--green);margin-top:4px;">区域</div>
+          </div>
+          <div style="padding:10px;background:rgba(245,158,11,0.08);border-radius:6px;text-align:center;">
+            <div style="font-size:18px;">🌤️</div>
+            <div style="font-size:12px;color:var(--orange);margin-top:4px;">气候</div>
+          </div>
+          <div style="padding:10px;background:rgba(168,85,247,0.08);border-radius:6px;text-align:center;">
+            <div style="font-size:18px;">🎯</div>
+            <div style="font-size:12px;color:var(--purple);margin-top:4px;">目标</div>
+          </div>
+          <div style="padding:10px;background:rgba(239,68,68,0.08);border-radius:6px;text-align:center;">
+            <div style="font-size:18px;">🏃</div>
+            <div style="font-size:12px;color:var(--red);margin-top:4px;">行为</div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-icon">📚</div>
+        <div class="card-title">默认专题库（11个）</div>
+        <div style="margin-top:8px;font-size:13px;color:var(--text2);line-height:2;">
+          <div>🚢 南海航运态势监控</div>
+          <div>✈️ 台海军事动态分析</div>
+          <div>🛡️ 东海防空识别区监控</div>
+          <div>⚓ 马六甲海峡航道安全</div>
+          <div>🛢️ 霍尔木兹海峡能源通道</div>
+          <div>❄️ 北极航线战略态势</div>
+          <div>🌊 印度洋区域综合监控</div>
+          <div>🏝️ 太平洋岛链部署分析</div>
+          <div>🌀 西太平洋台风影响评估</div>
+          <div>🏗️ 全球港口枢纽态势监控</div>
+          <div>📡 南海海域AIS连续间断</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 14. 多源融合 ============ -->
+<div class="slide">
+  <div class="s-badge">13 · 多源融合</div>
+  <div class="s-title">多源数据融合 · 情报流与告警</div>
+  <div class="s-sub">AIS / ADS-B / 射频 / 话音多源数据实时融合</div>
+  <div class="s-body" style="flex-direction:column;gap:20px;">
+    <div class="grid-3" style="width:100%;">
+      <div class="card" style="padding:16px;">
+        <div class="stat"><div class="stat-num" style="color:var(--red);">—</div><div class="stat-lbl">ADS-B 在线</div></div>
+      </div>
+      <div class="card" style="padding:16px;">
+        <div class="stat"><div class="stat-num" style="color:var(--green);">—</div><div class="stat-lbl">AIS 在线</div></div>
+      </div>
+      <div class="card" style="padding:16px;">
+        <div class="stat"><div class="stat-num" style="color:var(--orange);">—</div><div class="stat-lbl">话音频道</div></div>
+      </div>
+    </div>
+    <div class="grid-4" style="width:100%;">
+      <div class="card">
+        <div class="card-title" style="font-size:14px;">📡 情报流</div>
+        <div class="card-desc" style="margin-top:6px;">多源情报实时滚动展示，按时间倒序排列，支持快速浏览最新动态。</div>
+      </div>
+      <div class="card">
+        <div class="card-title" style="font-size:14px;">🔗 事件关联</div>
+        <div class="card-desc" style="margin-top:6px;">自动关联多源数据形成事件卡片，点击可进入回溯详情页。</div>
+      </div>
+      <div class="card">
+        <div class="card-title" style="font-size:14px;">⚠️ 告警中心</div>
+        <div class="card-desc" style="margin-top:6px;">集中展示未处置告警，按风险等级分类，支持快速处置。</div>
+      </div>
+      <div class="card">
+        <div class="card-title" style="font-size:14px;">📊 数据源监控</div>
+        <div class="card-desc" style="margin-top:6px;">实时监控各数据源在线状态与数据流量，保障数据链路稳定。</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 15. 事件关联详情 ============ -->
+<div class="slide">
+  <div class="s-badge">14 · 事件回溯</div>
+  <div class="s-title">事件关联回溯详情页</div>
+  <div class="s-sub">六大模块构成完整的事件回溯分析能力</div>
+  <div class="s-body">
+    <div class="grid-3" style="width:100%;">
+      <div class="card">
+        <div class="card-icon">📋</div>
+        <div class="card-title">① 顶部基础卡片</div>
+        <div class="card-desc">案例编号 / 事件地点 / 时段 / 置信度 / 事件类型 Tag / 风险等级 / 研判状态 / 核心研判结论</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">🎯</div>
+        <div class="card-title">② 涉案目标列表</div>
+        <div class="card-desc">左侧可点击列表，展示目标名称/国旗/MMSI/类型/异常行为，点击自动在地图上聚焦目标（含弹跳动画）</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">🗺️</div>
+        <div class="card-title">③ 中央地图核心</div>
+        <div class="card-desc">高德卫星图 + 5 类图层（AIS航迹/静默盲区/禁航区/ADS-B航迹/射频热力）+ 轨迹回放控件 + 异常时刻定位</div>
+      </div>
+    </div>
+    <div class="grid-3" style="width:100%;margin-top:20px;">
+      <div class="card">
+        <div class="card-icon">⏱️</div>
+        <div class="card-title">④ 证据链时间轴</div>
+        <div class="card-desc">Tab 分类：全部/AIS/射频/ADS-B/话音/OSINT，含音频播放器与原文预览</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">🏷️</div>
+        <div class="card-title">⑤ 异常行为研判</div>
+        <div class="card-desc">5 个条件判定标签 + 最终研判结论文本（含风险高亮）</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">📦</div>
+        <div class="card-title">⑥ 溯源取证</div>
+        <div class="card-desc">7 个操作按钮：报文回放/热力截图/航迹存档/话音回放/公告原文/快照预览/批量导出</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 16. 证据链时间轴 ============ -->
+<div class="slide">
+  <div class="s-badge">15 · 证据链</div>
+  <div class="s-title">多源证据链时间轴</div>
+  <div class="s-sub">六类情报源按时间线对齐，构建完整证据链</div>
+  <div class="s-body">
+    <div class="grid-3" style="width:100%;">
+      <div class="card">
+        <div class="card-icon">🟢</div>
+        <div class="card-title">AIS 轨迹证据</div>
+        <div class="card-desc">正常上报 / 关机静默 / 恢复上线三种状态标记，展示静默时长，与地图静默盲区图层联动。</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">🟣</div>
+        <div class="card-title">射频频谱证据</div>
+        <div class="card-desc">持续捕获 / 信号波动记录，展示信号稳定性指标，与地图射频热力点位联动。</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">🔴</div>
+        <div class="card-title">ADS-B 航空证据</div>
+        <div class="card-desc">航空器巡航时段与航迹覆盖匹配度，与地图 ADS-B 航迹图层联动。</div>
+      </div>
+    </div>
+    <div class="grid-3" style="width:100%;margin-top:20px;">
+      <div class="card">
+        <div class="card-icon">🔊</div>
+        <div class="card-title">海事 VHF 话音</div>
+        <div class="card-desc">内嵌音频播放器（播放键 + 进度条 + 时长），支持话音回放取证。</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">📰</div>
+        <div class="card-title">OSINT 情报</div>
+        <div class="card-desc">官方公告 / 新闻报道 / 社交媒体三类来源，支持原文与快照预览。</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">🔗</div>
+        <div class="card-title">时间轴对齐</div>
+        <div class="card-desc">所有证据按统一时间线排列，静默窗口期高亮标记（橙色阴影块），支持异常时刻一键定位。</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 17. 异常研判与溯源取证 ============ -->
+<div class="slide">
+  <div class="s-badge">16 · 研判取证</div>
+  <div class="s-title">异常行为研判与溯源取证</div>
+  <div class="s-sub">智能研判标签 + 全链路取证导出</div>
+  <div class="s-body">
+    <div class="grid-2" style="width:100%;">
+      <div class="card">
+        <div class="card-icon">🏷️</div>
+        <div class="card-title">异常行为研判标签</div>
+        <div class="card-desc" style="margin-bottom:14px;">系统基于多源证据自动生成 5 个条件判定标签：</div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <div style="padding:8px 12px;background:rgba(239,68,68,0.08);border-radius:6px;font-size:13px;">
+            <span style="color:var(--red);">●</span> 双船同步启停 AIS
+          </div>
+          <div style="padding:8px 12px;background:rgba(245,158,11,0.08);border-radius:6px;font-size:13px;">
+            <span style="color:var(--orange);">●</span> 规律静默 45min
+          </div>
+          <div style="padding:8px 12px;background:rgba(239,68,68,0.08);border-radius:6px;font-size:13px;">
+            <span style="color:var(--red);">●</span> 敏感海域作业
+          </div>
+          <div style="padding:8px 12px;background:rgba(168,85,247,0.08);border-radius:6px;font-size:13px;">
+            <span style="color:var(--purple);">●</span> 射频持续留存
+          </div>
+          <div style="padding:8px 12px;background:rgba(239,68,68,0.08);border-radius:6px;font-size:13px;">
+            <span style="color:var(--red);">●</span> 吻合过驳模型
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-icon">📦</div>
+        <div class="card-title">溯源取证操作</div>
+        <div class="card-desc" style="margin-bottom:14px;">7 个取证操作按钮，覆盖全证据链：</div>
+        <div class="grid-2" style="gap:8px;">
+          <div style="padding:10px;background:rgba(56,189,248,0.08);border-radius:6px;font-size:12px;text-align:center;">📡 AIS报文回放</div>
+          <div style="padding:10px;background:rgba(168,85,247,0.08);border-radius:6px;font-size:12px;text-align:center;">🔥 射频热力截图</div>
+          <div style="padding:10px;background:rgba(239,68,68,0.08);border-radius:6px;font-size:12px;text-align:center;">✈️ ADS-B航迹存档</div>
+          <div style="padding:10px;background:rgba(245,158,11,0.08);border-radius:6px;font-size:12px;text-align:center;">🔊 海事话音回放</div>
+          <div style="padding:10px;background:rgba(34,197,94,0.08);border-radius:6px;font-size:12px;text-align:center;">📄 官方公告原文</div>
+          <div style="padding:10px;background:rgba(56,189,248,0.08);border-radius:6px;font-size:12px;text-align:center;">📸 情报快照预览</div>
+          <div style="padding:10px;background:rgba(168,85,247,0.08);border-radius:6px;font-size:12px;text-align:center;grid-column:span 2;">📑 批量导出研判报告（PDF/Excel）</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 18. 技术特点 ============ -->
+<div class="slide">
+  <div class="s-badge">17 · 技术特点</div>
+  <div class="s-title">系统技术特点</div>
+  <div class="s-sub">面向实战的工程化设计</div>
+  <div class="s-body">
+    <div class="grid-4" style="width:100%;">
+      <div class="card">
+        <div class="card-icon">🗺️</div>
+        <div class="card-title">真实卫星影像</div>
+        <div class="card-desc">集成高德地图 JS API 2.0，卫星影像 + 路网叠加，支持图层切换与自定义样式</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">⚡</div>
+        <div class="card-title">轻量帧更新</div>
+        <div class="card-desc">轨迹播放采用增量帧更新机制，仅刷新当前船位与已播放航迹，避免全图层重建</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">🧠</div>
+        <div class="card-title">海域约束算法</div>
+        <div class="card-desc">基于海岸线点位的船舶轨迹陆地规避算法，100% 保证轨迹在海域内</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">🔌</div>
+        <div class="card-title">动态 Tab 架构</div>
+        <div class="card-desc">iframe 嵌入式动态标签页，支持去重打开 / 关闭清理，防内存泄漏</div>
+      </div>
+    </div>
+    <div class="grid-4" style="width:100%;margin-top:16px;">
+      <div class="card">
+        <div class="card-icon">📊</div>
+        <div class="card-title">SVG 可视化</div>
+        <div class="card-desc">纯 SVG 饼图/波形图绘制，零依赖，适配任意分辨率</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">🔄</div>
+        <div class="card-title">事件委托</div>
+        <div class="card-desc">父容器级事件委托，一次注册终身有效，兼容动态渲染</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">💾</div>
+        <div class="card-title">本地缓存</div>
+        <div class="card-desc">localStorage 战术数据快照 + 版本管理，支持离线分析与数据迁移</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">🎨</div>
+        <div class="card-title">统一设计体系</div>
+        <div class="card-desc">CSS 变量驱动的深色科技风设计语言，全局一致的视觉体验</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 19. 应用场景 ============ -->
+<div class="slide">
+  <div class="s-badge">18 · 应用场景</div>
+  <div class="s-title">应用场景与价值</div>
+  <div class="s-sub">覆盖海上安全 / 空域监控 / 网络情报 / 综合研判全场景</div>
+  <div class="s-body">
+    <div class="grid-2" style="width:100%;">
+      <div class="card">
+        <div class="card-icon">🚢</div>
+        <div class="card-title">海上安全监控</div>
+        <ul class="feat-list" style="margin-top:8px;">
+          <li>AIS 异常关机行为监测与研判</li>
+          <li>敏感海域船舶聚集 / 过驳行为识别</li>
+          <li>船舶历史轨迹回放与速度分析</li>
+          <li>海域圈选统计与目标密度评估</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-icon">✈️</div>
+        <div class="card-title">空域态势监控</div>
+        <ul class="feat-list" style="margin-top:8px;">
+          <li>ADS-B 航空器实时追踪</li>
+          <li>防空识别区监控与告警</li>
+          <li>军机活动规律分析</li>
+          <li>航空器航迹与海域目标关联</li>
+        </ul>
+      </div>
+    </div>
+    <div class="grid-2" style="width:100%;margin-top:16px;">
+      <div class="card">
+        <div class="card-icon">🌐</div>
+        <div class="card-title">卫星网络情报</div>
+        <ul class="feat-list" style="margin-top:8px;">
+          <li>卫星链路 IP 数据检索与溯源</li>
+          <li>虚拟实体聚合与国家分布分析</li>
+          <li>账号口令 / IMSI / 音视频样本管理</li>
+          <li>多卫星数据源对比分析</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-icon">🔗</div>
+        <div class="card-title">综合情报研判</div>
+        <ul class="feat-list" style="margin-top:8px;">
+          <li>多源数据融合与事件关联</li>
+          <li>证据链时间轴可视化</li>
+          <li>异常行为智能研判标签</li>
+          <li>一键溯源取证与报告导出</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 20. 总结与展望 ============ -->
+<div class="slide cover">
+  <div class="bg-deco bg-deco-tl"></div>
+  <div class="bg-deco bg-deco-br"></div>
+  <div style="font-size:50px;margin-bottom:16px;">🚀</div>
+  <div style="font-size:36px;font-weight:700;background:linear-gradient(90deg,var(--accent),var(--accent3));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:8px;">总结与展望</div>
+  <div class="cover-line"></div>
+  <div style="max-width:700px;text-align:left;margin:0 auto;">
+    <div style="font-size:16px;color:var(--text);line-height:2.2;">
+      <div>✅ 五大核心模块覆盖情报分析全链路</div>
+      <div>✅ 多源融合实现 AIS / ADS-B / 射频 / 话音 / OSINT 协同</div>
+      <div>✅ 事件回溯详情页提供 6 大模块完整分析能力</div>
+      <div>✅ 轨迹陆地规避算法确保数据合理性</div>
+      <div>✅ 溯源取证支持一键导出研判报告</div>
+    </div>
+    <div style="margin-top:30px;font-size:15px;color:var(--accent);text-align:center;">
+      持续迭代 · 面向实战 · 情报驱动决策
+    </div>
+  </div>
+  <div class="cover-meta" style="margin-top:30px;">态势分析 · 2026</div>
+</div>
+
+</div>
+
+<!-- 导航控件 -->
+<div class="nav">
+  <div class="nav-btn" id="btn-prev" title="上一页">‹</div>
+  <div class="nav-info" id="nav-info">1 / 20</div>
+  <div class="nav-btn" id="btn-next" title="下一页">›</div>
+  <div class="nav-fs" id="btn-fs" title="全屏">全屏</div>
+</div>
+
+<script>
+(function(){
+  var slides = document.querySelectorAll('.slide');
+  var current = 0;
+  var total = slides.length;
+  var info = document.getElementById('nav-info');
+
+  function show(idx){
+    if(idx<0) idx=0;
+    if(idx>=total) idx=total-1;
+    slides[current].classList.remove('active');
+    slides[idx].classList.add('active');
+    current = idx;
+    info.textContent = (idx+1) + ' / ' + total;
+  }
+  function next(){ show(current+1); }
+  function prev(){ show(current-1); }
+
+  document.getElementById('btn-next').addEventListener('click', next);
+  document.getElementById('btn-prev').addEventListener('click', prev);
+  document.getElementById('btn-fs').addEventListener('click', function(){
+    if(!document.fullscreenElement){
+      document.documentElement.requestFullscreen();
+    } else {
+      document.exitFullscreen();
+    }
+  });
+
+  document.addEventListener('keydown', function(e){
+    if(e.key==='ArrowRight' || e.key===' ' || e.key==='PageDown') { e.preventDefault(); next(); }
+    else if(e.key==='ArrowLeft' || e.key==='PageUp') { e.preventDefault(); prev(); }
+    else if(e.key==='Home') { show(0); }
+    else if(e.key==='End') { show(total-1); }
+    else if(e.key==='f' || e.key==='F') {
+      if(!document.fullscreenElement) document.documentElement.requestFullscreen();
+      else document.exitFullscreen();
+    }
+  });
+
+  // 触摸滑动
+  var touchX = 0;
+  document.addEventListener('touchstart', function(e){ touchX = e.touches[0].clientX; });
+  document.addEventListener('touchend', function(e){
+    var dx = e.changedTouches[0].clientX - touchX;
+    if(Math.abs(dx)>50){ dx<0 ? next() : prev(); }
+  });
+})();
+</script>
+</body>
+</html>

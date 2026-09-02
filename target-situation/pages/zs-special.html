@@ -1,0 +1,1528 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>某海域ZS专题</title>
+<script src="https://webapi.amap.com/maps?v=2.0&key=01d6322cc08dafd1800e07b018b06b49&plugin=AMap.Scale,AMap.ToolBar,AMap.MouseTool,AMap.PolyEditor"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+:root{
+  --bg-primary:#0B1220;
+  --bg-secondary:#131C2E;
+  --bg-tertiary:#1A2540;
+  --bg-hover:#22304D;
+  --text-primary:#e2e8f0;
+  --text-secondary:#94a3b8;
+  --text-muted:#64748b;
+  --border-color:#1e293b;
+  --border-light:#334155;
+  --risk-high:#ef4444;
+  --risk-medium:#f97316;
+  --risk-low:#eab308;
+  --risk-normal:#3b82f6;
+  --accent:#f97316;
+  --accent-hover:#ea580c;
+  --shadow:0 4px 12px rgba(0,0,0,0.4);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;overflow:hidden;font-family:"Microsoft YaHei","PingFang SC",Segoe UI,sans-serif;font-size:13px;color:var(--text-primary);background:var(--bg-primary)}
+button{cursor:pointer;font-family:inherit;color:inherit;background:none;border:none}
+input,select{font-family:inherit;color:inherit}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#334155;border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:#475569}
+/* Layout */
+#app{display:flex;flex-direction:column;height:100vh;width:100vw}
+.header{height:58px;flex-shrink:0;background:linear-gradient(180deg,#0F1A2E 0%,#0B1220 100%);border-bottom:1px solid var(--border-color);display:flex;align-items:center;padding:0 16px;gap:12px;z-index:1000;box-shadow:0 2px 8px rgba(0,0,0,0.3)}
+.body{flex:1;display:flex;min-height:0;overflow:hidden}
+.left-panel{width:280px;flex-shrink:0;background:var(--bg-secondary);border-right:1px solid var(--border-color);display:flex;flex-direction:column;transition:width .25s;overflow:hidden}
+.left-panel.collapsed{width:34px}
+.map-wrap{flex:1;position:relative;min-width:0;background:#0a0f1a}
+#mapContainer{position:absolute;inset:0}
+.right-panel{width:320px;flex-shrink:0;background:var(--bg-secondary);border-left:1px solid var(--border-color);display:flex;flex-direction:column;transition:width .25s;overflow:hidden}
+.right-panel.collapsed{width:34px}
+.footer{height:34px;flex-shrink:0;background:var(--bg-secondary);border-top:1px solid var(--border-color);display:flex;align-items:center;padding:0 14px;gap:18px;font-size:11px;color:var(--text-secondary);z-index:1000}
+/* Header */
+.header-title{display:flex;align-items:center;gap:10px;font-size:16px;font-weight:600;letter-spacing:.5px;color:#fff;white-space:nowrap}
+.header-title .logo{width:30px;height:30px;border-radius:6px;background:linear-gradient(135deg,#f97316,#ef4444);display:flex;align-items:center;justify-content:center;color:#fff}
+.header-divider{width:1px;height:26px;background:var(--border-color)}
+.time-range{display:flex;align-items:center;gap:6px;background:var(--bg-tertiary);border:1px solid var(--border-light);border-radius:6px;padding:3px 6px}
+.time-range input[type=date]{background:transparent;border:none;outline:none;font-size:11px;color:var(--text-primary);width:100px}
+.time-range .quick{display:flex;gap:2px;margin-left:6px;border-left:1px solid var(--border-color);padding-left:6px}
+.time-range .quick button{padding:3px 8px;font-size:11px;border-radius:4px;color:var(--text-secondary)}
+.time-range .quick button.active{background:var(--accent);color:#fff}
+.data-source{position:relative}
+.data-source-btn{display:flex;align-items:center;gap:5px;padding:6px 10px;background:var(--bg-tertiary);border:1px solid var(--border-light);border-radius:6px;font-size:11px;color:var(--text-primary)}
+.data-source-btn:hover{background:var(--bg-hover)}
+.data-source-menu{position:absolute;top:calc(100% + 4px);left:0;width:220px;background:var(--bg-secondary);border:1px solid var(--border-light);border-radius:6px;padding:6px;box-shadow:var(--shadow);display:none;z-index:2000}
+.data-source-menu.show{display:block}
+.data-source-menu label{display:flex;align-items:center;gap:8px;padding:5px 8px;font-size:12px;cursor:pointer;border-radius:4px}
+.data-source-menu label:hover{background:var(--bg-hover)}
+.func-group{display:flex;align-items:center;gap:6px;margin-left:auto}
+.func-btn{display:flex;align-items:center;gap:5px;padding:6px 10px;background:var(--bg-tertiary);border:1px solid var(--border-light);border-radius:6px;font-size:11px;color:var(--text-primary);white-space:nowrap}
+.func-btn:hover{background:var(--bg-hover);border-color:var(--accent)}
+.func-btn i{width:14px;height:14px}
+.func-btn.primary{background:linear-gradient(135deg,#f97316,#ea580c);border-color:#f97316;color:#fff;font-weight:600;box-shadow:0 0 10px rgba(249,115,22,.4)}
+.func-btn.primary:hover{background:linear-gradient(135deg,#ea580c,#dc2626)}
+.func-btn.primary.analyzing{animation:pulse 1.2s infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 10px rgba(249,115,22,.4)}50%{box-shadow:0 0 22px rgba(249,115,22,.9)}}
+.btn-divider{width:1px;height:22px;background:var(--border-color)}
+/* Panel common */
+.panel-toggle{position:absolute;top:8px;width:26px;height:26px;background:var(--bg-tertiary);border:1px solid var(--border-light);border-radius:4px;display:flex;align-items:center;justify-content:center;z-index:10;cursor:pointer}
+.panel-toggle:hover{background:var(--bg-hover)}
+.left-panel .panel-toggle{right:-13px}
+.right-panel .panel-toggle{left:-13px}
+.panel-tabs{display:flex;border-bottom:1px solid var(--border-color);background:var(--bg-tertiary);flex-shrink:0}
+.panel-tab{flex:1;padding:9px 4px;text-align:center;font-size:12px;color:var(--text-secondary);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s}
+.panel-tab:hover{color:var(--text-primary);background:var(--bg-hover)}
+.panel-tab.active{color:var(--accent);border-bottom-color:var(--accent);background:var(--bg-secondary)}
+.panel-content{flex:1;overflow-y:auto;overflow-x:hidden}
+.panel-section{padding:10px 12px;border-bottom:1px solid var(--border-color)}
+.panel-section h4{font-size:11px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;font-weight:500}
+.collapsed .panel-tabs,.collapsed .panel-content,.collapsed .panel-section{display:none}
+.collapsed .panel-toggle i{transform:rotate(180deg)}
+/* Stats */
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px}
+.stat-card{background:var(--bg-tertiary);border-radius:6px;padding:8px;text-align:center;border:1px solid var(--border-color)}
+.stat-card .label{font-size:10px;color:var(--text-secondary);margin-bottom:2px}
+.stat-card .value{font-size:18px;font-weight:700;color:#fff}
+.stat-card.high .value{color:var(--risk-high)}
+.stat-card.medium .value{color:var(--risk-medium)}
+.stat-card.low .value{color:var(--risk-low)}
+.stat-card.total .value{color:var(--text-primary)}
+/* Filter row */
+.filter-row{display:flex;gap:6px;margin:8px 0;align-items:center}
+.search-input{flex:1;background:var(--bg-tertiary);border:1px solid var(--border-light);border-radius:5px;padding:6px 8px;font-size:12px;outline:none}
+.search-input:focus{border-color:var(--accent)}
+.risk-filter{display:flex;gap:4px}
+.risk-chip{padding:3px 8px;font-size:11px;border-radius:10px;border:1px solid var(--border-light);background:var(--bg-tertiary);color:var(--text-secondary)}
+.risk-chip.active{color:#fff;border-color:transparent}
+.risk-chip.high.active{background:var(--risk-high)}
+.risk-chip.medium.active{background:var(--risk-medium)}
+.risk-chip.low.active{background:var(--risk-low)}
+.risk-chip.normal.active{background:var(--risk-normal)}
+/* Ship list table */
+.ship-list{display:flex;flex-direction:column}
+.ship-row{padding:8px 10px;border-bottom:1px solid var(--border-color);cursor:pointer;display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center;font-size:12px;transition:background .12s}
+.ship-row:hover{background:var(--bg-hover)}
+.ship-row.active{background:rgba(249,115,22,.12);border-left:3px solid var(--accent);padding-left:7px}
+.ship-row .risk-dot{width:10px;height:10px;border-radius:50%;box-shadow:0 0 6px currentColor}
+.ship-row .ship-info{display:flex;flex-direction:column;gap:2px;min-width:0}
+.ship-row .ship-name{color:var(--text-primary);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ship-row .ship-meta{font-size:10px;color:var(--text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ship-row .ship-time{font-size:10px;color:var(--text-muted);text-align:right}
+/* Checkbox group */
+.check-group{display:flex;flex-direction:column;gap:5px}
+.check-item{display:flex;align-items:center;gap:7px;padding:5px 6px;border-radius:4px;cursor:pointer;font-size:12px}
+.check-item:hover{background:var(--bg-hover)}
+.check-item input{accent-color:var(--accent)}
+/* Param config */
+.param-row{display:flex;flex-direction:column;gap:4px;margin-bottom:10px}
+.param-row label{font-size:11px;color:var(--text-secondary);display:flex;justify-content:space-between;align-items:center}
+.param-row label span{color:var(--text-muted);font-size:10px}
+.param-row input[type=number]{background:var(--bg-tertiary);border:1px solid var(--border-light);border-radius:5px;padding:5px 8px;font-size:12px;outline:none;width:100%}
+.param-row input[type=number]:focus{border-color:var(--accent)}
+.param-row select{background:var(--bg-tertiary);border:1px solid var(--border-light);border-radius:5px;padding:5px 8px;font-size:12px;outline:none;width:100%}
+.weight-slider{display:flex;align-items:center;gap:8px}
+.weight-slider input[type=range]{flex:1;accent-color:var(--accent)}
+.weight-slider span{font-size:11px;color:var(--accent);min-width:24px;text-align:right}
+.btn-block{width:100%;padding:7px;background:var(--bg-tertiary);border:1px solid var(--border-light);border-radius:5px;font-size:12px;color:var(--text-primary);margin-top:4px}
+.btn-block:hover{background:var(--bg-hover);border-color:var(--accent)}
+.btn-block.accent{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:500}
+.btn-block.accent:hover{background:var(--accent-hover)}
+.bbox-input{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.bbox-input input{background:var(--bg-tertiary);border:1px solid var(--border-light);border-radius:5px;padding:5px;font-size:11px;outline:none}
+.bbox-input input:focus{border-color:var(--accent)}
+/* Right panel detail */
+.detail-section{padding:10px 12px;border-bottom:1px solid var(--border-color)}
+.detail-section h4{font-size:11px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;font-weight:500;display:flex;align-items:center;gap:6px}
+.detail-section h4 i{width:14px;height:14px;color:var(--accent)}
+.kv-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.kv{display:flex;flex-direction:column;gap:2px}
+.kv .k{font-size:10px;color:var(--text-muted)}
+.kv .v{font-size:12px;color:var(--text-primary);word-break:break-all}
+.kv.full{grid-column:1/-1}
+.risk-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}
+.risk-badge.high{background:rgba(239,68,68,.18);color:var(--risk-high)}
+.risk-badge.medium{background:rgba(249,115,22,.18);color:var(--risk-medium)}
+.risk-badge.low{background:rgba(234,179,8,.18);color:var(--risk-low)}
+.risk-badge.normal{background:rgba(59,130,246,.18);color:var(--risk-normal)}
+/* Chart placeholder */
+.chart-box{height:140px;background:var(--bg-tertiary);border:1px solid var(--border-color);border-radius:6px;position:relative;overflow:hidden}
+#speedChart{width:100%;height:100%}
+/* Event list */
+.event-item{background:var(--bg-tertiary);border:1px solid var(--border-color);border-left:3px solid var(--risk-medium);border-radius:5px;padding:8px;margin-bottom:6px}
+.event-item.high{border-left-color:var(--risk-high)}
+.event-item.low{border-left-color:var(--risk-low)}
+.event-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.event-type{font-size:12px;font-weight:600;color:var(--text-primary)}
+.event-time{font-size:10px;color:var(--text-muted)}
+.event-desc{font-size:11px;color:var(--text-secondary);line-height:1.4;margin-bottom:4px}
+.event-foot{display:flex;justify-content:space-between;font-size:10px;color:var(--text-muted)}
+.event-score{color:var(--accent);font-weight:600}
+/* Trajectory nodes */
+.traj-node{display:flex;gap:8px;padding:6px 0;border-bottom:1px dashed var(--border-color);font-size:11px}
+.traj-node:last-child{border-bottom:none}
+.traj-node .tn-time{color:var(--text-muted);min-width:50px}
+.traj-node .tn-loc{color:var(--text-secondary);flex:1}
+.traj-node .tn-spd{color:var(--text-primary);font-weight:500}
+.traj-node .tn-evt{color:var(--accent)}
+/* Risk report */
+.risk-summary{background:linear-gradient(135deg,rgba(239,68,68,.12),rgba(249,115,22,.08));border:1px solid rgba(239,68,68,.3);border-radius:8px;padding:12px;margin-bottom:10px;text-align:center}
+.risk-score-big{font-size:38px;font-weight:700;color:var(--risk-high);line-height:1}
+.risk-score-label{font-size:11px;color:var(--text-secondary);margin-top:4px}
+.risk-level-row{display:flex;justify-content:center;gap:8px;margin-top:8px}
+.evidence-list{list-style:none;font-size:11px;color:var(--text-secondary);line-height:1.6}
+.evidence-list li{padding-left:14px;position:relative;margin-bottom:3px}
+.evidence-list li::before{content:'›';position:absolute;left:0;color:var(--accent)}
+.suggestion-box{background:var(--bg-tertiary);border:1px solid var(--border-color);border-radius:6px;padding:8px;font-size:11px;color:var(--text-primary);line-height:1.5;margin-bottom:8px}
+.remark-box textarea{width:100%;background:var(--bg-tertiary);border:1px solid var(--border-light);border-radius:5px;padding:6px;font-size:12px;color:var(--text-primary);outline:none;resize:vertical;min-height:60px}
+.remark-box textarea:focus{border-color:var(--accent)}
+/* Map overlays */
+.map-overlay{position:absolute;background:rgba(11,18,32,.92);border:1px solid var(--border-light);border-radius:8px;padding:8px 12px;font-size:11px;color:var(--text-primary);backdrop-filter:blur(8px);z-index:5;box-shadow:var(--shadow)}
+.map-legend{bottom:14px;left:14px;display:flex;flex-direction:column;gap:5px;min-width:130px}
+.map-legend .lg-title{font-size:10px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px}
+.map-legend .lg-item{display:flex;align-items:center;gap:7px;font-size:11px}
+.map-legend .lg-dot{width:10px;height:10px;border-radius:50%;box-shadow:0 0 5px currentColor}
+.map-tools{top:14px;right:14px;display:flex;gap:5px;align-items:center;padding:5px}
+.map-tools .mt-btn{width:30px;height:30px;border-radius:5px;background:var(--bg-tertiary);border:1px solid var(--border-light);display:flex;align-items:center;justify-content:center;color:var(--text-primary)}
+.map-tools .mt-btn:hover{background:var(--bg-hover);border-color:var(--accent);color:var(--accent)}
+.map-tools .mt-btn.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.map-tools .mt-btn i{width:15px;height:15px}
+.map-tools .mt-divider{width:1px;height:22px;background:var(--border-color);margin:0 2px}
+.playback-bar{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:10px;background:rgba(11,18,32,.95);border:1px solid var(--border-light);border-radius:24px;padding:7px 14px;backdrop-filter:blur(8px);z-index:5;box-shadow:var(--shadow)}
+.playback-bar .pb-btn{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--text-primary)}
+.playback-bar .pb-btn:hover{background:var(--bg-hover);color:var(--accent)}
+.playback-bar .pb-btn.play{background:var(--accent);color:#fff}
+.playback-bar .pb-btn.play:hover{background:var(--accent-hover)}
+.playback-bar .pb-slider{width:180px;height:4px;background:var(--bg-tertiary);border-radius:2px;position:relative;cursor:pointer}
+.playback-bar .pb-progress{height:100%;background:var(--accent);border-radius:2px;width:30%}
+.playback-bar .pb-time{font-size:11px;color:var(--text-secondary);min-width:90px;text-align:center}
+.playback-bar .pb-speed{padding:3px 8px;background:var(--bg-tertiary);border:1px solid var(--border-light);border-radius:4px;font-size:11px;color:var(--text-primary)}
+/* Bottom status */
+.footer .fs-item{display:flex;align-items:center;gap:5px}
+.footer .fs-item i{width:13px;height:13px;color:var(--accent)}
+.footer .fs-divider{width:1px;height:14px;background:var(--border-color)}
+.footer .fs-spacer{flex:1}
+.dot-live{width:7px;height:7px;border-radius:50%;background:#10b981;box-shadow:0 0 6px #10b981;animation:blink 1.5s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.4}}
+/* Toast */
+.toast{position:fixed;top:70px;left:50%;transform:translateX(-50%) translateY(-20px);background:rgba(11,18,32,.96);border:1px solid var(--accent);border-radius:8px;padding:10px 18px;font-size:12px;color:var(--text-primary);z-index:9999;box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:all .3s;display:flex;align-items:center;gap:8px}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast i{width:16px;height:16px;color:var(--accent)}
+/* AMap overrides */
+.amap-copyright,.amap-logo{opacity:.35!important}
+.amap-scalecontrol{background:rgba(11,18,32,.8)!important;border:1px solid var(--border-color)!important;border-radius:4px!important;color:var(--text-secondary)!important}
+</style>
+</head>
+<body>
+<div id="app">
+  <!-- ============ HEADER ============ -->
+  <header class="header">
+    <div class="header-title">
+      <div class="logo"><i data-lucide="ship"></i></div>
+      <span>某海域ZS专题</span>
+    </div>
+    <div class="header-divider"></div>
+    <div class="time-range">
+      <input type="date" id="dateStart" value="2026-08-15">
+      <span style="color:var(--text-muted)">~</span>
+      <input type="date" id="dateEnd" value="2026-08-22">
+      <div class="quick">
+        <button data-q="24h">4h</button>
+        <button data-q="7d" class="active">7</button>
+        <button data-q="30d">300</button>
+        <button data-q="custom">自定义</button>
+      </div>
+    </div>
+    <div class="header-divider"></div>
+    <div class="data-source">
+      <button class="data-source-btn" id="dsBtn">
+        <i data-lucide="database"></i><span>数据源</span><i data-lucide="chevron-down"></i>
+      </button>
+      <div class="data-source-menu" id="dsMenu">
+        <label><input type="checkbox" checked> AIS原始轨迹</label>
+        <label><input type="checkbox" checked> GFW船舶事件</label>
+        <label><input type="checkbox" checked> 港口码头区</label>
+        <label><input type="checkbox" checked> 嫌疑船舶黑名单库</label>
+      </div>
+    </div>
+    <div class="func-group">
+      <button class="func-btn" onclick="toast('回放控制','播放/暂停/前进/后退/速度')"><i data-lucide="play"></i>回放控制</button>
+      <button class="func-btn primary" id="analyzeBtn" onclick="runAnalysis()"><i data-lucide="zap"></i>一键嫌疑船舶识别</button>
+      <button class="func-btn" onclick="window.open('zssf-verify.html','_blank')"><i data-lucide="flask-conical"></i>静默专项分析</button>
+      <div class="btn-divider"></div>
+      <button class="func-btn" onclick="exportReport('KML')"><i data-lucide="download"></i>导出KML</button>
+      <button class="func-btn" onclick="exportReport('CSV')"><i data-lucide="file-spreadsheet"></i>导出CSV</button>
+      <button class="func-btn" onclick="exportReport('REPORT')"><i data-lucide="file-text"></i>导出报表</button>
+      <div class="btn-divider"></div>
+      <button class="func-btn" id="layerSatBtn" onclick="setBaseMap('satellite')"><i data-lucide="image"></i>卫星</button>
+      <button class="func-btn" id="layerSeaBtn" onclick="setBaseMap('sea')"><i data-lucide="layers"></i>海图</button>
+    </div>
+  </header>
+  <!-- ============ BODY ============ -->
+  <div class="body">
+    <!-- LEFT PANEL -->
+    <aside class="left-panel" id="leftPanel">
+      <div class="panel-tabs">
+        <div class="panel-tab active" data-ltab="list">嫌疑船舶列表</div>
+        <div class="panel-tab" data-ltab="spatial">空间筛选</div>
+        <div class="panel-tab" data-ltab="config">分析参数</div>
+      </div>
+      <div class="panel-content" id="leftContent">
+        <!-- TAB1: Ship list -->
+        <div class="ltab-pane" data-pane="list">
+          <div class="panel-section">
+            <div class="stats-grid">
+              <div class="stat-card total"><div class="label">嫌疑船舶总数</div><div class="value" id="statTotal">0</div></div>
+              <div class="stat-card high"><div class="label">高风险</div><div class="value" id="statHigh">0</div></div>
+              <div class="stat-card medium"><div class="label">中风险</div><div class="value" id="statMedium">0</div></div>
+              <div class="stat-card low"><div class="label">低风险</div><div class="value" id="statLow">0</div></div>
+            </div>
+          </div>
+          <div class="panel-section">
+            <div class="filter-row">
+              <input type="text" class="search-input" id="shipSearch" placeholder="搜索 MMSI / 船名">
+            </div>
+            <div class="risk-filter">
+              <span class="risk-chip high active" data-risk="high">🔴 </span>
+              <span class="risk-chip medium active" data-risk="medium">🟠 </span>
+              <span class="risk-chip low active" data-risk="low">🟡 </span>
+              <span class="risk-chip normal active" data-risk="normal">🔵 正常</span>
+            </div>
+          </div>
+          <div class="ship-list" id="shipList"></div>
+        </div>
+        <!-- TAB2: Spatial filter -->
+        <div class="ltab-pane" data-pane="spatial" style="display:none">
+          <div class="panel-section">
+            <h4>预设区域</h4>
+            <div class="check-group">
+              <label class="check-item"><input type="checkbox" checked data-area="all"> 全部广州海域</label>
+              <label class="check-item"><input type="checkbox" checked data-area="lingding"> 伶仃洋</label>
+              <label class="check-item"><input type="checkbox" checked data-area="nansha"> 南沙周边</label>
+              <label class="check-item"><input type="checkbox" checked data-area="guishan"> 桂山岛</label>
+              <label class="check-item"><input type="checkbox" checked data-area="humen"> 虎门水道</label>
+            </div>
+          </div>
+          <div class="panel-section">
+            <h4>自定义 AOI</h4>
+            <button class="btn-block" onclick="drawAOI()"><i data-lucide="draw-polygon" style="width:14px;height:14px;vertical-align:middle"></i> 绘制多边形</button>
+          </div>
+          <div class="panel-section">
+            <h4>经纬度范围</h4>
+            <div class="bbox-input">
+              <input type="number" id="bboxN" placeholder="北纬 N" step="0.01" value="22.90">
+              <input type="number" id="bboxS" placeholder="南纬 S" step="0.01" value="22.00">
+              <input type="number" id="bboxW" placeholder="西经 W" step="0.01" value="113.40">
+              <input type="number" id="bboxE" placeholder="东经 E" step="0.01" value="113.95">
+            </div>
+            <button class="btn-block accent" onclick="applyBBox()" style="margin-top:6px">应用范围</button>
+          </div>
+        </div>
+        <!-- TAB3: Analysis config -->
+        <div class="ltab-pane" data-pane="config" style="display:none">
+          <div class="panel-section">
+            <h4>海上过驳检测</h4>
+            <div class="param-row">
+              <label>距离阈值<span></span></label>
+              <input type="number" value="500" id="cfgDist">
+            </div>
+            <div class="param-row">
+              <label>时间阈值<span>分钟</span></label>
+              <input type="number" value="30" id="cfgTime">
+            </div>
+          </div>
+          <div class="panel-section">
+            <h4>AIS 异常行为</h4>
+            <div class="param-row">
+              <label>AIS 关闭时长阈值<span>小时</span></label>
+              <input type="number" value="2" id="cfgAisOff">
+            </div>
+            <div class="param-row">
+              <label>频繁开关检测</label>
+              <select id="cfgToggle">
+                <option value="on" selected>开启</option>
+                <option value="off">关闭</option>
+              </select>
+            </div>
+          </div>
+          <div class="panel-section">
+            <h4>徘徊行为</h4>
+            <div class="param-row">
+              <label>低速阈值<span>SOG&lt;3 kn</span></label>
+              <input type="number" value="3" id="cfgSog" step="0.1">
+            </div>
+            <div class="param-row">
+              <label>持续时长阈值<span>小时</span></label>
+              <input type="number" value="1" id="cfgLoiter">
+            </div>
+          </div>
+          <div class="panel-section">
+            <h4>码头异常</h4>
+            <div class="param-row">
+              <label>非正规码头停靠阈值<span>小时</span></label>
+              <input type="number" value="6" id="cfgDock">
+            </div>
+          </div>
+          <div class="panel-section">
+            <h4>船舶类型筛选</h4>
+            <div class="check-group">
+              <label class="check-item"><input type="checkbox" checked> 冷藏船</label>
+              <label class="check-item"><input type="checkbox" checked> 杂货船</label>
+              <label class="check-item"><input type="checkbox" checked> 无备案小船</label>
+            </div>
+          </div>
+          <div class="panel-section">
+            <h4>风险权重配置</h4>
+            <div class="param-row">
+              <label>过驳相遇 <span></span></label>
+              <div class="weight-slider"><input type="range" min="0" max="100" value="40" id="wTransfer"><span id="wTransferV">40</span></div>
+            </div>
+            <div class="param-row">
+              <label>AIS 关闭 <span></span></label>
+              <div class="weight-slider"><input type="range" min="0" max="100" value="35" id="wAisOff"><span id="wAisOffV">35</span></div>
+            </div>
+            <div class="param-row">
+              <label>非码头停靠<span></span></label>
+              <div class="weight-slider"><input type="range" min="0" max="100" value="25" id="wDock"><span id="wDockV">25</span></div>
+            </div>
+            <button class="btn-block accent" onclick="saveConfig()">保存配置</button>
+          </div>
+        </div>
+      </div>
+      <div class="panel-toggle" onclick="togglePanel('left')"><i data-lucide="chevron-left"></i></div>
+    </aside>
+    <!-- MAIN MAP -->
+    <div class="map-wrap">
+      <div id="mapContainer"></div>
+      <div class="map-overlay map-legend">
+        <div class="lg-title">图例</div>
+        <div class="lg-item"><span class="lg-dot" style="background:var(--risk-high);color:var(--risk-high)"></span>高风险船只</div>
+        <div class="lg-item"><span class="lg-dot" style="background:var(--risk-medium);color:var(--risk-medium)"></span>中风险船只</div>
+        <div class="lg-item"><span class="lg-dot" style="background:var(--risk-low);color:var(--risk-low)"></span>低风险船只</div>
+        <div class="lg-item"><span class="lg-dot" style="background:var(--risk-normal);color:var(--risk-normal)"></span>正常船舶</div>
+        <div class="lg-item"><span style="width:14px;height:8px;background:rgba(239,68,68,.35);border:1px solid var(--risk-high);border-radius:2px"></span>警戒船</div>
+        <div class="lg-item"><span style="width:10px;height:10px;border-radius:50%;background:rgba(234,179,8,.25);border:1px solid var(--risk-low)"></span>过驳船</div>
+        <div class="lg-item"><span style="width:12px;height:12px;background:var(--risk-normal);border-radius:2px"></span>正规码头</div>
+      </div>
+      <div class="playback-bar">
+        <button class="pb-btn" title="后退" onclick="playbackStep(-1)"><i data-lucide="rewind"></i></button>
+        <button class="pb-btn play" id="pbPlay" title="播放/暂停" onclick="playbackToggle()"><i data-lucide="play" id="pbPlayIcon"></i></button>
+        <button class="pb-btn" title="前进" onclick="playbackStep(1)"><i data-lucide="fast-forward"></i></button>
+        <div class="pb-slider" id="pbSlider" onclick="pbSeek(event)">
+          <div class="pb-progress" id="pbProgress"></div>
+        </div>
+        <div class="pb-time" id="pbTime">选择船舶查看轨迹</div>
+        <button class="pb-speed" id="pbSpeed" onclick="cycleSpeed()">1x</button>
+      </div>
+    </div>
+    <!-- RIGHT PANEL -->
+    <aside class="right-panel" id="rightPanel">
+      <div class="panel-tabs">
+        <div class="panel-tab active" data-rtab="basic">基本信息</div>
+        <div class="panel-tab" data-rtab="track">轨迹详情</div>
+        <div class="panel-tab" data-rtab="event">嫌疑事件</div>
+        <div class="panel-tab" data-rtab="report">风险评估</div>
+      </div>
+      <div class="panel-content" id="rightContent">
+        <!-- Will be populated by JS -->
+      </div>
+      <div class="panel-toggle" onclick="togglePanel('right')"><i data-lucide="chevron-right"></i></div>
+    </aside>
+  </div>
+  <!-- ============ FOOTER ============ -->
+  <footer class="footer">
+    <div class="fs-item"><i data-lucide="crosshair"></i><span>中心: <span id="footCenter">113.650, 22.350</span></span></div>
+    <div class="fs-divider"></div>
+    <div class="fs-item"><i data-lucide="ruler"></i><span>比例尺 <span id="footScale">1:200000</span></span></div>
+    <div class="fs-divider"></div>
+    <div class="fs-item"><i data-lucide="radio"></i><span class="dot-live"></span><span>AIS 轨迹数 <span id="footPoints">0</span></span></div>
+    <div class="fs-divider"></div>
+    <div class="fs-item"><i data-lucide="alert-triangle"></i><span>高风险 <span id="footHigh" style="color:var(--risk-high)">0</span> · 中风险 <span id="footMed" style="color:var(--risk-medium)">0</span> · 低风险 <span id="footLow" style="color:var(--risk-low)">0</span></span></div>
+    <div class="fs-spacer"></div>
+    <div class="fs-item"><i data-lucide="clock"></i><span>分析时段: <span id="footRange">2026-08-15 ~ 2026-08-22</span></span></div>
+  </footer>
+</div>
+<div class="toast" id="toast"><i data-lucide="info"></i><span id="toastMsg"></span></div>
+<script>
+/* ================== DATA (loaded from backend API) ================== */
+let SHIPS = [];
+/* 风险等级中文 → 前端 key 映射 */
+const RISK_LEVEL_MAP = { '高风险':'high', '中风险':'medium', '低风险':'low', '正常':'normal' };
+/* 风险特征标志 → 事件描述映射 */
+const FLAG_EVENTS = [
+  { key:'f_dark',        type:'AIS黑屏',     desc:'AIS信号出现黑屏/关闭时段',     score:30 },
+  { key:'f_dark_night',  type:'夜间黑屏',     desc:'夜间AIS信号关闭',             score:25 },
+  { key:'f_loiter',      type:'低速徘徊',     desc:'在敏感海域低速徘徊',          score:23 },
+  { key:'f_sts',         type:'海上过驳',     desc:'与其他船舶近距离停留，疑似过驳', score:35 },
+  { key:'f_spoofing',    type:'航迹欺诈',     desc:'AIS轨迹存在欺骗/篡改迹象',     score:40 },
+  { key:'f_high_speed',  type:'异常高速',     desc:'出现异常高速航行',            score:18 },
+  { key:'f_dest_blank',  type:'目的港空白',   desc:'未填写目的港信息',            score:8  },
+  { key:'f_dest_vague',  type:'目的港模糊',   desc:'目的港填写模糊',             score:8  },
+  { key:'f_draught_change',type:'吃水突变',   desc:'吃水数据异常变化',            score:20 },
+  { key:'f_small_overload',type:'小船疑似超载',desc:'小型船舶疑似超载',           score:22 },
+  { key:'f_name_dup',   type:'船名重复',     desc:'与其他船舶船名重复',          score:15 },
+  { key:'f_no_imo',     type:'无IMO',       desc:'未配备IMO编号',              score:12 },
+  { key:'f_no_callsign_type',type:'无呼号或船型',desc:'未填写呼号或船型',          score:12 },
+  { key:'f_night_active',type:'夜间活动',    desc:'夜间异常活动',               score:10 }
+];
+/* 海上航道区域(避开陆地) */
+const SEA_AREAS=[
+  // 伶仃洋航道 - 南北向狭长水域
+  { name:'伶仃洋', lngMin:113.56, lngMax:113.74, latMin:22.08, latMax:22.35 },
+  // 桂山岛海域
+  { name:'桂山海域', lngMin:113.78, lngMax:113.92, latMin:22.06, latMax:22.22 },
+  // 南沙-虎门航道
+  { name:'南沙航道', lngMin:113.50, lngMax:113.68, latMin:22.70, latMax:22.88 },
+  // 外海(桂山以南)
+  { name:'外海', lngMin:113.76, lngMax:113.98, latMin:21.88, latMax:22.04 }
+];
+/* 基于 mmsi 生成稳定的伪坐标(分布在海上航道区域内) */
+function mmsiToPos(mmsi){
+  const n = Number(mmsi) || 0;
+  // 用 mmsi 哈希选一个海域
+  const areaIdx = n % SEA_AREAS.length;
+  const a = SEA_AREAS[areaIdx];
+  // 在该海域内生成坐标 (15% 边距避免贴边)
+  const rngLng = ((n * 9301 + 49297) % 233280) / 233280;
+  const rngLat = ((n * 6151 + 2423) % 199933) / 199933;
+  const lngSpan = a.lngMax - a.lngMin;
+  const latSpan = a.latMax - a.latMin;
+  const lng = a.lngMin + lngSpan * 0.15 + rngLng * lngSpan * 0.7;
+  const lat = a.latMin + latSpan * 0.15 + rngLat * latSpan * 0.7;
+  return { lng:+lng.toFixed(4), lat:+lat.toFixed(4), area:a.name };
+}
+/* 将数据库记录映射为前端船舶结构??ais_record 真实位置) */
+function mapDbShip(row){
+  const mmsi = String(row.mmsi);
+  const risk = RISK_LEVEL_MAP[row.risk_level] || 'low';
+  const name = row.vessel_name ? row.vessel_name : ('未命名_' + mmsi.slice(-4));
+  // 真实坐标来自 ais_record, 无则从 mmsiToPos 兜底
+  const hasRealPos = row.latitude != null && row.longitude != null;
+  const pos = hasRealPos ? { lng:+row.longitude, lat:+row.latitude } : mmsiToPos(row.mmsi);
+  // 真实航速航向来自 ais_record
+  const sog = row.sog_kn != null ? +Number(row.sog_kn).toFixed(1) : (4 + (Number(mmsi)%50)/10);
+  const cog = row.cog_deg != null ? +Number(row.cog_deg).toFixed(1) : (Number(mmsi) % 360);
+  // 基于标志位生成事件列表
+  const events = [];
+  FLAG_EVENTS.forEach(fe=>{
+    if(row[fe.key] === 1){
+      events.push({
+        type: fe.type,
+        time: '分析时段',
+        loc: pos.lng.toFixed(3)+', '+pos.lat.toFixed(3),
+        desc: fe.desc,
+        score: fe.score
+      });
+    }
+  });
+  // 派生属性
+  const hasNoImo = row.f_no_imo === 1;
+  const hasNoCs = row.f_no_callsign_type === 1;
+  const tp = row.track_points || 0;
+  const features = row.risk_tags || (events.length ? events.map(e=>e.type).join(',') : '无可疑特征');
+  const ctime = row.ts_local ? new Date(row.ts_local).toISOString().replace('T',' ').substring(0,16) :
+                (row.create_time ? new Date(row.create_time).toISOString().replace('T',' ').substring(0,16) : '');
+  return {
+    mmsi: mmsi,
+    imo: row.imo ? row.imo : (hasNoImo ? '无IMO' : '已备案'),
+    name: name,
+    callsign: row.callsign ? row.callsign : (hasNoCs ? '无呼号' : '已备案'),
+    flag: row.flag_country_cn || '未知',
+    length: 30 + (Number(mmsi)||0)%90,
+    width: 6 + (Number(mmsi)||0)%15,
+    type: row.vessel_type_name_cn || (name.indexOf('冷藏')>=0 ? '冷藏船' : (name.indexOf('渔')>=0||name.indexOf('渔')>=0 ? '渔船' : (name.indexOf('杂货')>=0 ? '杂货船' : '货船'))),
+    risk: risk,
+    riskScore: row.risk_score || 0,
+    features: features,
+    lng: pos.lng,
+    lat: pos.lat,
+    area: pos.area || '海域',
+    sog: sog,
+    cog: cog,
+    heading: row.heading != null ? +Number(row.heading).toFixed(0) : cog,
+    destination: row.destination || '-',
+    draught: row.draught_m != null ? +Number(row.draught_m).toFixed(1) : null,
+    lastUpdate: ctime || '-',
+    备案: hasNoImo ? '无备案' : (row.f_sts===1 ? '运输许可(存疑)' : '已备案'),
+    blacklist: row.f_dark===1 || row.f_spoofing===1,
+    trackPoints: tp,
+    trackMinutes: row.track_minutes || 0,
+    trajectory: [], // 真实轨迹点击时异步加载
+    trajectoryLoaded: false,
+    events: events
+  };
+}
+/* 异步加载船舶真实轨迹(来自 ais_origin_record) */
+async function loadVesselTrack(ship){
+  if(ship.trajectoryLoaded) return ship.trajectory;
+  try{
+    const res = await fetch('/api/vessel-track?mmsi='+ship.mmsi);
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    const json = await res.json();
+    if(!json.ok) throw new Error(json.error || '轨迹接口异常');
+    ship.trajectory = (json.data||[]).map(r=>({
+      time: String(r.ts_local||'').replace('T',' ').substring(5,16),
+      lng: +Number(r.longitude).toFixed(5),
+      lat: +Number(r.latitude).toFixed(5),
+      sog: r.sog_kn!=null ? +Number(r.sog_kn).toFixed(1) : 0,
+      cog: r.cog_deg!=null ? +Number(r.cog_deg).toFixed(0) : 0,
+      heading: r.heading!=null ? +Number(r.heading).toFixed(0) : (r.cog_deg!=null?+Number(r.cog_deg).toFixed(0):0),
+      event: r.nav_status_text || ''
+    }));
+    ship.trajectoryLoaded = true;
+    ship.trackPoints = json.total || ship.trajectory.length;
+    console.log('[loadVesselTrack] mmsi='+ship.mmsi+' loaded '+ship.trajectory.length+' points');
+    return ship.trajectory;
+  }catch(e){
+    console.error('[loadVesselTrack] error:', e.message);
+    return [];
+  }
+}
+/* 从后端 API 加载嫌疑船舶数据 */
+async function loadShips(){
+  const list = document.getElementById('shipList');
+  list.innerHTML = '<div style="text-align:center;color:#94a3b8;font-size:11px;padding:20px">正在从数据库加载嫌疑船舶...</div>';
+  try{
+    const url = '/api/risk-vessels?page=1&pageSize=1000&sort=risk_score&order=desc';
+    console.log('[loadShips] fetching:', url);
+    const res = await fetch(url);
+    console.log('[loadShips] response status:', res.status, res.ok);
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    const text = await res.text();
+    console.log('[loadShips] response length:', text.length);
+    const json = JSON.parse(text);
+    console.log('[loadShips] json.ok:', json.ok, 'total:', json.total, 'dataLen:', (json.data||[]).length);
+    if(!json.ok) throw new Error(json.error || '接口异常');
+    SHIPS = (json.data || []).map(mapDbShip);
+    console.log('[loadShips] mapped SHIPS length:', SHIPS.length, 'first:', SHIPS[0]);
+    if(SHIPS.length > 0){
+      // 地图就绪时绘制标记, 否则仅渲染列表
+      if(map){ try{ drawShips(); }catch(e){ console.error('drawShips error:', e.message); } }
+      renderShipList();
+    }else{
+      list.innerHTML = '<div style="text-align:center;color:var(--risk-low);font-size:11px;padding:20px">数据库返回条数</div>';
+    }
+  }catch(e){
+    console.error('[loadShips] error:', e.message, e.stack);
+    list.innerHTML = '<div style="text-align:center;color:var(--risk-high);font-size:11px;padding:20px">数据加载失败: '+e.message+'<br>请确认后端服务已启动<br><button onclick="loadShips()" style="margin-top:8px;padding:4px 12px;background:var(--accent);color:#fff;border-radius:4px;cursor:pointer">重新加载</button></div>';
+    document.getElementById('statTotal').textContent='';
+    toast('加载失败', e.message);
+  }
+}
+/* trajectory generator: returns array of {time,lng,lat,sog,event} */
+function genTrajectory(lng,lat,points,baseSog,baseCog,keyEvents){
+  const arr=[];
+  const startDate=new Date("2026-08-15T00:00:00");
+// 抖动幅度, 确保轨迹紧贴船舶位置不漂到陆
+  const jitterScale=0.0025;
+  // 用确定性的伪随机基于 lng+lat 生成, 避免每次刷新轨迹变化
+  const seed=Math.abs(Math.floor(lng*10000+lat*10000));
+  for(let i=0;i<points;i++){
+    const t=new Date(startDate.getTime()+i*7*3600*1000);
+    const j1=((Math.sin(seed+i*7)*43758.5453)%1+1)%1-0.5;
+    const j2=((Math.sin(seed+i*13+3)*12543.123)%1+1)%1-0.5;
+    arr.push({
+      time:t.toISOString().replace('T',' ').substring(5,16),
+      lng:+(lng+j1*jitterScale*i*0.2).toFixed(4),
+      lat:+(lat+j2*jitterScale*i*0.2).toFixed(4),
+      sog:+(baseSog+((Math.sin(seed+i*5)*100)%1+0.5)*1.2-0.6).toFixed(2),
+      event:''
+    });
+  }
+  return arr;
+}
+const ALERT_ZONES=[
+  {name:"伶仃洋警戒区",path:[[113.60,22.15],[113.70,22.15],[113.70,22.25],[113.60,22.25]]},
+  {name:"桂山岛警戒区",path:[[113.80,22.10],[113.90,22.10],[113.90,22.20],[113.80,22.20]]}
+];
+const FORMAL_DOCKS=[
+  {name:"南沙湾",lng:113.52,lat:22.78},
+  {name:"虎门航道",lng:113.62,lat:22.83},
+  {name:"桂山码头",lng:113.83,lat:22.14}
+];
+const TRANSSHIP_ZONES=[
+  {name:"伶仃洋过驳区",lng:113.65,lat:22.20,r:3000},
+  {name:"桂山过驳船",lng:113.85,lat:22.15,r:2500}
+];
+/* ================== STATE ================== */
+let map=null,satLayer=null,vecLayer=null;
+let shipMarkers={},shipTracks={},alertPolys=[],dockMarkers=[],transCircles=[],shipCircles=[];
+let activeFilters={high:true,medium:true,low:true,normal:true};
+let activeShip=null,activeShipMmsi=null;
+let playbackTimer=null,playbackIndex=0,playbackPlaying=false,playbackSpeed=1;
+let pbShipMarker=null,pbPlayedTrack=null,pbUnplayedTrack=null;
+const RISK_COLORS={high:'#ef4444',medium:'#f97316',low:'#eab308',normal:'#3b82f6'};
+const RISK_NAMES={high:'高风险',medium:'中风险',low:'低风险',normal:'正常'};
+/* ================== MAP INIT ================== */
+function initMap(){
+  map=new AMap.Map('mapContainer',{
+    center:[113.65,22.35],
+    zoom:10,
+    resizeEnable:true,
+    viewMode:'2D',
+    mapStyle:'amap://styles/dark'
+  });
+  map.on('moveend',updateFooterCenter);
+  map.on('zoomend',updateFooterScale);
+  // Load satellite layer by default
+  satLayer=new AMap.TileLayer.Satellite();
+  satLayer.setMap(map);
+  vecLayer=new AMap.TileLayer.Vector();
+  drawAlertZones();
+  drawFormalDocks();
+  drawTransshipZones();
+  drawShips();
+  updateFooterScale();
+  updateFooterCenter();
+}
+function setBaseMap(type){
+  if(type==='satellite'){
+    if(satLayer)satLayer.show();
+    else{satLayer=new AMap.TileLayer.Satellite();satLayer.setMap(map);}
+    if(vecLayer)vecLayer.hide();
+    map.setMapStyle('amap://styles/dark');
+  }else if(type==='vector'){
+    if(vecLayer)vecLayer.show();
+    else{vecLayer=new AMap.TileLayer.Vector();vecLayer.setMap(map);}
+    if(satLayer)satLayer.hide();
+    map.setMapStyle('amap://styles/normal');
+  }else if(type==='sea'){
+    if(satLayer)satLayer.hide();
+    if(vecLayer)vecLayer.hide();
+    map.setMapStyle('amap://styles/dark');
+    toast('底图切换','已切换至电子海图样式');
+  }
+}
+/* ================== DRAW LAYERS ================== */
+function drawAlertZones(){
+  ALERT_ZONES.forEach(z=>{
+    const poly=new AMap.Polygon({
+      path:z.path.map(p=>new AMap.LngLat(p[0],p[1])),
+      strokeColor:'#ef4444',strokeWeight:2,strokeOpacity:.7,strokeStyle:'solid',
+      fillColor:'#ef4444',fillOpacity:.18,zIndex:50
+    });
+    poly.setMap(map);
+    alertPolys.push(poly);
+  });
+}
+function drawFormalDocks(){
+  FORMAL_DOCKS.forEach(d=>{
+    const marker=new AMap.Marker({
+      position:[d.lng,d.lat],
+      content:`<div style="width:14px;height:14px;background:#3b82f6;border:2px solid #fff;border-radius:3px;box-shadow:0 0 6px #3b82f6;transform:translate(-50%,-50%)"></div>`,
+      offset:new AMap.Pixel(0,0),
+      label:{content:`<div style="background:rgba(11,18,32,.9);color:#e2e8f0;padding:1px 5px;font-size:10px;border-radius:3px;border:1px solid #1e293b;white-space:nowrap">${d.name}</div>`,direction:'top'}
+    });
+    marker.setMap(map);
+    dockMarkers.push(marker);
+  });
+}
+function drawTransshipZones(){
+  TRANSSHIP_ZONES.forEach(z=>{
+    const circle=new AMap.Circle({
+      center:[z.lng,z.lat],radius:z.r,
+      strokeColor:'#eab308',strokeWeight:1,strokeOpacity:.6,strokeStyle:'dashed',
+      fillColor:'#eab308',fillOpacity:.12,zIndex:40
+    });
+    circle.setMap(map);
+    transCircles.push(circle);
+  });
+}
+function drawShips(){
+  // Clear existing
+  Object.values(shipMarkers).forEach(m=>m.setMap(null));
+  Object.values(shipTracks).forEach(t=>t.setMap(null));
+  shipCircles.forEach(c=>c.setMap(null));
+  // 清除播放图层
+  if(pbShipMarker){pbShipMarker.setMap(null);pbShipMarker=null;}
+  if(pbPlayedTrack){pbPlayedTrack.setMap(null);pbPlayedTrack=null;}
+  if(pbUnplayedTrack){pbUnplayedTrack.setMap(null);pbUnplayedTrack=null;}
+  shipMarkers={};shipTracks={};shipCircles=[];
+  let visibleCount=0;
+  SHIPS.forEach(s=>{
+    if(!activeFilters[s.risk])return;
+    visibleCount++;
+    const color=RISK_COLORS[s.risk];
+    // Ship dot marker
+    const marker=new AMap.Marker({
+      position:[s.lng,s.lat],
+      content:`<div class="ship-marker" data-mmsi="${s.mmsi}" style="width:14px;height:14px;border-radius:50%;background:${color};border:2px solid rgba(255,255,255,.85);box-shadow:0 0 10px ${color};cursor:pointer;transform:translate(-50%,-50%)"></div>`,
+      offset:new AMap.Pixel(0,0),
+      zIndex:110
+    });
+    marker.setMap(map);
+    marker.on('click',()=>selectShip(s.mmsi));
+    // Hover tooltip via InfoWindow
+    const infoWin=new AMap.InfoWindow({
+      content:`<div style="background:#131C2E;color:#e2e8f0;padding:8px;border-radius:6px;font-size:11px;border:1px solid #334155;min-width:140px">
+        <div style="font-weight:600;margin-bottom:3px">${s.name} (${s.mmsi})</div>
+        <div style="color:#94a3b8">类型: ${s.type} · SOG: ${s.sog}kn</div>
+        <div style="color:#94a3b8">航向: ${s.cog}° · ${s.area}</div>
+        <div style="margin-top:4px"><span class="risk-badge ${s.risk}" style="display:inline-block;padding:1px 7px;border-radius:8px;font-size:10px;background:${color}22;color:${color}">${RISK_NAMES[s.risk]}</span></div>
+      </div>`,
+      offset:new AMap.Pixel(0,-8),
+      closeWhenClickMap:true
+    });
+    marker.on('mouseover',()=>infoWin.open(map,[s.lng,s.lat]));
+    marker.on('mouseout',()=>infoWin.close());
+    shipMarkers[s.mmsi]=marker;
+    // Trajectory polyline
+    if(s.trajectory.length>1){
+      const path=s.trajectory.map(t=>[t.lng,t.lat]);
+      const track=new AMap.Polyline({
+        path:path,strokeColor:color,strokeWeight:2,strokeOpacity:.7,
+        strokeStyle:'solid',zIndex:60,
+        showDir:true
+      });
+      track.setMap(map);
+      shipTracks[s.mmsi]=track;
+    }
+  });
+  document.getElementById('footPoints').textContent=activeShip ? (activeShip.trajectory.length||0) : 0;
+}
+function drawLostSegment(){}
+/* 为选中船舶绘制真实轨迹(来自 ais_origin_record) */
+function drawShipTrack(ship){
+  if(!ship)return;
+  // 移除已有轨迹
+  if(shipTracks[ship.mmsi]){ shipTracks[ship.mmsi].setMap(null); delete shipTracks[ship.mmsi]; }
+  if(ship.trajectory.length<2){
+    console.log('[drawShipTrack] 轨迹点不足 mmsi='+ship.mmsi+' points='+ship.trajectory.length);
+    return;
+  }
+  const path=ship.trajectory.map(t=>[t.lng,t.lat]);
+  const color=RISK_COLORS[ship.risk]||'#f97316';
+  const track=new AMap.Polyline({
+    path:path,strokeColor:color,strokeWeight:3,strokeOpacity:.8,
+    strokeStyle:'solid',zIndex:60,showDir:true
+  });
+  track.setMap(map);
+  shipTracks[ship.mmsi]=track;
+  // 自动适应轨迹范围
+  try{ map.setFitView([track],false,[100,100,100,100]); }catch(e){}
+  // 更新底部轨迹点数
+  document.getElementById('footPoints').textContent=ship.trajectory.length;
+  console.log('[drawShipTrack] mmsi='+ship.mmsi+' drawn '+path.length+' points');
+}
+/* ================== SHIP LIST ================== */
+function renderShipList(){
+  const list=document.getElementById('shipList');
+  const search=(document.getElementById('shipSearch').value||'').trim().toLowerCase();
+  list.innerHTML='';
+  let counts={high:0,medium:0,low:0,normal:0};
+  SHIPS.forEach(s=>counts[s.risk]++);
+  document.getElementById('statTotal').textContent=SHIPS.length;
+  document.getElementById('statHigh').textContent=counts.high;
+  document.getElementById('statMedium').textContent=counts.medium;
+  document.getElementById('statLow').textContent=counts.low;
+  document.getElementById('footHigh').textContent=counts.high;
+  document.getElementById('footMed').textContent=counts.medium;
+  document.getElementById('footLow').textContent=counts.low;
+  const filtered=SHIPS.filter(s=>{
+    if(!activeFilters[s.risk])return false;
+    if(search && !s.mmsi.toLowerCase().includes(search) && !s.name.toLowerCase().includes(search))return false;
+    return true;
+  });
+  if(filtered.length===0){
+    const emptyMsg=SHIPS.length===0?'点击「一键嫌疑船舶识别」按钮加载数据':'无匹配船舶';
+    list.innerHTML='<div style="text-align:center;color:#64748b;font-size:11px;padding:20px">'+emptyMsg+'</div>';
+    return;
+  }
+  filtered.forEach(s=>{
+    const row=document.createElement('div');
+    row.className='ship-row'+(activeShipMmsi===s.mmsi?' active':'');
+    row.onclick=()=>selectShip(s.mmsi);
+    row.innerHTML=`
+      <span class="risk-dot" style="color:${RISK_COLORS[s.risk]};background:${RISK_COLORS[s.risk]}"></span>
+      <div class="ship-info">
+        <div class="ship-name">${s.name} <span style="color:#64748b;font-size:10px">${s.mmsi}</span></div>
+        <div class="ship-meta">${s.type} · ${s.features}</div>
+      </div>
+      <div class="ship-time">${s.lastUpdate.substring(5,16)}</div>
+    `;
+    list.appendChild(row);
+  });
+}
+/* ================== SELECT SHIP ================== */
+function selectShip(mmsi){
+  const ship=SHIPS.find(s=>s.mmsi===mmsi);
+  if(!ship)return;
+  activeShip=ship;activeShipMmsi=mmsi;
+  // Pan to ship
+  map.setZoomAndCenter(13,[ship.lng,ship.lat]);
+  // Highlight marker
+  Object.values(shipMarkers).forEach(m=>{
+    const el=m.getContent();
+    m.setContent(el.replace(/border:2px solid (#[a-f0-9]+|rgba[^)]+\))/,'border:2px solid #fff'));
+  });
+  const mk=shipMarkers[mmsi];
+  if(mk){
+    mk.setContent(`<div class="ship-marker" data-mmsi="${mmsi}" style="width:18px;height:18px;border-radius:50%;background:${RISK_COLORS[ship.risk]};border:3px solid #fff;box-shadow:0 0 16px ${RISK_COLORS[ship.risk]};cursor:pointer;transform:translate(-50%,-50%)"></div>`);
+  }
+  // Open right panel if collapsed
+  if(document.getElementById('rightPanel').classList.contains('collapsed')){
+    togglePanel('right');
+  }
+  // 先渲染基本信息, 再异步加载真实轨迹
+  renderRightPanel();
+  renderShipList();
+  if(!ship.trajectoryLoaded){
+    loadVesselTrack(ship).then(()=>{
+      // 轨迹加载完成后初始化播放图层并重新渲染
+      initPlaybackLayers(ship);
+      updatePlayback();
+      renderRightPanel();
+      // 如果轨迹详情 tab 激活, 绘制速度图表
+      const trackTab=document.querySelector('.right-panel .panel-tab.active');
+      if(trackTab&&trackTab.dataset.rtab==='track'){
+        setTimeout(drawSpeedChart,50);
+      }
+      // 自动适应轨迹范围
+      if(ship.trajectory.length>1&&map){
+        try{
+          const path=ship.trajectory.map(t=>[t.lng,t.lat]);
+          map.setFitView([new AMap.Polyline({path:path,visible:false})],false,[120,120,120,120]);
+        }catch(e){}
+      }
+    });
+  }else{
+    // 轨迹已加载, 直接初始化播放
+    initPlaybackLayers(ship);
+    updatePlayback();
+  }
+}
+/* ================== RIGHT PANEL ================== */
+function renderRightPanel(){
+  const content=document.getElementById('rightContent');
+  if(!activeShip){
+    content.innerHTML='<div style="text-align:center;color:#64748b;font-size:12px;padding:40px 20px">请选择一艘船舶查看详?br><br>点击左侧列表或地图上的船舶标标记</div>';
+    return;
+  }
+  const s=activeShip;
+  const activeTab=document.querySelector('.right-panel .panel-tab.active').dataset.rtab;
+  if(activeTab==='basic')content.innerHTML=renderBasic(s);
+  else if(activeTab==='track')content.innerHTML=renderTrack(s);
+  else if(activeTab==='event')content.innerHTML=renderEvent(s);
+  else if(activeTab==='report')content.innerHTML=renderReport(s);
+  if(window.lucide)lucide.createIcons();
+}
+function renderBasic(s){
+  return `
+    <div class="detail-section">
+      <h4><i data-lucide="ship"></i>船舶基本信息</h4>
+      <div class="kv-grid">
+        <div class="kv"><div class="k">MMSI</div><div class="v">${s.mmsi}</div></div>
+        <div class="kv"><div class="k">IMO</div><div class="v">${s.imo}</div></div>
+        <div class="kv"><div class="k">船名</div><div class="v">${s.name}</div></div>
+        <div class="kv"><div class="k">呼号</div><div class="v">${s.callsign}</div></div>
+        <div class="kv"><div class="k">船旗</div><div class="v">${s.flag}</div></div>
+        <div class="kv"><div class="k">船舶类型</div><div class="v">${s.type}</div></div>
+        <div class="kv"><div class="k">船长 × 船宽</div><div class="v">${s.length}m × ${s.width}m</div></div>
+        <div class="kv"><div class="k">所属海域</div><div class="v">${s.area}</div></div>
+      </div>
+    </div>
+    <div class="detail-section">
+      <h4><i data-lucide="file-check"></i>备案信息</h4>
+      <div class="kv-grid">
+        <div class="kv"><div class="k">运输许可</div><div class="v">${s.备案}</div></div>
+        <div class="kv"><div class="k">黑名单</div><div class="v" style="color:${s.blacklist?'var(--risk-high)':'#10b981'}"${s.blacklist?'🚫':'✅'}</div></div>
+      </div>
+    </div>
+    <div class="detail-section">
+      <h4><i data-lucide="activity"></i>最新状态</h4>
+      <div class="kv-grid">
+        <div class="kv"><div class="k">经度</div><div class="v">${s.lng}°E</div></div>
+        <div class="kv"><div class="k">纬度</div><div class="v">${s.lat}°N</div></div>
+        <div class="kv"><div class="k">航速 SOG</div><div class="v">${s.sog} kn</div></div>
+        <div class="kv"><div class="k">航向 COG</div><div class="v">${s.cog}°</div></div>
+        <div class="kv"><div class="k">艏向 HDG</div><div class="v">${s.heading||'-'}°</div></div>
+        <div class="kv"><div class="k">吃水</div><div class="v">${s.draught!=null?s.draught+'m':'-'}</div></div>
+        <div class="kv"><div class="k">轨迹点数</div><div class="v">${s.trackPoints||0}</div></div>
+        <div class="kv"><div class="k">跟踪时长</div><div class="v">${s.trackMinutes||0} 分钟</div></div>
+        <div class="kv full"><div class="k">目的地</div><div class="v">${s.destination||'-'}</div></div>
+        <div class="kv full"><div class="k">最后更新时间</div><div class="v">${s.lastUpdate}</div></div>
+      </div>
+    </div>
+    <div class="detail-section">
+      <h4><i data-lucide="shield-alert"></i>风险等级</h4>
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <span class="risk-badge ${s.risk}">${RISK_NAMES[s.risk]}</span>
+        <span style="font-size:11px;color:#94a3b8">风险等级 <span style="color:var(--accent);font-weight:600">${s.riskScore}</span></span>
+      </div>
+      <div style="margin-top:8px;font-size:11px;color:#94a3b8">主要嫌疑特征:</div>
+      <div style="font-size:12px;color:var(--text-primary);margin-top:2px">${s.features}</div>
+    </div>
+  `;
+}
+function renderTrack(s){
+  // 轨迹点过多时采样显示(最多 50 个节点)
+  const total=s.trajectory.length;
+  let display=total;
+  let traj=s.trajectory;
+  if(total>50){
+    const step=Math.ceil(total/50);
+    traj=s.trajectory.filter((_,i)=>i%step===0);
+    display=traj.length;
+  }
+  const nodes=traj.map(t=>`
+    <div class="traj-node">
+      <div class="tn-time">${t.time}</div>
+      <div class="tn-loc">${t.lng}, ${t.lat}</div>
+      <div class="tn-spd">${t.sog}kn</div>
+      <div class="tn-evt">${t.event}</div>
+    </div>
+  `).join('');
+  const note=total>display?`<div style="font-size:11px;color:#94a3b8;margin-bottom:6px">共 ${total} 个轨迹点, 采样显示 ${display} 采样显示 ${display} 个</div>`:'';
+  return `
+    <div class="detail-section">
+      <h4><i data-lucide="line-chart"></i>速度-时间</h4>
+      <div class="chart-box"><canvas id="speedChart"></canvas></div>
+    </div>
+    <div class="detail-section">
+      <h4><i data-lucide="list"></i>关键轨迹节点 (${total})</h4>
+      ${note}
+      ${nodes}
+    </div>
+    <div class="detail-section">
+      <button class="btn-block" onclick="exportReport('KML')"><i data-lucide="download" style="width:14px;height:14px;vertical-align:middle"></i> 导出 KML</button>
+      <button class="btn-block" style="margin-top:6px" onclick="exportReport('CSV')"><i data-lucide="file-spreadsheet" style="width:14px;height:14px;vertical-align:middle"></i> 导出 CSV</button>
+    </div>
+  `;
+}
+function renderEvent(s){
+  if(s.events.length===0){
+    return '<div style="text-align:center;color:#64748b;font-size:12px;padding:40px 20px">无嫌疑事件记</div>';
+  }
+  const events=s.events.map(e=>`
+    <div class="event-item ${e.score>=30?'high':e.score>=20?'':'low'}">
+      <div class="event-head">
+        <span class="event-type">${e.type}</span>
+        <span class="event-time">${e.time}</span>
+      </div>
+      <div class="event-desc">${e.desc}</div>
+      <div class="event-foot">
+        <span>位置: ${e.loc}</span>
+        <span class="event-score">+${e.score} </span>
+      </div>
+    </div>
+  `).join('');
+  return `
+    <div class="detail-section">
+      <h4><i data-lucide="alert-circle"></i>嫌疑事件 (${s.events.length})</h4>
+      ${events}
+    </div>
+  `;
+}
+function renderReport(s){
+  const evidences=s.events.map(e=>`<li>${e.type} - ${e.desc}（${e.score}分）</li>`).join('')||'<li>未发现可疑行行为</li>';
+  let suggestion='';
+  if(s.risk==='high')suggestion='该船舶存在多项高危嫌疑特征（AIS关闭、海上过驳、徘徊等），建议立即派出执法力量前往核查，并通知海关缉私部门协同处置。';
+  else if(s.risk==='medium')suggestion='该船舶存在中度可疑行为，建议持续监控其轨迹与停泊状态，必要时调度海上巡防力量进行登临检查。';
+  else if(s.risk==='low')suggestion='该船舶存在轻度可疑迹象，建议纳入观察名单，加强 AIS 监测频次。';
+  else suggestion='该船舶行为正常，暂无需特别处置，维持常规监控即可。';
+  return `
+    <div class="detail-section">
+      <div class="risk-summary">
+        <div class="risk-score-big" style="color:${RISK_COLORS[s.risk]}">${s.riskScore}</div>
+        <div class="risk-score-label">总风险分</div>
+        <div class="risk-level-row">
+          <span class="risk-badge ${s.risk}">${RISK_NAMES[s.risk]}</span>
+        </div>
+      </div>
+    </div>
+    <div class="detail-section">
+      <h4><i data-lucide="file-text"></i>证据摘要</h4>
+      <ul class="evidence-list">${evidences}</ul>
+    </div>
+    <div class="detail-section">
+      <h4><i data-lucide="gavel"></i>自动研判建议</h4>
+      <div class="suggestion-box">${suggestion}</div>
+    </div>
+    <div class="detail-section">
+      <h4><i data-lucide="edit"></i>人工备注</h4>
+      <div class="remark-box"><textarea id="remarkInput" placeholder="请输入人工研判意见、处置记录..."."></textarea></div>
+      <button class="btn-block accent" onclick="saveRemark()">保存备注</button>
+    </div>
+  `;
+}
+function saveRemark(){toast('已保存','人工备注已记录');}
+function drawSpeedChart(){
+  const canvas=document.getElementById('speedChart');
+  if(!canvas||!activeShip)return;
+  const ctx=canvas.getContext('2d');
+  const dpr=window.devicePixelRatio||1;
+  const w=canvas.offsetWidth,h=canvas.offsetHeight;
+  canvas.width=w*dpr;canvas.height=h*dpr;
+  ctx.scale(dpr,dpr);
+  ctx.clearRect(0,0,w,h);
+  const traj=activeShip.trajectory;
+  if(!traj||traj.length<2){
+    ctx.fillStyle='#64748b';ctx.font='12px sans-serif';ctx.textAlign='center';
+    ctx.fillText('暂无轨迹数据',w/2,h/2);
+    return;
+  }
+  // 大量轨迹点采样?最最多?00200?
+  let plotData=traj;
+  if(traj.length>200){
+    const step=Math.ceil(traj.length/200);
+    plotData=traj.filter((_,i)=>i%step===0);
+  }
+  const maxSog=Math.max(...plotData.map(t=>t.sog),1);
+  const pad=18;
+  // grid
+  ctx.strokeStyle='#1e293b';ctx.lineWidth=.5;
+  for(let i=0;i<=4;i++){
+    const y=pad+(h-pad*2)*i/4;
+    ctx.beginPath();ctx.moveTo(pad,y);ctx.lineTo(w-pad,y);ctx.stroke();
+  }
+  // axis labels
+  ctx.fillStyle='#64748b';ctx.font='9px sans-serif';ctx.textAlign='left';
+  ctx.fillText(maxSog.toFixed(1)+'kn',2,pad+3);
+  ctx.fillText('0',2,h-pad+3);
+  ctx.fillText(plotData[0].time.substring(0,5),pad,h-2);
+  ctx.fillText(plotData[plotData.length-1].time.substring(0,5),w-pad-30,h-2);
+  // line + fill
+  ctx.beginPath();
+  ctx.strokeStyle=RISK_COLORS[activeShip.risk];
+  ctx.lineWidth=2;
+  plotData.forEach((t,i)=>{
+    const x=pad+(w-pad*2)*i/(plotData.length-1);
+    const y=h-pad-(h-pad*2)*(t.sog/maxSog);
+    if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);
+  });
+  ctx.stroke();
+  ctx.lineTo(w-pad,h-pad);
+  ctx.lineTo(pad,h-pad);
+  ctx.closePath();
+  ctx.fillStyle=RISK_COLORS[activeShip.risk]+'22';
+  ctx.fill();
+  // 播放位置指示
+  if(playbackIndex>=0&&playbackIndex<traj.length){
+    const pbX=pad+(w-pad*2)*playbackIndex/(traj.length-1);
+    ctx.beginPath();
+    ctx.strokeStyle='#fff';ctx.lineWidth=1.5;ctx.setLineDash([3,3]);
+    ctx.moveTo(pbX,pad);ctx.lineTo(pbX,h-pad);
+    ctx.stroke();ctx.setLineDash([]);
+    // 当前点圆
+    const curSog=traj[playbackIndex].sog;
+    const curY=h-pad-(h-pad*2)*(curSog/maxSog);
+    ctx.beginPath();ctx.arc(pbX,curY,4,0,Math.PI*2);
+    ctx.fillStyle='#fff';ctx.fill();
+    ctx.strokeStyle=RISK_COLORS[activeShip.risk];ctx.lineWidth=2;ctx.stroke();
+  }
+}
+/* ================== TABS ================== */
+document.querySelectorAll('.left-panel .panel-tab').forEach(t=>{
+  t.onclick=()=>{
+    document.querySelectorAll('.left-panel .panel-tab').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    document.querySelectorAll('.ltab-pane').forEach(p=>p.style.display=p.dataset.pane===t.dataset.ltab?'block':'none');
+  };
+});
+document.querySelectorAll('.right-panel .panel-tab').forEach(t=>{
+  t.onclick=()=>{
+    document.querySelectorAll('.right-panel .panel-tab').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    renderRightPanel();
+    if(t.dataset.rtab==='track')setTimeout(drawSpeedChart,50);
+  };
+});
+/* ================== RISK FILTER ================== */
+document.querySelectorAll('.risk-chip').forEach(c=>{
+  c.onclick=()=>{
+    const risk=c.dataset.risk;
+    activeFilters[risk]=!activeFilters[risk];
+    c.classList.toggle('active');
+    drawShips();
+    renderShipList();
+  };
+});
+document.getElementById('shipSearch').oninput=renderShipList;
+/* ================== TIME RANGE ================== */
+document.querySelectorAll('.time-range .quick button').forEach(b=>{
+  b.onclick=()=>{
+    document.querySelectorAll('.time-range .quick button').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+    const q=b.dataset.q;
+    const end=new Date('2026-08-22');
+    let start;
+    if(q==='24h')start=new Date(end-24*3600*1000);
+    else if(q==='7d')start=new Date(end-7*24*3600*1000);
+    else if(q==='30d')start=new Date(end-30*24*3600*1000);
+    else start=new Date('2026-08-15');
+    document.getElementById('dateStart').value=start.toISOString().substring(0,10);
+    document.getElementById('dateEnd').value=end.toISOString().substring(0,10);
+    updateFooterRange();
+  };
+});
+/* ================== DATA SOURCE MENU ================== */
+document.getElementById('dsBtn').onclick=e=>{
+  e.stopPropagation();
+  document.getElementById('dsMenu').classList.toggle('show');
+};
+document.addEventListener('click',()=>document.getElementById('dsMenu').classList.remove('show'));
+/* ================== PANEL TOGGLE ================== */
+function togglePanel(side){
+  const p=side==='left'?'leftPanel':'rightPanel';
+  document.getElementById(p).classList.toggle('collapsed');
+  setTimeout(()=>{map&&map.resize&&map.resize();},260);
+}
+/* ================== ANALYSIS BUTTON ================== */
+function runAnalysis(){
+  const btn=document.getElementById('analyzeBtn');
+  if(btn.classList.contains('analyzing'))return;
+  btn.classList.add('analyzing');
+  btn.innerHTML='<i data-lucide="loader-2" style="animation:spin 1s linear infinite"></i>识别中?..';
+  if(window.lucide)lucide.createIcons();
+  toast('开始识别','正在调用后台接口，查询嫌疑船舶数据...');
+  // 调用后台接口加载数据
+  loadShips().then(()=>{
+    btn.classList.remove('analyzing');
+    btn.innerHTML='<i data-lucide="zap"></i>一键嫌疑船舶识别';
+    if(window.lucide)lucide.createIcons();
+    if(SHIPS.length>0){
+      const high=SHIPS.filter(s=>s.risk==='high').length;
+      toast('识别完成',`已识别 ${SHIPS.length} 艘嫌疑船舶，其中高风险 ${high} 艘`);
+// 定位到嫌疑船舶集中区域
+  if(map)map.setZoomAndCenter(11,[113.70,22.30]);
+    }
+  }).catch(()=>{
+    btn.classList.remove('analyzing');
+    btn.innerHTML='<i data-lucide="zap"></i>一键嫌疑船舶识别';
+    if(window.lucide)lucide.createIcons();
+  });
+}
+/* ================== PLAYBACK (真实轨迹播放) ================== */
+/* 播放/暂停切换 */
+function playbackToggle(){
+  if(!activeShip||activeShip.trajectory.length<2){
+    toast('无法播放','请先选择船舶并加载轨迹');
+    return;
+  }
+  playbackPlaying=!playbackPlaying;
+  const icon=document.getElementById('pbPlayIcon');
+  icon.setAttribute('data-lucide',playbackPlaying?'pause':'play');
+  if(window.lucide)lucide.createIcons();
+  if(playbackPlaying){
+// 到达末尾则从头开始
+  if(playbackIndex>=activeShip.trajectory.length-1)playbackIndex=0;
+    playbackTimer=setInterval(()=>{
+      playbackIndex++;
+      if(playbackIndex>=activeShip.trajectory.length-1){
+        playbackIndex=activeShip.trajectory.length-1;
+        playbackPlaying=false;
+        const ic=document.getElementById('pbPlayIcon');
+        ic.setAttribute('data-lucide','play');
+        if(window.lucide)lucide.createIcons();
+        clearInterval(playbackTimer);
+      }
+      updatePlayback();
+    },Math.max(100,500/playbackSpeed));
+  }else{
+    clearInterval(playbackTimer);
+  }
+}
+/* 前进/后退一步 */
+function playbackStep(dir){
+  if(!activeShip||activeShip.trajectory.length<2)return;
+  playbackIndex=Math.max(0,Math.min(activeShip.trajectory.length-1,playbackIndex+dir));
+  if(playbackPlaying){
+    clearInterval(playbackTimer);
+    playbackPlaying=false;
+    const ic=document.getElementById('pbPlayIcon');
+    ic.setAttribute('data-lucide','play');
+    if(window.lucide)lucide.createIcons();
+  }
+  updatePlayback();
+}
+/* 速度循环: 0.5x → 1x → 2x → 4x → 0.5x */
+function cycleSpeed(){
+  const speeds=[0.5,1,2,4];
+  const i=speeds.indexOf(playbackSpeed);
+  playbackSpeed=speeds[(i+1)%speeds.length];
+  document.getElementById('pbSpeed').textContent=playbackSpeed+'x';
+  // 如果正在播放, 重新设置定时器以应用新速度
+  if(playbackPlaying){
+    clearInterval(playbackTimer);
+    playbackTimer=setInterval(()=>{
+      playbackIndex++;
+      if(playbackIndex>=activeShip.trajectory.length-1){
+        playbackIndex=activeShip.trajectory.length-1;
+        playbackPlaying=false;
+        const ic=document.getElementById('pbPlayIcon');
+        ic.setAttribute('data-lucide','play');
+        if(window.lucide)lucide.createIcons();
+        clearInterval(playbackTimer);
+      }
+      updatePlayback();
+    },Math.max(100,500/playbackSpeed));
+  }
+}
+/* 点击进度条跳转 */
+function pbSeek(e){
+  if(!activeShip||activeShip.trajectory.length<2)return;
+  const slider=e.currentTarget;
+  const rect=slider.getBoundingClientRect();
+  const pct=Math.max(0,Math.min(1,(e.clientX-rect.left)/rect.width));
+  playbackIndex=Math.round(pct*(activeShip.trajectory.length-1));
+  if(playbackPlaying){
+    clearInterval(playbackTimer);
+    playbackPlaying=false;
+    const ic=document.getElementById('pbPlayIcon');
+    ic.setAttribute('data-lucide','play');
+    if(window.lucide)lucide.createIcons();
+  }
+  updatePlayback();
+}
+/* 计算轨迹在指定索引处的运动方位角(0-360索引处的运动方位角(0-360°? 正北?) */
+function calcTrajectoryBearing(traj,idx){
+  const n=traj.length;
+  if(n<2)return 0;
+  // 确定起点和终点, 优先用当前点→下一个点, 末尾时用前一个点→当前点
+  let p1,p2;
+  if(idx<n-1){
+    p1=traj[idx];p2=traj[idx+1];
+  }else{
+    p1=traj[idx-1];p2=traj[idx];
+  }
+  return calcBearing(p1.lng,p1.lat,p2.lng,p2.lat);
+}
+/* 计算两个经纬度点之间的方位角 */
+function calcBearing(lng1,lat1,lng2,lat2){
+  const toRad=d=>d*Math.PI/180;
+  const toDeg=r=>r*180/Math.PI;
+  const φ1=toRad(lat1),φ2=toRad(lat2);
+  const Δλ=toRad(lng2-lng1);
+  const y=Math.sin(Δλ)*Math.cos(φ2);
+  const x=Math.cos(φ1)*Math.sin(φ2)-Math.sin(φ1)*Math.cos(φ2)*Math.cos(Δλ);
+  let θ=toDeg(Math.atan2(y,x));
+  return (θ+360)%360;
+}
+/* 更新播放状态: 进度条、时间/船舶位置、轨迹分段 */
+function updatePlayback(){
+  const traj=activeShip?activeShip.trajectory:[];
+  const total=traj.length;
+  const idx=Math.min(playbackIndex,total-1);
+  // 进度条
+  const pct=total>1?(idx/(total-1))*100:0;
+  document.getElementById('pbProgress').style.width=pct+'%';
+  // 时间显示
+  if(total>0&&traj[idx]){
+    const cur=traj[idx];
+    const fullTime=cur.time||'--';
+    const startTime=traj[0]?traj[0].time:'--';
+    const endTime=traj[total-1]?traj[total-1].time:'--';
+    document.getElementById('pbTime').textContent=fullTime+'  ('+(idx+1)+'/'+total+')';
+    document.getElementById('footPoints').textContent=total;
+    document.getElementById('footRange').textContent=startTime+' ~ '+endTime;
+  }else{
+    document.getElementById('pbTime').textContent='';
+  }
+  // 如果没有选中船舶或轨迹, 不绘制
+  if(!activeShip||total<2||!map)return;
+  const color=RISK_COLORS[activeShip.risk]||'#f97316';
+  const cur=traj[idx];
+  // 移动播放船舶标记到当前轨迹点
+  if(pbShipMarker){
+    pbShipMarker.setPosition([cur.lng,cur.lat]);
+    // 根据轨迹运动方向计算箭头朝向(优先用相邻点方位角)
+    const bearing=calcTrajectoryBearing(traj,idx);
+    pbShipMarker.setContent(`<div style="transform:rotate(${bearing}deg);transition:transform .3s"><svg width="20" height="20" viewBox="0 0 20 20"><path d="M10 1 L16 17 L10 13 L4 17 Z" fill="${color}" stroke="#fff" stroke-width="1.5"/></svg></div>`);
+  }
+  // 更新已播放(实线)和未播放(虚线)轨迹
+  if(pbPlayedTrack){
+    const playedPath=traj.slice(0,idx+1).map(t=>[t.lng,t.lat]);
+    pbPlayedTrack.setPath(playedPath);
+  }
+  if(pbUnplayedTrack){
+    const unplayedPath=traj.slice(idx).map(t=>[t.lng,t.lat]);
+    pbUnplayedTrack.setPath(unplayedPath);
+  }
+  // 刷新速度图表（如果轨迹详情 tab 激活）
+  const trackTab=document.querySelector('.right-panel .panel-tab.active');
+  if(trackTab&&trackTab.dataset.rtab==='track'){
+    try{drawSpeedChart();}catch(e){}
+  }
+}
+/* 初始化播放图层 - 选中船舶后调用 */
+function initPlaybackLayers(ship){
+  // 清除旧图层
+  if(pbShipMarker){pbShipMarker.setMap(null);pbShipMarker=null;}
+  if(pbPlayedTrack){pbPlayedTrack.setMap(null);pbPlayedTrack=null;}
+  if(pbUnplayedTrack){pbUnplayedTrack.setMap(null);pbUnplayedTrack=null;}
+  if(!ship||ship.trajectory.length<2||!map)return;
+  const color=RISK_COLORS[ship.risk]||'#f97316';
+  // 未播放轨迹 (虚线)
+  pbUnplayedTrack=new AMap.Polyline({
+    path:ship.trajectory.map(t=>[t.lng,t.lat]),
+    strokeColor:color,strokeWeight:2,strokeOpacity:.4,
+    strokeStyle:'dashed',zIndex:50
+  });
+  pbUnplayedTrack.setMap(map);
+  // 已播放轨迹 (实线)
+  pbPlayedTrack=new AMap.Polyline({
+    path:[],strokeColor:color,strokeWeight:3,strokeOpacity:.9,
+    strokeStyle:'solid',zIndex:60,showDir:true
+  });
+  pbPlayedTrack.setMap(map);
+  // 播放船舶标记(三角形? 沿轨迹运动方向旋转?
+  const startIdx=Math.floor(ship.trajectory.length*0.3);
+  const start=ship.trajectory[startIdx]||ship.trajectory[0];
+  const startBearing=calcTrajectoryBearing(ship.trajectory,startIdx);
+  pbShipMarker=new AMap.Marker({
+    position:[start.lng,start.lat],
+    content:`<div style="transform:rotate(${startBearing}deg);transition:transform .3s"><svg width="20" height="20" viewBox="0 0 20 20"><path d="M10 1 L16 17 L10 13 L4 17 Z" fill="${color}" stroke="#fff" stroke-width="1.5"/></svg></div>`,
+    offset:new AMap.Pixel(-10,-10),
+    zIndex:200
+  });
+  pbShipMarker.setMap(map);
+  // 初始化播放索引到中间位置
+  playbackIndex=Math.floor(ship.trajectory.length*0.3);
+}
+/* ================== SPATIAL ================== */
+function applyBBox(){
+  const n=parseFloat(document.getElementById('bboxN').value);
+  const s=parseFloat(document.getElementById('bboxS').value);
+  const w=parseFloat(document.getElementById('bboxW').value);
+  const e=parseFloat(document.getElementById('bboxE').value);
+  if(isNaN(n)||isNaN(s)||isNaN(w)||isNaN(e)){toast('输入错误','请填写完整经纬度');return;}
+  map.setBounds(new AMap.Bounds([w,s],[e,n]));
+  toast('已应用','已缩放到自定义范围');
+}
+function drawAOI(){
+  toast('绘制AOI','请在地图上点击绘制多边形顶点');
+  if(window.mouseTool){
+    window.mouseTool.close();
+  }
+  window.mouseTool=new AMap.MouseTool(map);
+  const drawer=window.mouseTool.polygon({strokeColor:'#f97316',strokeWeight:2,fillColor:'#f97316',fillOpacity:.15});
+  window.mouseTool.on('draw',({obj})=>{
+    toast('AOI已绘制',`${obj.getPath().length} 个顶点`);
+    window.mouseTool.close(false);
+  });
+}
+/* ================== CONFIG ================== */
+['wTransfer','wAisOff','wDock'].forEach(id=>{
+  const el=document.getElementById(id);
+  if(el)el.oninput=()=>{
+    document.getElementById(id+'V').textContent=el.value;
+  };
+});
+function saveConfig(){toast('配置已保存','分析参数已更新');}
+/* ================== EXPORT ================== */
+function exportReport(type){
+  if(!activeShip && type!=='REPORT'){
+    toast('提示','请先选择船舶');
+    return;
+  }
+  if(type==='CSV'){
+    const rows=['MMSI,船名,类型,风险等级,经度,纬度,主要特征,最后更新'];
+    SHIPS.forEach(s=>rows.push(`${s.mmsi},${s.name},${s.type},${RISK_NAMES[s.risk]},${s.riskScore},${s.lng},${s.lat},"${s.features}",${s.lastUpdate}`));
+    downloadFile('嫌疑船舶_'+Date.now()+'.csv','\ufeff'+rows.join('\n'),'text/csv');
+    toast('导出成功',`已导出 ${SHIPS.length} 条船 CSV`);
+  }else if(type==='KML'){
+    let kml = '<?xml version="1.0" encoding="UTF-8"?>' +
+      '<kml xmlns="http://www.opengis.net/kml/2.2"><Document>';
+    SHIPS.forEach(s=>{
+      kml+=`<Placemark><name>${s.name}(${s.mmsi})</name><description>${RISK_NAMES[s.risk]} ${s.features}</description><Point><coordinates>${s.lng},${s.lat},0</coordinates></Point></Placemark>`;
+    });
+    kml+='</Document></kml>';
+    downloadFile('嫌疑船舶_'+Date.now()+'.kml',kml,'application/vnd.google-earth.kml+xml');
+    toast('导出成功',`已导出 ${SHIPS.length} 个船 KML`);
+  }else{
+    const r=activeShip||SHIPS[0];
+    const rep=`广州海域冷冻食品走私嫌疑船舶分析报告
+船舶: ${r.name} (${r.mmsi})
+类型: ${r.type}
+风险等级: ${RISK_NAMES[r.risk]} (风险分 ${r.riskScore})
+嫌疑事件:
+${r.events.map(e=>'- '+e.type+' ['+e.time+'] '+e.desc+' (+'+e.score+'分)').join('\n')}
+主要嫌疑特征: ${r.features}
+最后位置 ${r.lng}, ${r.lat}
+最后更新: ${r.lastUpdate}`;
+    downloadFile('分析报告_'+r.mmsi+'_'+Date.now()+'.txt',rep,'text/plain');
+    toast('导出成功','分析报告已导出');
+  }
+}
+function downloadFile(name,content,type){
+  const blob=new Blob([content],{type:type});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download=name;a.click();
+  URL.revokeObjectURL(url);
+}
+/* ================== MAP TOOLS ================== */
+function clearOverlays(){
+  toast('已清除','已清除临时叠加层');
+}
+function mapReset(){
+  map.setZoomAndCenter(10,[113.65,22.35]);
+}
+/* ================== FOOTER ================== */
+function updateFooterCenter(){
+  if(!map)return;
+  const c=map.getCenter();
+  document.getElementById('footCenter').textContent=c.getLng().toFixed(3)+', '+c.getLat().toFixed(3);
+}
+function updateFooterScale(){
+  if(!map)return;
+  const z=map.getZoom();
+  const scales={10:'1:200000',11:'1:150000',12:'1:100000',13:'1:50000',14:'1:25000',15:'1:10000'};
+  document.getElementById('footScale').textContent=scales[Math.round(z)]||'1:'+Math.round(300000/Math.pow(2,z-10));
+}
+function updateFooterRange(){
+  const s=document.getElementById('dateStart').value;
+  const e=document.getElementById('dateEnd').value;
+  document.getElementById('footRange').textContent=s+' ~ '+e;
+}
+/* ================== TOAST ================== */
+let toastTimer=null;
+function toast(title,msg){
+  const t=document.getElementById('toast');
+  document.getElementById('toastMsg').innerHTML='<strong>'+title+'</strong> · '+msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.classList.remove('show'),2800);
+}
+/* ================== ICON INIT ================== */
+function initIcons(){
+  if(window.lucide && typeof lucide.createIcons === 'function'){
+    try{ lucide.createIcons(); }catch(e){}
+  } else {
+    setTimeout(initIcons, 50);
+  }
+}
+initIcons();
+setTimeout(initIcons, 500);
+setTimeout(initIcons, 1500);
+setTimeout(initIcons, 3000);
+/* ================== INIT ================== */
+function initPage(){
+  initIcons();
+  // 默认不调用接口, 不展示数据
+  try{ initMap(); }catch(e){ console.error('initMap error:', e.message); }
+  renderRightPanel();
+  renderShipList(); // 显示空状态
+  if(window.lucide)lucide.createIcons();
+  updatePlayback();
+  updateFooterRange();
+}
+// 兼容: window.onload 可能已触?iframe缓存等情?
+if(document.readyState==='complete'){
+  initPage();
+}else{
+  window.onload=initPage;
+}
+// 监听容器尺寸变化, 地图自适应
+let _resizeTimer=null;
+window.addEventListener('resize',()=>{
+  if(!_resizeTimer)_resizeTimer=setTimeout(()=>{ if(map&&map.setStatus)map.setStatus('autoResize'); _resizeTimer=null; },200);
+});
+</script>
+<style>@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}</style>
+</body>
+</html>

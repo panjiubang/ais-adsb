@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>卫星波束覆盖图</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html, body { width:100%; height:100%; }
+  body {
+    font-family:'Segoe UI','Microsoft YaHei',sans-serif;
+    background:linear-gradient(180deg,#070d18 0%,#0a1628 100%);
+    color:#c9d1d9; overflow:hidden;
+  }
+  .bc-header {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:14px 24px; border-bottom:1px solid rgba(56,189,248,0.15);
+    background:rgba(10,22,40,0.8); backdrop-filter:blur(8px);
+  }
+  .bc-title {
+    display:flex; align-items:center; gap:10px;
+    font-size:16px; font-weight:700; color:#fff;
+  }
+  .bc-title svg { flex-shrink:0; color:#38bdf8; }
+  .bc-meta {
+    font-size:12px; color:#7a8599;
+    font-family:'JetBrains Mono','Consolas',monospace;
+  }
+  .bc-main {
+    display:flex; height:calc(100% - 54px);
+  }
+  .bc-map-area {
+    flex:1; position:relative; overflow:hidden;
+    background:linear-gradient(180deg,#070d18 0%,#0d1f3a 100%);
+  }
+  .bc-map-svg { width:100%; height:100%; display:block; }
+  .bc-side {
+    width:320px; border-left:1px solid rgba(56,189,248,0.15);
+    background:rgba(10,22,40,0.6); display:flex; flex-direction:column;
+  }
+  .bc-section-title {
+    padding:14px 16px 8px; font-size:13px; font-weight:700;
+    color:#38bdf8; display:flex; align-items:center; gap:8px;
+  }
+  .bc-beam-list { flex:1; overflow-y:auto; padding:0 12px 16px; }
+  .bc-beam-item {
+    border:1px solid rgba(56,189,248,0.15); border-radius:8px;
+    margin-bottom:10px; padding:12px; background:rgba(13,31,58,0.5);
+    transition:border-color .2s; cursor:pointer;
+  }
+  .bc-beam-item:hover { border-color:rgba(56,189,248,0.4); }
+  .bc-beam-item.active { border-color:rgba(56,189,248,0.6); background:rgba(56,189,248,0.08); }
+  .bc-beam-name {
+    font-size:13px; font-weight:600; color:#fff;
+    display:flex; align-items:center; gap:6px; margin-bottom:6px;
+  }
+  .bc-beam-status {
+    font-size:10px; padding:1px 6px; border-radius:3px;
+  }
+  .bc-beam-status.on { background:rgba(56,189,248,0.2); color:#38bdf8; }
+  .bc-beam-status.off { background:rgba(192,132,252,0.2); color:#c084fc; }
+  .bc-beam-info {
+    font-size:11px; color:#7a8599; line-height:1.6;
+    font-family:'JetBrains Mono','Consolas',monospace;
+  }
+  .bc-beam-info span { color:#c9d1d9; }
+  .bc-legend {
+    padding:10px 16px; border-top:1px solid rgba(56,189,248,0.15);
+    display:flex; flex-wrap:wrap; gap:14px; font-size:11px; color:#7a8599;
+  }
+  .bc-legend-item { display:flex; align-items:center; gap:6px; }
+  .bc-legend-dot {
+    width:12px; height:12px; border-radius:50%; flex-shrink:0;
+  }
+  .bc-stats {
+    padding:12px 16px; border-top:1px solid rgba(56,189,248,0.15);
+    display:grid; grid-template-columns:1fr 1fr; gap:8px;
+  }
+  .bc-stat {
+    background:rgba(13,31,58,0.5); border:1px solid rgba(56,189,248,0.12);
+    border-radius:6px; padding:10px; text-align:center;
+  }
+  .bc-stat-val {
+    font-size:20px; font-weight:700; color:#38bdf8;
+    font-family:'JetBrains Mono','Consolas',monospace;
+  }
+  .bc-stat-lbl { font-size:10px; color:#7a8599; margin-top:2px; }
+  /* SVG styles */
+  .graticule { fill:none; stroke:rgba(56,189,248,0.10); stroke-width:0.4; }
+  .graticule-equator { stroke:rgba(56,189,248,0.25); stroke-width:0.6; }
+  .graticule-prime { stroke:rgba(56,189,248,0.25); stroke-width:0.6; }
+  .land {
+    fill:rgba(56,189,248,0.08); stroke:rgba(56,189,248,0.28); stroke-width:0.5;
+    stroke-linejoin:round;
+  }
+  .beam-footprint {
+    fill:rgba(192,132,252,0.15); stroke:rgba(192,132,252,0.55); stroke-width:0.7;
+    stroke-dasharray:2,1.5; transition:all .3s;
+  }
+  .beam-footprint-active {
+    fill:rgba(56,189,248,0.18); stroke:rgba(56,189,248,0.7); stroke-width:0.8;
+    transition:all .3s;
+  }
+  .beam-footprint-highlight {
+    fill:rgba(56,189,248,0.28); stroke:#38bdf8; stroke-width:1.2;
+    filter:drop-shadow(0 0 6px rgba(56,189,248,0.5));
+  }
+  .beam-center-dot { fill:#38bdf8; stroke:#070d18; stroke-width:0.6; }
+  .beam-label {
+    font-size:4px; fill:#c9d1d9; font-family:'JetBrains Mono','Consolas',monospace;
+    text-anchor:middle;
+  }
+  .beam-label-name {
+    font-size:4.5px; fill:#c084fc; font-weight:700; font-family:inherit;
+    text-anchor:middle;
+  }
+  .beam-label-name.active-label { fill:#38bdf8; }
+  .sub-sat-point {
+    fill:none; stroke:#fbbf24; stroke-width:0.7; stroke-dasharray:1.5,1;
+  }
+  .coord-label {
+    font-size:3.5px; fill:#5d6b7a; font-family:'JetBrains Mono','Consolas',monospace;
+  }
+</style>
+</head>
+<body>
+<div class="bc-header">
+  <div class="bc-title">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="12" cy="12" r="3"/>
+      <path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2"/>
+    </svg>
+    <span id="bc-sat-name">卫星波束覆盖图</span>
+  </div>
+  <div class="bc-meta" id="bc-sat-meta">星下点: 105.0°E, 0.0°N · 轨位: GEO 35786km</div>
+</div>
+<div class="bc-main">
+  <div class="bc-map-area">
+    <svg class="bc-map-svg" id="bc-svg" viewBox="0 0 360 180" preserveAspectRatio="xMidYMid meet"></svg>
+  </div>
+  <div class="bc-side">
+    <div class="bc-section-title">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+      波束列表
+    </div>
+    <div class="bc-beam-list" id="bc-beam-list"></div>
+    <div class="bc-stats">
+      <div class="bc-stat">
+        <div class="bc-stat-val" id="bc-stat-total">6</div>
+        <div class="bc-stat-lbl">总波束数</div>
+      </div>
+      <div class="bc-stat">
+        <div class="bc-stat-val" id="bc-stat-active">3</div>
+        <div class="bc-stat-lbl">激活波束</div>
+      </div>
+    </div>
+    <div class="bc-legend">
+      <div class="bc-legend-item"><span class="bc-legend-dot" style="background:rgba(56,189,248,0.4);border:1px solid rgba(56,189,248,0.6);"></span>激活波束</div>
+      <div class="bc-legend-item"><span class="bc-legend-dot" style="background:rgba(192,132,252,0.25);border:1px dashed rgba(192,132,252,0.55);"></span>备用波束</div>
+      <div class="bc-legend-item"><span class="bc-legend-dot" style="background:#fbbf24;border:1px solid #fbbf24;"></span>星下点</div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // 从URL参数读取
+  var urlParams = new URLSearchParams(window.location.search);
+  var satName = urlParams.get('name') || '卫星波束覆盖图';
+  var satLng = parseFloat(urlParams.get('lng')) || 105;
+  var satLat = parseFloat(urlParams.get('lat')) || 0;
+  var satOrbit = urlParams.get('orbit') || 'GEO 35786km';
+
+  document.getElementById('bc-sat-name').textContent = satName;
+  document.getElementById('bc-sat-meta').textContent =
+    '星下点: ' + satLng.toFixed(1) + '°E, ' + satLat.toFixed(1) + '°N · 轨位: ' + satOrbit;
+
+  // 简化大陆轮廓 (equirectangular projection)
+  var continents = [
+    // 北美洲
+    'M55,38 L75,30 L105,26 L130,28 L150,35 L158,48 L152,60 L140,68 L125,72 L108,74 L90,70 L75,60 L60,48 Z',
+    // 中美洲
+    'M130,68 L140,65 L148,72 L145,80 L138,78 Z',
+    // 南美洲
+    'M115,82 L132,78 L142,85 L148,98 L145,115 L138,128 L128,140 L118,148 L108,142 L102,128 L105,110 L110,95 Z',
+    // 格陵兰
+    'M122,15 L138,12 L148,18 L145,28 L135,26 L125,22 Z',
+    // 欧洲
+    'M162,42 L182,36 L198,38 L208,44 L205,54 L195,58 L180,56 L170,50 Z',
+    // 英国/不列颠
+    'M168,38 L175,36 L176,44 L170,46 Z',
+    // 非洲
+    'M175,64 L195,62 L210,68 L216,82 L212,98 L202,112 L192,125 L180,132 L170,122 L166,108 L168,92 L172,78 Z',
+    // 亚洲（大陆）
+    'M200,32 L230,26 L262,28 L292,32 L312,40 L316,52 L306,62 L288,66 L262,68 L242,64 L222,58 L208,52 L202,42 Z',
+    // 东南亚
+    'M280,72 L296,68 L306,74 L300,82 L290,84 L284,80 Z',
+    // 印度次大陆
+    'M236,56 L250,54 L256,64 L248,74 L238,72 L232,64 Z',
+    // 日本
+    'M295,44 L303,42 L306,48 L300,52 L296,50 Z',
+    // 澳大利亚
+    'M292,96 L312,92 L328,96 L332,108 L326,118 L310,120 L295,114 L290,106 Z',
+    // 新西兰
+    'M335,118 L342,116 L343,125 L338,128 Z',
+    // 巴布亚新几内亚
+    'M298,88 L312,86 L314,94 L300,95 Z',
+    // 阿拉伯半岛
+    'M210,68 L224,66 L228,76 L218,84 L212,80 Z',
+    // 斯堪的纳维亚
+    'M182,32 L195,28 L202,34 L198,42 L186,40 Z',
+    // 乌克兰/东欧
+    'M195,42 L210,40 L218,46 L210,52 L196,50 Z'
+  ];
+
+  // 波束定义
+  var beams = [
+    { id:'b1', name:'Ku-Band Global', cx:180, cy:90, rx:130, ry:58, freq:'14.0-14.5 GHz', pol:'H/V', active:true, type:'全球' },
+    { id:'b2', name:'Ku-Band Spot 1', cx:255, cy:52, rx:38, ry:24, freq:'11.7-12.2 GHz', pol:'V', active:true, type:'区域' },
+    { id:'b3', name:'Ku-Band Spot 2', cx:285, cy:72, rx:30, ry:20, freq:'12.2-12.7 GHz', pol:'H', active:true, type:'区域' },
+    { id:'b4', name:'C-Band半球波束', cx:100, cy:58, rx:65, ry:42, freq:'3.7-4.2 GHz', pol:'H/V', active:false, type:'半球' },
+    { id:'b5', name:'C-Band全球波束', cx:180, cy:92, rx:165, ry:78, freq:'3.4-4.2 GHz', pol:'H/V', active:false, type:'全球' },
+    { id:'b6', name:'Ka-Band Spot', cx:215, cy:50, rx:24, ry:15, freq:'19.7-20.2 GHz', pol:'V', active:false, type:'点波束' }
+  ];
+
+  var svg = document.getElementById('bc-svg');
+  var svgNS = 'http://www.w3.org/2000/svg';
+
+  function renderSvg() {
+    var html = '';
+    // 背景渐变
+    html += '<defs>';
+    html += '<radialGradient id="oceanGrad" cx="50%" cy="50%" r="75%">';
+    html += '<stop offset="0%" stop-color="#0d1f3a"/>';
+    html += '<stop offset="100%" stop-color="#060a14"/>';
+    html += '</radialGradient>';
+    html += '</defs>';
+    html += '<rect width="360" height="180" fill="url(#oceanGrad)"/>';
+
+    // 经纬度网格
+    for (var lat = -60; lat <= 60; lat += 30) {
+      var y = 90 - lat;
+      var cls = lat === 0 ? 'graticule graticule-equator' : 'graticule';
+      html += '<line class="' + cls + '" x1="0" y1="' + y + '" x2="360" y2="' + y + '"/>';
+    }
+    for (var lng = -150; lng <= 150; lng += 30) {
+      var x = lng + 180;
+      var cls = lng === 0 ? 'graticule graticule-prime' : 'graticule';
+      html += '<line class="' + cls + '" x1="' + x + '" y1="0" x2="' + x + '" y2="180"/>';
+    }
+
+    // 坐标标签
+    var coordLabels = [
+      { x: 4, y: 6, t: '180°W' }, { x: 94, y: 6, t: '90°W' },
+      { x: 178, y: 6, t: '0°' }, { x: 268, y: 6, t: '90°E' }, { x: 356, y: 6, t: '180°E' },
+      { x: 4, y: 32, t: '60°N' }, { x: 4, y: 94, t: '0°' }, { x: 4, y: 178, t: '60°S' },
+      { x: 348, y: 32, t: '60°N', a: 'end' }, { x: 348, y: 94, t: '0°', a: 'end' }, { x: 348, y: 178, t: '60°S', a: 'end' }
+    ];
+    coordLabels.forEach(function(l) {
+      html += '<text class="coord-label" x="' + l.x + '" y="' + l.y + '" text-anchor="' + (l.a||'start') + '">' + l.t + '</text>';
+    });
+
+    // 大陆
+    continents.forEach(function(p) {
+      html += '<path class="land" d="' + p + '"/>';
+    });
+
+    // 波束
+    beams.forEach(function(beam, idx) {
+      html += '<g class="beam-group" data-beam-id="' + beam.id + '">';
+      html += '<ellipse class="' + (beam.active ? 'beam-footprint-active' : 'beam-footprint') + '" ';
+      html += 'cx="' + beam.cx + '" cy="' + beam.cy + '" rx="' + beam.rx + '" ry="' + beam.ry + '"/>';
+      html += '<circle class="beam-center-dot" cx="' + beam.cx + '" cy="' + beam.cy + '" r="1.5"/>';
+      html += '<text class="beam-label-name" x="' + beam.cx + '" y="' + (beam.cy - beam.ry * 0.55 - 3) + '">' + beam.name + '</text>';
+      html += '<text class="beam-label" x="' + beam.cx + '" y="' + (beam.cy + beam.ry * 0.55 + 4) + '">' + beam.freq + ' · ' + beam.pol + '</text>';
+      html += '</g>';
+    });
+
+    // 星下点
+    var satX = satLng + 180;
+    var satY = 90 - satLat;
+    html += '<circle class="sub-sat-point" cx="' + satX + '" cy="' + satY + '" r="5"/>';
+    html += '<circle fill="#fbbf24" cx="' + satX + '" cy="' + satY + '" r="1.8"/>';
+    html += '<text x="' + satX + '" y="' + (satY - 8) + '" class="beam-label-name" style="fill:#fbbf24">星下点</text>';
+
+    svg.innerHTML = html;
+  }
+
+  function renderBeamList() {
+    var list = document.getElementById('bc-beam-list');
+    var html = '';
+    beams.forEach(function(beam) {
+      html += '<div class="bc-beam-item' + (beam.active ? ' active' : '') + '" data-beam-id="' + beam.id + '">';
+      html += '<div class="bc-beam-name">';
+      html += '<span>' + beam.name + '</span>';
+      html += '<span class="bc-beam-status ' + (beam.active ? 'on' : 'off') + '">' + (beam.active ? '● 激活' : '○ 备用') + '</span>';
+      html += '</div>';
+      html += '<div class="bc-beam-info">';
+      html += '频段: <span>' + beam.freq + '</span><br>';
+      html += '极化: <span>' + beam.pol + '</span><br>';
+      html += '类型: <span>' + beam.type + '</span>';
+      html += '</div>';
+      html += '</div>';
+    });
+    list.innerHTML = html;
+
+    // 统计
+    document.getElementById('bc-stat-total').textContent = beams.length;
+    document.getElementById('bc-stat-active').textContent = beams.filter(function(b){return b.active;}).length;
+
+    // 点击波束项高亮
+    list.querySelectorAll('.bc-beam-item').forEach(function(item) {
+      item.addEventListener('click', function() {
+        var bid = item.getAttribute('data-beam-id');
+        // 移除所有高亮
+        document.querySelectorAll('.beam-footprint-highlight').forEach(function(el) {
+          el.classList.remove('beam-footprint-highlight');
+          el.classList.add('beam-footprint-active');
+          el.classList.add('beam-footprint');
+        });
+        // 高亮选中
+        var ellipse = svg.querySelector('[data-beam-id="' + bid + '"] ellipse');
+        if (ellipse) {
+          ellipse.classList.remove('beam-footprint-active', 'beam-footprint');
+          ellipse.classList.add('beam-footprint-highlight');
+        }
+        // 更新列表选中状态
+        list.querySelectorAll('.bc-beam-item').forEach(function(i) { i.classList.remove('active'); });
+        item.classList.add('active');
+      });
+    });
+  }
+
+  renderSvg();
+  renderBeamList();
+</script>
+</body>
+</html>

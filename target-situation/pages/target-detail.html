@@ -202,6 +202,244 @@
   .ship-info-v.neut { color: var(--ts-ink-2); }
   .ship-info-v.warn { color: var(--ts-warn); }
 
+  /* ====== Ship Crew List ====== */
+  .ship-crew {
+    background: var(--ts-surface);
+    border: 1px solid var(--ts-border);
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 14px;
+  }
+  .ship-crew-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--ts-border);
+    background: rgba(56,189,248,0.03);
+  }
+  .ship-crew-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ts-ink);
+  }
+  .ship-crew-title svg { color: var(--ts-primary); }
+  .ship-crew-count {
+    font-size: 11px;
+    color: var(--ts-ink-3);
+    padding: 2px 8px;
+    background: rgba(56,189,248,0.08);
+    border-radius: 10px;
+    border: 1px solid var(--ts-border);
+  }
+  .ship-crew-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 1px;
+    background: var(--ts-border);
+  }
+  .ship-crew-item {
+    background: var(--ts-surface);
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: background .15s;
+    cursor: pointer;
+  }
+  .ship-crew-item:hover {
+    background: rgba(56,189,248,0.06);
+  }
+  .ship-crew-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 600;
+    color: #0B1220;
+    flex-shrink: 0;
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+  .ship-crew-info {
+    flex: 1;
+    min-width: 0;
+  }
+  .ship-crew-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ts-ink);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .ship-crew-role {
+    font-size: 11px;
+    color: var(--ts-ink-3);
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .ship-crew-flag {
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+  @media (max-width: 1200px) {
+    .ship-crew-grid { grid-template-columns: repeat(3, 1fr); }
+  }
+  @media (max-width: 800px) {
+    .ship-crew-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  /* ====== Crew Detail Modal ====== */
+  .crew-modal-overlay {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(8,14,24,0.7);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    z-index: 99999;
+    display: flex; align-items: center; justify-content: center;
+    animation: crewFadeIn .18s ease-out;
+  }
+  .crew-modal-box {
+    width: 480px; max-width: calc(100vw - 40px); max-height: calc(100vh - 60px);
+    background: linear-gradient(180deg, #1e2d42 0%, #182233 100%);
+    border: 1px solid rgba(56,189,248,0.25);
+    border-radius: 14px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+    overflow: hidden; display: flex; flex-direction: column;
+    animation: crewSlideUp .22s ease-out;
+  }
+  .crew-modal-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    background: rgba(56,189,248,0.04);
+  }
+  .crew-modal-title {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 15px; font-weight: 600; color: #e2e8f0;
+  }
+  .crew-modal-title svg { color: #38bdf8; }
+  .crew-modal-close {
+    width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;
+    border-radius: 6px; color: #94a3b8; font-size: 20px; line-height: 1; cursor: pointer;
+    transition: all .15s;
+  }
+  .crew-modal-close:hover { background: rgba(255,255,255,0.08); color: #e2e8f0; }
+  .crew-modal-body { padding: 16px 20px; overflow-y: auto; flex: 1; }
+  .crew-modal-hero {
+    display: flex; align-items: center; gap: 14px;
+    padding: 12px 14px;
+    background: rgba(56,189,248,0.06);
+    border: 1px solid rgba(56,189,248,0.15);
+    border-radius: 10px; margin-bottom: 16px;
+  }
+  .crew-modal-avatar {
+    width: 48px; height: 48px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; font-weight: 700; color: #0B1220;
+    border: 2px solid rgba(255,255,255,0.15); flex-shrink: 0;
+  }
+  .crew-modal-name-block { flex: 1; min-width: 0; }
+  .crew-modal-cn-name {
+    font-size: 16px; font-weight: 700; color: #e2e8f0;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .crew-modal-en-name {
+    font-size: 12px; color: #94a3b8; margin-top: 3px;
+    font-family: 'JetBrains Mono', Consolas, monospace;
+  }
+  .crew-modal-flag { font-size: 20px; }
+  .crew-modal-fields {
+    display: grid; grid-template-columns: repeat(2, 1fr);
+    gap: 1px; background: rgba(255,255,255,0.06);
+    border-radius: 8px; overflow: hidden;
+  }
+  .crew-modal-field {
+    background: #1a2536;
+    padding: 10px 14px;
+    display: flex; flex-direction: column; gap: 3px; min-width: 0;
+  }
+  .crew-modal-field:nth-child(odd) { background: #1c2840; }
+  .crew-modal-k {
+    font-size: 11px; color: #64748b;
+    letter-spacing: 0.06em; text-transform: uppercase;
+  }
+  .crew-modal-v {
+    font-size: 13px; color: #e2e8f0;
+    font-family: 'JetBrains Mono', Consolas, monospace;
+    word-break: break-all;
+  }
+  .crew-modal-v.email { font-family: inherit; color: #38bdf8; }
+  .crew-modal-v.tel { color: #22c55e; }
+  .crew-modal-v.id { color: #f59e0b; font-size: 12px; letter-spacing: 0.5px; }
+
+  /* ====== Crew Import Modal ====== */
+  .crew-import-area {
+    width: 100%;
+    min-height: 180px;
+    background: #141c2b;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    color: #e2e8f0;
+    font-size: 12px;
+    font-family: 'JetBrains Mono', Consolas, monospace;
+    padding: 12px 14px;
+    resize: vertical;
+    outline: none;
+    line-height: 1.6;
+  }
+  .crew-import-area:focus { border-color: #38bdf8; }
+  .crew-import-area::placeholder { color: #475569; }
+  .crew-import-tip {
+    margin-top: 8px;
+    font-size: 11px;
+    color: #64748b;
+    line-height: 1.6;
+    padding: 8px 12px;
+    background: rgba(56,189,248,0.05);
+    border-radius: 6px;
+    border-left: 2px solid #38bdf8;
+  }
+  .crew-import-tip b { color: #38bdf8; }
+  .crew-import-preview {
+    margin-top: 12px;
+    max-height: 160px;
+    overflow-y: auto;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 8px;
+    background: rgba(0,0,0,0.2);
+  }
+  .crew-import-preview-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    font-size: 12px;
+  }
+  .crew-import-preview-item:last-child { border-bottom: none; }
+  .crew-import-preview-item .ci-pf { color: #22c55e; font-size: 10px; font-weight: 600; }
+  .crew-import-preview-item .ci-pe { color: #ef4444; font-size: 10px; font-weight: 600; }
+  .crew-import-preview-item .ci-pidx { width: 22px; color: #64748b; font-family: monospace; }
+  .crew-import-preview-item .ci-pname { flex: 1; color: #e2e8f0; }
+  .crew-import-preview-item .ci-prole { color: #94a3b8; font-size: 11px; }
+  .crew-import-preview-summary {
+    display: flex; gap: 16px; padding: 8px 12px;
+    background: rgba(56,189,248,0.06);
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    font-size: 12px;
+  }
+  .crew-import-preview-summary span { color: #38bdf8; font-weight: 600; }
+
+  @keyframes crewFadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes crewSlideUp { from { transform: translateY(16px) scale(0.98); opacity: 0; } to { transform: translateY(0) scale(1); opacity: 1; } }
+
   .ship-timebar {
     display: flex; align-items: center; justify-content: space-between;
     gap: 12px; flex-wrap: wrap; margin-bottom: 14px;
@@ -263,23 +501,8 @@
     flex: 1; min-height: 0; position: relative; background: #0a1426;
   }
   #shipMap { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; }
-  .ship-map-overlay-play {
-    position: absolute; left: 50%; top: 50%;
-    transform: translate(-50%, -50%);
-    width: 64px; height: 64px; border-radius: 50%;
-    background: rgba(0,0,0,0.55); backdrop-filter: blur(6px);
-    border: 1px solid rgba(255,255,255,0.1);
-    display: flex; align-items: center; justify-content: center;
-    color: #f8fafc; cursor: pointer; z-index: 10;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.5), 0 0 0 4px rgba(255,255,255,0.04);
-    transition: transform .15s ease, background .15s ease;
-  }
-  .ship-map-overlay-play:hover {
-    background: rgba(56,189,248,0.75);
-    transform: translate(-50%, -50%) scale(1.06);
-  }
-  .ship-map-overlay-play svg { margin-left: 3px; }
-  .ship-map-overlay-play.pause svg { margin-left: 0; }
+  /* 2026-08-17: 移除居中大尺寸播放遮罩，避免遮挡历史轨迹线。播放/暂停改由底部 player 的 btn-play 统一控制 */
+  .ship-map-overlay-play { display: none !important; }
   @keyframes tsShipPulse {
     0% { transform: scale(0.5); opacity: 0.9; }
     100% { transform: scale(1.6); opacity: 0; }
@@ -557,6 +780,75 @@
     text-align: right; word-break: break-all; line-height: 1.5;
   }
   .field-val.mono-less { font-family: inherit; }
+  /* ===== 卫星波束覆盖图 ===== */
+  .beam-coverage {
+    margin: 20px 0 4px; border: 1px solid var(--ts-border);
+    border-radius: 12px; overflow: hidden; background: var(--ts-surface-2);
+  }
+  .beam-coverage-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 16px; border-bottom: 1px solid var(--ts-border);
+    background: rgba(56,189,248,0.04);
+  }
+  .beam-coverage-title {
+    font-size: 13px; font-weight: 700; color: var(--ts-ink);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .beam-coverage-title svg { flex-shrink: 0; }
+  .beam-coverage-meta {
+    font-size: 11px; color: var(--ts-ink-3); font-family: "'JetBrains Mono','Consolas',monospace";
+  }
+  .beam-map-wrap {
+    position: relative; width: 100%; aspect-ratio: 2 / 1;
+    background: linear-gradient(180deg, #0a1628 0%, #0d1f3a 100%);
+    overflow: hidden;
+  }
+  .beam-map-svg { width: 100%; height: 100%; display: block; }
+  .beam-map-graticule { fill: none; stroke: rgba(56,189,248,0.08); stroke-width: 0.3; }
+  .beam-map-equator { stroke: rgba(56,189,248,0.18); stroke-width: 0.5; }
+  .beam-map-land {
+    fill: rgba(56,189,248,0.06); stroke: rgba(56,189,248,0.22); stroke-width: 0.4;
+    stroke-linejoin: round;
+  }
+  .beam-footprint {
+    fill: rgba(192,132,252,0.12); stroke: rgba(192,132,252,0.5); stroke-width: 0.5;
+    stroke-dasharray: 2,1.5;
+  }
+  .beam-footprint-active {
+    fill: rgba(56,189,248,0.15); stroke: rgba(56,189,248,0.6); stroke-width: 0.6;
+  }
+  .beam-center-dot { fill: #38bdf8; stroke: #0a1628; stroke-width: 0.5; }
+  .beam-label {
+    font-size: 3px; fill: var(--ts-ink-2); font-family: "'JetBrains Mono','Consolas',monospace";
+    text-anchor: middle;
+  }
+  .beam-label-name {
+    font-size: 3.5px; fill: #c084fc; font-weight: 700; font-family: inherit;
+    text-anchor: middle;
+  }
+  .beam-sub-sat-point {
+    fill: none; stroke: #fbbf24; stroke-width: 0.5; stroke-dasharray: 1.5,1;
+  }
+  .beam-legend {
+    display: flex; flex-wrap: wrap; gap: 12px;
+    padding: 10px 16px; border-top: 1px solid var(--ts-border);
+    font-size: 11px; color: var(--ts-ink-2);
+  }
+  .beam-legend-item { display: flex; align-items: center; gap: 5px; }
+  .beam-legend-dot {
+    width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+  }
+  .beam-info-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 1px; background: var(--ts-border);
+    border-top: 1px solid var(--ts-border);
+  }
+  .beam-info-cell {
+    background: var(--ts-surface-2); padding: 8px 10px;
+    display: flex; flex-direction: column; gap: 2px;
+  }
+  .beam-info-key { font-size: 10px; color: var(--ts-ink-3); }
+  .beam-info-val { font-size: 12px; color: var(--ts-ink); font-family: "'JetBrains Mono','Consolas',monospace"; }
   .more-btn {
     display: block; width: 100%; margin-top: 20px;
     padding: 14px 18px; border-radius: 12px;
@@ -625,11 +917,320 @@
     }
     return pts;
   }
+
+  // ============ 船舶海域约束 & 轨迹陆地规避（v2 - 基于海岸线点位） ============
+  // 每个海域：深海中心点 + 沿岸港口点列表。船舶点若距任一港口太近（< COAST_MIN_OFFSET），
+  // 则沿"港口→海心"方向推到海里。确保100%在海上，不依赖易出错的多边形。
+  var CHINA_COASTAL_SEAS = [
+    { name: '东海', center: [123.0, 30.5],
+      ports: [[121.5,31.2],[121.3,30.3],[121.6,29.9],[121.4,28.7],[120.7,28.0],[119.5,26.6],[119.3,26.0]] },
+    { name: '南海', center: [114.5, 20.5],
+      ports: [[116.7,23.4],[115.3,22.8],[114.1,22.9],[113.3,23.1],[110.3,21.2],[109.1,21.5],[108.5,21.5]] },
+    { name: '黄海', center: [123.5, 35.5],
+      ports: [[120.4,36.1],[121.8,37.5],[121.6,38.9],[122.1,37.6],[122.2,36.9],[121.0,35.7],[120.3,35.2]] },
+    { name: '台湾海峡', center: [119.3, 24.8],
+      ports: [[119.3,26.0],[118.6,25.3],[118.6,24.9],[118.1,24.5],[117.6,23.9],[117.0,23.4]] },
+    { name: '北部湾', center: [108.8, 19.5],
+      ports: [[109.1,21.5],[109.7,21.4],[109.7,21.0],[108.5,21.5],[108.1,21.4],[108.0,20.9]] }
+  ];
+  // 距海岸（任一港口）最少偏移度数，低于此值视为"可能在陆地"需向海心推
+  var COAST_MIN_OFFSET = 0.20;
+
+  // 找离该点最近的海域中心
+  function findNearestSeaCenter(lng, lat) {
+    var best = null, bestD = Infinity;
+    for (var i = 0; i < CHINA_COASTAL_SEAS.length; i++) {
+      var s = CHINA_COASTAL_SEAS[i];
+      var dx = (lng - s.center[0]) * Math.cos(s.center[1] * Math.PI / 180);
+      var dy = lat - s.center[1];
+      var d = Math.sqrt(dx * dx + dy * dy);
+      if (d < bestD) { bestD = d; best = s; }
+    }
+    return best;
+  }
+
+  // 找离该点最近的沿岸港口
+  function findNearestPort(sea, lng, lat) {
+    if (!sea || !sea.ports) return { port: null, dist: Infinity };
+    var best = null, bestD = Infinity;
+    for (var i = 0; i < sea.ports.length; i++) {
+      var p = sea.ports[i];
+      var dx = (lng - p[0]) * Math.cos(lat * Math.PI / 180);
+      var dy = lat - p[1];
+      var d = Math.sqrt(dx * dx + dy * dy);
+      if (d < bestD) { bestD = d; best = p; }
+    }
+    return { port: best, dist: bestD };
+  }
+
+  // 船舶专用轨迹生成：每一步都确保点在海域里；若漂移到陆地则按方向向最近海域回拉
+  function genShipTrack(startLng, startLat, steps, jitter) {
+    var start = _snapShipPointToSea(startLng, startLat);
+    var lng = start[0], lat = start[1];
+    var pts = [];
+    var dLng = rnd(-0.03, 0.03), dLat = rnd(-0.03, 0.03);
+    for (var i = 0; i < steps; i++) {
+      pts.push([lng, lat]);
+      var nLng = lng + dLng + rnd(-jitter, jitter);
+      var nLat = lat + dLat + rnd(-jitter, jitter);
+      dLng *= 0.96; dLat *= 0.96;
+      var fixed = _snapShipPointToSea(nLng, nLat);
+      if (Math.abs(fixed[0] - nLng) + Math.abs(fixed[1] - nLat) > 0.15) {
+        dLng = (fixed[0] - lng) * 0.4;
+        dLat = (fixed[1] - lat) * 0.4;
+      }
+      lng = fixed[0]; lat = fixed[1];
+    }
+    return pts;
+  }
+
+  // 将点吸附到"最可能的海域"：用"距岸最近港口 → 海心方向"推到海里
+  function _snapShipPointToSea(lng, lat) {
+    var sea = findNearestSeaCenter(lng, lat);
+    if (!sea) return [lng, lat];
+    var nearest = findNearestPort(sea, lng, lat);
+    if (nearest.dist < COAST_MIN_OFFSET && nearest.port) {
+      var dirLng = sea.center[0] - nearest.port[0];
+      var dirLat = sea.center[1] - nearest.port[1];
+      var len = Math.sqrt(dirLng * dirLng + dirLat * dirLat) || 1;
+      dirLng /= len; dirLat /= len;
+      var pushDist = COAST_MIN_OFFSET + (COAST_MIN_OFFSET - nearest.dist);
+      lng = nearest.port[0] + dirLng * pushDist;
+      lat = nearest.port[1] + dirLat * pushDist;
+    }
+    // 距海心过大（>4°）时拉回，避免漂到不该去的地方
+    var dx2 = (lng - sea.center[0]) * Math.cos(sea.center[1] * Math.PI / 180);
+    var dy2 = lat - sea.center[1];
+    var dc = Math.sqrt(dx2 * dx2 + dy2 * dy2);
+    if (dc > 4.0) {
+      var factor = 3.5 / dc;
+      lng = sea.center[0] + (lng - sea.center[0]) * factor;
+      lat = sea.center[1] + (lat - sea.center[1]) * factor;
+    }
+    return [parseFloat(lng.toFixed(4)), parseFloat(lat.toFixed(4))];
+  }
   function escapeHtml(str) {
     var div = document.createElement('div');
     div.appendChild(document.createTextNode(String(str == null ? '' : str)));
     return div.innerHTML;
   }
+
+  // 点击人员卡片 → 显示详细信息弹窗
+  function showCrewDetail(idx) {
+    var list = window.__shipCrewData;
+    if (!list || !list[idx]) return;
+    var m = list[idx];
+    var overlay = document.createElement('div');
+    overlay.className = 'crew-modal-overlay';
+    var fields = [
+      ['姓名', m.cn],
+      ['英文姓名', m.en],
+      ['性别', m.gender],
+      ['出生日期', m.birth],
+      ['身份证号码', m.id],
+      ['国籍', m.nationality],
+      ['民族', m.ethnicity],
+      ['出生地', m.birthplace],
+      ['户籍地址', m.address],
+      ['现居住地址', m.address],
+      ['联系电话', m.phone],
+      ['电子邮箱', m.email]
+    ];
+    var fieldsHtml = '';
+    fields.forEach(function (f) {
+      var val = f[1] == null || f[1] === '' ? '-' : f[1];
+      var cls = '';
+      if (f[0] === '电子邮箱') cls = ' email';
+      else if (f[0] === '联系电话') cls = ' tel';
+      else if (f[0] === '身份证号码') cls = ' id';
+      fieldsHtml += '<div class="crew-modal-field"><span class="crew-modal-k">' + f[0] + '</span><span class="crew-modal-v' + cls + '">' + escapeHtml(val) + '</span></div>';
+    });
+    overlay.innerHTML =
+      '<div class="crew-modal-box">' +
+        '<div class="crew-modal-header">' +
+          '<div class="crew-modal-title">' +
+            '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>' +
+            '人员详细信息' +
+          '</div>' +
+          '<div class="crew-modal-close" title="关闭">×</div>' +
+        '</div>' +
+        '<div class="crew-modal-body">' +
+          '<div class="crew-modal-hero">' +
+            '<div class="crew-modal-avatar" style="background:' + m.color + ';">' + escapeHtml(m.cn.charAt(0)) + '</div>' +
+            '<div class="crew-modal-name-block">' +
+              '<div class="crew-modal-cn-name">' + escapeHtml(m.cn) + ' <span style="font-size:12px;font-weight:500;color:#94a3b8;margin-left:4px;">' + escapeHtml(m.role) + '</span></div>' +
+              '<div class="crew-modal-en-name">' + escapeHtml(m.en) + '</div>' +
+            '</div>' +
+            '<span class="crew-modal-flag">' + m.flag + '</span>' +
+          '</div>' +
+          '<div class="crew-modal-fields">' + fieldsHtml + '</div>' +
+        '</div>' +
+      '</div>';
+    document.body.appendChild(overlay);
+    function closeDlg() {
+      overlay.style.animation = 'crewFadeIn .18s ease-out reverse';
+      var box = overlay.querySelector('.crew-modal-box');
+      if (box) { box.style.animation = 'crewSlideUp .18s ease-in reverse'; box.style.transform = 'scale(0.95)'; box.style.opacity = '0'; }
+      setTimeout(function () { if (overlay.parentNode) overlay.parentNode.removeChild(overlay); }, 180);
+    }
+    overlay.querySelector('.crew-modal-close').addEventListener('click', closeDlg);
+    overlay.addEventListener('click', function (e) { if (e.target === overlay) closeDlg(); });
+    document.addEventListener('keydown', function onEsc(e) {
+      if (e.key === 'Escape') { closeDlg(); document.removeEventListener('keydown', onEsc); }
+    });
+  }
+
+  // ====== Crew Batch Import ======
+  var CREW_IMPORT_HEADERS = ['姓名','英文姓名','性别','出生日期','身份证号码','国籍','民族','出生地','户籍地址','现居住地址','联系电话','电子邮箱'];
+  var CREW_IMPORT_COLORS = ['#f97316','#3b82f6','#8b5cf6','#06b6d4','#10b981','#ef4444','#f59e0b','#ec4899','#14b8a6','#a855f7','#0ea5e9','#84cc16'];
+  var CREW_IMPORT_FLAGS = {'中国':'🇨🇳','美国':'🇺🇸','日本':'🇯🇵','韩国':'🇰🇷','意大利':'🇮🇹','英国':'🇬🇧','法国':'🇫🇷','德国':'🇩🇪','西班牙':'🇪🇸','新加坡':'🇸🇬'};
+
+  function openCrewImport() {
+    var overlay = document.createElement('div');
+    overlay.className = 'crew-modal-overlay';
+    var sampleLine = '张伟,Zhang Wei,男,1978-03-15,110101197803150011,中国,汉族,北京市,北京市朝阳区建国路88号,北京市朝阳区建国路88号,+86 13800138001,zhangwei@ship.com,船长';
+    overlay.innerHTML =
+      '<div class="crew-modal-box" style="width:560px;">' +
+        '<div class="crew-modal-header">' +
+          '<div class="crew-modal-title">' +
+            '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>' +
+            '批量导入船舶人员' +
+          '</div>' +
+          '<div class="crew-modal-close" title="关闭">×</div>' +
+        '</div>' +
+        '<div class="crew-modal-body">' +
+          '<div class="crew-import-tip">' +
+            '<b>格式说明：</b>每行一条记录，英文逗号分隔，共 13 列：<br>' +
+            '姓名,英文姓名,性别,出生日期,身份证号码,国籍,民族,出生地,户籍地址,现居住地址,联系电话,电子邮箱,职务<br>' +
+            '<b>示例：</b>' + sampleLine +
+          '</div>' +
+          '<textarea class="crew-import-area" id="crew-import-text" placeholder="粘贴 CSV 数据...">张伟,Zhang Wei,男,1978-03-15,110101197803150011,中国,汉族,北京市,北京市朝阳区建国路88号,北京市朝阳区建国路88号,+86 13800138001,zhangwei@ship.com,船长&#10;李明,Li Ming,男,1982-07-22,310101198207220022,中国,汉族,上海市,上海市浦东新区世纪大道100号,上海市浦东新区世纪大道100号,+86 13800138002,liming@ship.com,大副</textarea>' +
+          '<div class="crew-import-preview" id="crew-import-preview"></div>' +
+        '</div>' +
+        '<div class="crew-modal-footer" style="display:flex;align-items:center;justify-content:flex-end;gap:10px;padding:14px 20px;border-top:1px solid rgba(255,255,255,0.06);background:rgba(0,0,0,0.15);">' +
+          '<button class="gsa-modal-btn-ghost" id="crew-import-cancel" style="height:34px;padding:0 18px;border-radius:8px;font-size:12px;font-weight:600;border:none;cursor:pointer;font-family:inherit;background:transparent;color:#94a3b8;border:1px solid rgba(255,255,255,0.12);">取消</button>' +
+          '<button class="gsa-modal-btn-primary" id="crew-import-confirm" style="height:34px;padding:0 18px;border-radius:8px;font-size:12px;font-weight:600;border:none;cursor:pointer;font-family:inherit;background:linear-gradient(180deg,#38bdf8,#0ea5e9);color:#0b1220;box-shadow:0 2px 8px rgba(56,189,248,0.35);">确认导入 (0)</button>' +
+        '</div>' +
+      '</div>';
+    document.body.appendChild(overlay);
+
+    var textarea = overlay.querySelector('#crew-import-text');
+    var preview = overlay.querySelector('#crew-import-preview');
+    var confirmBtn = overlay.querySelector('#crew-import-confirm');
+
+    function parseCsvLine(line) {
+      // Simple CSV parser (supports quoted fields with commas)
+      var fields = [];
+      var cur = '';
+      var inQuote = false;
+      for (var i = 0; i < line.length; i++) {
+        var c = line[i];
+        if (c === '"') {
+          if (inQuote && line[i + 1] === '"') { cur += '"'; i++; }
+          else { inQuote = !inQuote; }
+        } else if (c === ',' && !inQuote) {
+          fields.push(cur.trim());
+          cur = '';
+        } else {
+          cur += c;
+        }
+      }
+      fields.push(cur.trim());
+      return fields;
+    }
+
+    function previewImport() {
+      var raw = textarea.value.trim();
+      if (!raw) { preview.innerHTML = ''; confirmBtn.textContent = '确认导入 (0)'; return; }
+      var lines = raw.split(/\r?\n/).filter(function (l) { return l.trim(); });
+      var valid = [];
+      var errors = 0;
+      var itemsHtml = '';
+      lines.forEach(function (line, idx) {
+        var f = parseCsvLine(line);
+        // Must have at least name + role (cols 0 and 12)
+        if (f.length < 13 || !f[0]) {
+          errors++;
+          itemsHtml += '<div class="crew-import-preview-item"><span class="ci-pidx">' + (idx + 1) + '</span><span class="ci-pe">✗</span><span class="ci-pname">第 ' + (idx + 1) + ' 行格式错误</span></div>';
+        } else {
+          valid.push({ cn: f[0], en: f[1] || '', gender: f[2] || '', birth: f[3] || '', id: f[4] || '-', nationality: f[5] || '', ethnicity: f[6] || '', birthplace: f[7] || '', address: f[8] || '', address2: f[9] || f[8] || '', phone: f[10] || '', email: f[11] || '', role: f[12] || '' });
+          itemsHtml += '<div class="crew-import-preview-item"><span class="ci-pidx">' + (idx + 1) + '</span><span class="ci-pf">✓</span><span class="ci-pname">' + escapeHtml(f[0]) + '</span><span class="ci-prole">' + escapeHtml(f[12] || '-') + '</span></div>';
+        }
+      });
+      var summary = '<div class="crew-import-preview-summary"><div>共解析 <span>' + lines.length + '</span> 条</div><div>有效 <span>' + valid.length + '</span></div><div>异常 <span>' + errors + '</span></div></div>';
+      preview.innerHTML = summary + itemsHtml;
+      confirmBtn.textContent = '确认导入 (' + valid.length + ')';
+      confirmBtn.disabled = valid.length === 0;
+      confirmBtn.style.opacity = valid.length ? '1' : '0.5';
+      confirmBtn.style.pointerEvents = valid.length ? 'auto' : 'none';
+      confirmBtn.__validData = valid;
+    }
+
+    textarea.addEventListener('input', previewImport);
+    previewImport();
+
+    function closeImport() {
+      overlay.style.animation = 'crewFadeIn .18s ease-in reverse';
+      var box = overlay.querySelector('.crew-modal-box');
+      if (box) { box.style.animation = 'crewSlideUp .18s ease-in reverse'; box.style.transform = 'scale(0.95)'; box.style.opacity = '0'; }
+      setTimeout(function () { if (overlay.parentNode) overlay.parentNode.removeChild(overlay); }, 180);
+    }
+
+    overlay.querySelector('.crew-modal-close').addEventListener('click', closeImport);
+    overlay.querySelector('#crew-import-cancel').addEventListener('click', closeImport);
+    overlay.addEventListener('click', function (e) { if (e.target === overlay) closeImport(); });
+
+    confirmBtn.addEventListener('click', function () {
+      var valid = confirmBtn.__validData;
+      if (!valid || !valid.length) return;
+      var list = window.__shipCrewData || [];
+      var startIdx = list.length;
+      valid.forEach(function (m, i) {
+        var colorIdx = (startIdx + i) % CREW_IMPORT_COLORS.length;
+        var flag = CREW_IMPORT_FLAGS[m.nationality] || '🏳';
+        list.push({
+          cn: m.cn, en: m.en, gender: m.gender, birth: m.birth,
+          id: m.id, nationality: m.nationality, ethnicity: m.ethnicity,
+          birthplace: m.birthplace, address: m.address2 || m.address,
+          phone: m.phone, email: m.email,
+          role: m.role, flag: flag, color: CREW_IMPORT_COLORS[colorIdx]
+        });
+      });
+      window.__shipCrewData = list;
+      renderCrewGrid();
+      closeImport();
+    });
+
+    document.addEventListener('keydown', function onImportEsc(e) {
+      if (e.key === 'Escape') { closeImport(); document.removeEventListener('keydown', onImportEsc); }
+    });
+  }
+
+  // Re-render crew grid from __shipCrewData
+  function renderCrewGrid() {
+    var list = window.__shipCrewData || [];
+    var grid = document.getElementById('ship-crew-grid');
+    if (!grid) return;
+    grid.innerHTML = '';
+    list.forEach(function (m, idx) {
+      var initial = (m.cn || m.en || '?').charAt(0);
+      var item = document.createElement('div');
+      item.className = 'ship-crew-item';
+      item.setAttribute('data-crew-idx', idx);
+      item.setAttribute('onclick', 'showCrewDetail(' + idx + ')');
+      item.innerHTML =
+        '<div class="ship-crew-avatar" style="background:' + m.color + ';">' + escapeHtml(initial) + '</div>' +
+        '<div class="ship-crew-info">' +
+          '<div class="ship-crew-name">' + escapeHtml(m.cn || m.en) + '</div>' +
+          '<div class="ship-crew-role">' + escapeHtml(m.role || '-') + '</div>' +
+        '</div>' +
+        '<span class="ship-crew-flag">' + (m.flag || '🏳') + '</span>';
+      grid.appendChild(item);
+    });
+    var countEl = document.querySelector('.ship-crew-count');
+    if (countEl) countEl.textContent = list.length + ' 人';
+  }
+
   function getQueryParam(key) {
     var qs = (window.location.search || '').replace(/^\?/, '');
     if (!qs) return '';
@@ -675,12 +1276,15 @@
     var shipTypes = ['货船', '集装箱船', '油轮', '散货船', '客船', '军舰', '研究/勘测船'];
     for (var i = 0; i < 20; i++) {
       var a = pick(shipAreas);
-      var lng = a.c[0] + rnd(-3, 3), lat = a.c[1] + rnd(-1.5, 1.5);
+      // 船舶起点/终点必须严格落在海域多边形内
+      var rawLng = a.c[0] + rnd(-2.2, 2.2), rawLat = a.c[1] + rnd(-1.3, 1.3);
+      var snapped = _snapShipPointToSea(rawLng, rawLat);
+      var lng = snapped[0], lat = snapped[1];
       var shipType = pick(shipTypes);
       data.ship.push({
         id: genId('SHP', i + 1), name: '远洋' + (1000 + i), type: shipType,
         pos: [lng, lat], heading: rnd(0, 360), speed: rnd(8, 22),
-        track: genTrack(lng, lat, 40, 0.02),
+        track: genShipTrack(lng, lat, 40, 0.018),
         englishName: 'OCEAN VOYAGER ' + (1000 + i), nickname: '-',
         mmsi: '369' + rndInt(100000, 999999), imo: '9' + rndInt(1000000, 9999999),
         callSign: pick(['BOSON', 'NLORt', '3FRI', 'A8K2', 'BOSN', 'D5IPS4', 'VRVQ8']),
@@ -947,6 +1551,138 @@
     if (type === 'satellite') return ['卫星编号: ' + (item.satelliteNumber || '-'), '国际编号: ' + (item.internationalNumber || '-'), '状态: ' + (item.status || '-')];
     return ['代码: ' + (item.code || '-'), '国家: ' + (item.country || '-'), '区域: ' + (item.region || '-')];
   }
+  // ===== 卫星波束覆盖图渲染 =====
+  function renderBeamCoverage(item) {
+    // 简化世界地图轮廓（equirectangular 投影，经度 -180~180 映射到 0~360，纬度 90~-90 映射到 0~180）
+    // 大陆轮廓 path 数据（简化版）
+    var continents = [
+      // 北美洲
+      'M60,35 L80,28 L110,25 L135,30 L150,40 L155,55 L145,68 L130,75 L120,80 L100,82 L85,75 L70,65 L58,50 Z',
+      // 南美洲
+      'M115,85 L135,82 L145,90 L150,105 L145,120 L135,135 L125,145 L115,150 L105,140 L100,120 L105,100 Z',
+      // 欧洲
+      'M165,40 L185,35 L200,38 L210,45 L205,55 L195,60 L180,58 L170,52 Z',
+      // 非洲
+      'M175,62 L195,60 L210,65 L215,80 L210,95 L200,110 L190,125 L180,130 L170,120 L165,105 L168,90 L172,75 Z',
+      // 亚洲
+      'M200,30 L230,25 L260,28 L290,32 L310,40 L315,50 L305,60 L285,65 L260,68 L240,65 L220,60 L205,55 L198,45 Z',
+      // 东南亚
+      'M280,70 L295,68 L305,72 L300,80 L290,82 L282,78 Z',
+      // 澳洲
+      'M290,95 L310,92 L325,95 L330,105 L325,115 L310,118 L295,112 L288,105 Z',
+      // 中国及周边（更详细）
+      'M245,45 L265,42 L278,48 L275,58 L268,65 L255,68 L248,62 L242,55 Z',
+      // 印度次大陆
+      'M235,55 L250,53 L255,62 L248,72 L238,70 L232,63 Z',
+      // 日本
+      'M295,42 L302,40 L305,45 L300,50 L296,48 Z',
+      // 格陵兰
+      'M125,18 L140,15 L150,20 L145,30 L135,28 L128,25 Z'
+    ];
+
+    // 卫星波束定义（静态，所有卫星共用同一组波束）
+    var beams = [
+      { name: 'Ku-Band Global', cx: 180, cy: 90, rx: 120, ry: 55, freq: '14.0-14.5 GHz', pol: 'H/V', active: true },
+      { name: 'Ku-Band Spot 1', cx: 255, cy: 52, rx: 35, ry: 22, freq: '11.7-12.2 GHz', pol: 'V', active: true },
+      { name: 'Ku-Band Spot 2', cx: 285, cy: 70, rx: 28, ry: 18, freq: '12.2-12.7 GHz', pol: 'H', active: true },
+      { name: 'C-Band半球波束', cx: 100, cy: 60, rx: 60, ry: 40, freq: '3.7-4.2 GHz', pol: 'H/V', active: false },
+      { name: 'C-Band全球波束', cx: 180, cy: 90, rx: 160, ry: 75, freq: '3.4-4.2 GHz', pol: 'H/V', active: false },
+      { name: 'Ka-Band Spot', cx: 215, cy: 48, rx: 22, ry: 14, freq: '19.7-20.2 GHz', pol: 'V', active: false }
+    ];
+
+    // 卫星星下点（默认位置，可被item覆盖）
+    var subSatLng = (item && item.pos && item.pos[0] != null) ? item.pos[0] : 105.0;
+    var subSatLat = (item && item.pos && item.pos[1] != null) ? item.pos[1] : 0;
+    // 转为SVG坐标
+    var satX = subSatLng + 180;
+    var satY = 90 - subSatLat;
+
+    var html = '';
+    html += '<div class="beam-coverage" id="beam-coverage">';
+    html += '<div class="beam-coverage-header">';
+    html += '<div class="beam-coverage-title">';
+    html += '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2"/></svg>';
+    html += '卫星波束覆盖图';
+    html += '</div>';
+    html += '<div class="beam-coverage-meta">星下点: ' + subSatLng.toFixed(1) + '°E, ' + subSatLat.toFixed(1) + '°N · 轨位: ' + (item && item.orbitHeight ? item.orbitHeight : 'GEO 35786km') + '</div>';
+    html += '</div>';
+
+    // SVG 地图
+    html += '<div class="beam-map-wrap">';
+    html += '<svg class="beam-map-svg" viewBox="0 0 360 180" preserveAspectRatio="xMidYMid meet">';
+    // 海洋背景渐变
+    html += '<defs><radialGradient id="oceanGrad" cx="50%" cy="50%" r="70%">';
+    html += '<stop offset="0%" stop-color="#0d1f3a"/>';
+    html += '<stop offset="100%" stop-color="#070d18"/>';
+    html += '</radialGradient></defs>';
+    html += '<rect width="360" height="180" fill="url(#oceanGrad)"/>';
+
+    // 经纬度网格
+    for (var lat = -60; lat <= 60; lat += 30) {
+      var y = 90 - lat;
+      html += '<line class="beam-map-graticule' + (lat === 0 ? ' beam-map-equator' : '') + '" x1="0" y1="' + y + '" x2="360" y2="' + y + '"/>';
+    }
+    for (var lng = -150; lng <= 150; lng += 30) {
+      var x = lng + 180;
+      html += '<line class="beam-map-graticule' + (lng === 0 ? ' beam-map-equator' : '') + '" x1="' + x + '" y1="0" x2="' + x + '" y2="180"/>';
+    }
+    // 经度标签
+    html += '<text x="2" y="6" class="beam-label" text-anchor="start">180°W</text>';
+    html += '<text x="92" y="6" class="beam-label" text-anchor="start">90°W</text>';
+    html += '<text x="178" y="6" class="beam-label" text-anchor="middle">0°</text>';
+    html += '<text x="268" y="6" class="beam-label" text-anchor="start">90°E</text>';
+    html += '<text x="350" y="6" class="beam-label" text-anchor="end">180°E</text>';
+    html += '<text x="2" y="178" class="beam-label" text-anchor="start">60°S</text>';
+    html += '<text x="2" y="94" class="beam-label" text-anchor="start">0°</text>';
+    html += '<text x="2" y="34" class="beam-label" text-anchor="start">60°N</text>';
+
+    // 大陆轮廓
+    continents.forEach(function (path) {
+      html += '<path class="beam-map-land" d="' + path + '"/>';
+    });
+
+    // 波束覆盖
+    beams.forEach(function (beam) {
+      var cls = beam.active ? 'beam-footprint-active' : 'beam-footprint';
+      html += '<ellipse class="' + cls + '" cx="' + beam.cx + '" cy="' + beam.cy + '" rx="' + beam.rx + '" ry="' + beam.ry + '"/>';
+      // 波束中心点
+      html += '<circle class="beam-center-dot" cx="' + beam.cx + '" cy="' + beam.cy + '" r="1.2"/>';
+      // 波束名称标签
+      html += '<text x="' + beam.cx + '" y="' + (beam.cy - beam.ry / 2 - 2) + '" class="beam-label-name">' + escapeHtml(beam.name) + '</text>';
+      // 频率标签
+      html += '<text x="' + beam.cx + '" y="' + (beam.cy + beam.ry / 2 + 4) + '" class="beam-label">' + escapeHtml(beam.freq) + '</text>';
+    });
+
+    // 星下点标记
+    html += '<circle class="beam-sub-sat-point" cx="' + satX + '" cy="' + satY + '" r="4"/>';
+    html += '<circle fill="#fbbf24" cx="' + satX + '" cy="' + satY + '" r="1.5"/>';
+    html += '<text x="' + satX + '" y="' + (satY - 6) + '" class="beam-label-name" style="fill:#fbbf24">星下点</text>';
+
+    html += '</svg>';
+    html += '</div>';
+
+    // 图例
+    html += '<div class="beam-legend">';
+    html += '<div class="beam-legend-item"><span class="beam-legend-dot" style="background:rgba(56,189,248,0.4);border:1px solid rgba(56,189,248,0.6);"></span>激活波束</div>';
+    html += '<div class="beam-legend-item"><span class="beam-legend-dot" style="background:rgba(192,132,252,0.2);border:1px dashed rgba(192,132,252,0.5);"></span>备用波束</div>';
+    html += '<div class="beam-legend-item"><span class="beam-legend-dot" style="background:#fbbf24;border:1px solid #fbbf24;"></span>星下点</div>';
+    html += '<div class="beam-legend-item"><span class="beam-legend-dot" style="background:rgba(56,189,248,0.06);border:1px solid rgba(56,189,248,0.22);"></span>陆地</div>';
+    html += '</div>';
+
+    // 波束参数信息
+    html += '<div class="beam-info-grid">';
+    beams.forEach(function (beam) {
+      html += '<div class="beam-info-cell">';
+      html += '<span class="beam-info-key">' + escapeHtml(beam.name) + (beam.active ? ' ●' : ' ○') + '</span>';
+      html += '<span class="beam-info-val">' + escapeHtml(beam.freq) + ' · ' + escapeHtml(beam.pol) + '</span>';
+      html += '</div>';
+    });
+    html += '</div>';
+
+    html += '</div>';
+    return html;
+  }
+
   function renderGenericCard(type, item, root) {
     if (!item) {
       root.innerHTML =
@@ -1007,6 +1743,22 @@
       html += '</div>';
     });
     html += '<button class="more-btn" id="btn-more-data" type="button">查看更多数据</button>';
+    // 卫星波束覆盖图链接（仅卫星类型显示）
+    if (type === 'satellite') {
+      html += '<div style="margin-top:10px;text-align:center;">';
+      html += '<a href="javascript:void(0)" class="beam-view-link" id="beam-view-link" ';
+      html += 'data-name="' + escapeHtml(item.name || '') + '" ';
+      html += 'data-pos-lng="' + (item.pos ? item.pos[0] : 105) + '" ';
+      html += 'data-pos-lat="' + (item.pos ? item.pos[1] : 0) + '" ';
+      html += 'data-orbit="' + escapeHtml(item.orbitHeight || 'GEO 35786km') + '" ';
+      html += 'style="color:var(--ts-accent);font-size:12px;text-decoration:none;cursor:pointer;display:inline-flex;align-items:center;gap:5px;">';
+      html += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2"/></svg>';
+      html += '查看波束覆盖';
+      html += '</a>';
+      html += '</div>';
+      // 波束覆盖图（内嵌展示，较小）
+      html += renderBeamCoverage(item);
+    }
     html += '<div class="scale-line">缩放级别：<b>1</b>-<b>8</b> <span style="margin:0 6px;opacity:.35;">000</span> 000</div>';
     html += '</div>';
     html += '</div></div>';
@@ -1029,6 +1781,27 @@
           more.textContent = '已经是最新数据 ✓';
           setTimeout(function () { more.textContent = '查看更多数据'; }, 1500);
         }, 600);
+      });
+    }
+    // 查看波束覆盖链接
+    var beamLink = document.getElementById('beam-view-link');
+    if (beamLink) {
+      beamLink.addEventListener('click', function () {
+        var name = beamLink.getAttribute('data-name') || '卫星';
+        var lng = beamLink.getAttribute('data-pos-lng') || '105';
+        var lat = beamLink.getAttribute('data-pos-lat') || '0';
+        var orbit = beamLink.getAttribute('data-orbit') || 'GEO 35786km';
+        // 通过父页面 openTab 打开波束覆盖页面
+        if (window.parent && window.parent.openBeamCoverageTab) {
+          window.parent.openBeamCoverageTab(name, lng, lat, orbit);
+        } else {
+          // 直接打开新窗口
+          var url = 'beam-coverage.html?name=' + encodeURIComponent(name) +
+            '&lng=' + encodeURIComponent(lng) +
+            '&lat=' + encodeURIComponent(lat) +
+            '&orbit=' + encodeURIComponent(orbit);
+          window.open(url, '_blank');
+        }
       });
     }
     document.title = (displayName || '目标详情') + ' - 目标监视';
@@ -1126,6 +1899,48 @@
       html += '  <span class="ship-info-k">' + escapeHtml(c[0]) + '</span>';
       html += '  <span class="ship-info-v' + softCls + toneCls + '">' + escapeHtml(String(c[1] == null ? '-' : c[1])) + '</span>';
       html += '</div>';
+    });
+    html += '    </div>';
+    html += '  </div>';
+    // Crew list
+    html += '  <div class="ship-crew">';
+    html += '    <div class="ship-crew-header">';
+    html += '      <div class="ship-crew-title">';
+    html += '        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>';
+    html += '        <span>船舶人员</span>';
+    html += '      </div>';
+    html += '      <div style="display:flex;align-items:center;gap:8px;">';
+    html += '        <button class="ship-crew-import-btn" onclick="openCrewImport()" style="display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:6px;font-size:11px;font-weight:600;border:1px solid rgba(56,189,248,0.4);background:rgba(56,189,248,0.1);color:#38bdf8;cursor:pointer;transition:all .15s;">';
+    html += '          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>';
+    html += '          批量导入</button>';
+    html += '        <span class="ship-crew-count">10 人</span>';
+    html += '      </div>';
+    html += '    </div>';
+    html += '    <div class="ship-crew-grid" id="ship-crew-grid">';
+    // 10 crew members with full 12-field data
+    var crewList = [
+      { cn:'张伟', en:'Zhang Wei', gender:'男', birth:'1978-03-15', id:'110101197803150011', nationality:'中国', ethnicity:'汉族', birthplace:'北京市', address:'北京市朝阳区建国路88号', phone:'+86 13800138001', email:'zhangwei@ship.com', role:'船长', flag:'🇨🇳', color:'#f97316' },
+      { cn:'李明', en:'Li Ming', gender:'男', birth:'1982-07-22', id:'310101198207220022', nationality:'中国', ethnicity:'汉族', birthplace:'上海市', address:'上海市浦东新区世纪大道100号', phone:'+86 13800138002', email:'liming@ship.com', role:'大副', flag:'🇨🇳', color:'#3b82f6' },
+      { cn:'王强', en:'Wang Qiang', gender:'男', birth:'1985-11-08', id:'440101198511080033', nationality:'中国', ethnicity:'汉族', birthplace:'广州市', address:'广州市天河区珠江新城50号', phone:'+86 13800138003', email:'wangqiang@ship.com', role:'二副', flag:'🇨🇳', color:'#8b5cf6' },
+      { cn:'刘洋', en:'Liu Yang', gender:'男', birth:'1988-05-30', id:'330101198805300044', nationality:'中国', ethnicity:'汉族', birthplace:'杭州市', address:'杭州市西湖区文三路200号', phone:'+86 13800138004', email:'liuyang@ship.com', role:'三副', flag:'🇨🇳', color:'#06b6d4' },
+      { cn:'陈静', en:'Chen Jing', gender:'女', birth:'1980-09-12', id:'510101198009120055', nationality:'中国', ethnicity:'汉族', birthplace:'成都市', address:'成都市锦江区红星路66号', phone:'+86 13800138005', email:'chenjing@ship.com', role:'轮机长', flag:'🇨🇳', color:'#10b981' },
+      { cn:'赵磊', en:'Zhao Lei', gender:'男', birth:'1983-02-17', id:'420101198302170066', nationality:'中国', ethnicity:'汉族', birthplace:'武汉市', address:'武汉市武昌区东湖路30号', phone:'+86 13800138006', email:'zhaolei@ship.com', role:'大管轮', flag:'🇨🇳', color:'#ef4444' },
+      { cn:'John Smith', en:'John Smith', gender:'男', birth:'1975-04-05', id:'-', nationality:'美国', ethnicity:'-', birthplace:'New York', address:'123 Broadway Ave, New York', phone:'+1 212-555-0700', email:'john.smith@ship.com', role:'二管轮', flag:'🇺🇸', color:'#f59e0b' },
+      { cn:'佐藤太郎', en:'Sato Taro', gender:'男', birth:'1977-12-20', id:'-', nationality:'日本', ethnicity:'大和', birthplace:'东京', address:'1-2-3 Shibuya, Tokyo', phone:'+81 3-555-0080', email:'sato.taro@ship.com', role:'水手长', flag:'🇯🇵', color:'#ec4899' },
+      { cn:'金敏俊', en:'Kim Min-jun', gender:'男', birth:'1984-08-14', id:'-', nationality:'韩国', ethnicity:'朝鲜族', birthplace:'首尔', address:'456 Gangnam-ro, Seoul', phone:'+82 2-555-0090', email:'kim.minjun@ship.com', role:'机工长', flag:'🇰🇷', color:'#14b8a6' },
+      { cn:'Marco Rossi', en:'Marco Rossi', gender:'男', birth:'1976-01-25', id:'-', nationality:'意大利', ethnicity:'意大利', birthplace:'罗马', address:'789 Via Roma, Roma', phone:'+39 06-555-0100', email:'marco.rossi@ship.com', role:'大厨', flag:'🇮🇹', color:'#a855f7' }
+    ];
+    window.__shipCrewData = crewList;
+    crewList.forEach(function (m, idx) {
+      var initial = m.cn.charAt(0);
+      html += '      <div class="ship-crew-item" data-crew-idx="' + idx + '" onclick="showCrewDetail(' + idx + ')">';
+      html += '        <div class="ship-crew-avatar" style="background:' + m.color + ';">' + initial + '</div>';
+      html += '        <div class="ship-crew-info">';
+      html += '          <div class="ship-crew-name">' + escapeHtml(m.cn) + '</div>';
+      html += '          <div class="ship-crew-role">' + escapeHtml(m.role) + '</div>';
+      html += '        </div>';
+      html += '        <span class="ship-crew-flag">' + m.flag + '</span>';
+      html += '      </div>';
     });
     html += '    </div>';
     html += '  </div>';
@@ -1316,7 +2131,7 @@
     initPlayerUI(item);
 
     loadAMap().then(function (AMap) {
-      initShipTrackMap(AMap, item);
+      initShipTrackMap(AMap, item, type);
       drawPlayerWaveform(item);
     }).catch(function (e) {
       var mw = document.getElementById('shipMapWrap');
@@ -1376,15 +2191,23 @@
     steps = Math.min(120, Math.max(20, steps));
     var jitter = 0.015 + Math.min(0.12, days * 0.002);
     var center = base[Math.floor(base.length / 2)];
-    var lng = center[0], lat = center[1];
-    var newPts = [];
-    var dLng = (Math.random() - 0.5) * 0.08;
-    var dLat = (Math.random() - 0.5) * 0.08;
-    for (var i = 0; i < steps; i++) {
-      newPts.push([lng, lat]);
-      lng += dLng + (Math.random() - 0.5) * jitter;
-      lat += dLat + (Math.random() - 0.5) * jitter;
-      dLng *= 0.98; dLat *= 0.98;
+    var isShip = (getQueryParam('type') === 'ship') || !!(item && (item.shipType || item.mmsi || item.imo ||
+      (item.type && /船|舰|艇|货|油|散|客|渔|勘|军/i.test(item.type))));
+    var newPts;
+    if (isShip) {
+      // 船舶轨迹：每一步都做海域约束，保证在海里
+      newPts = genShipTrack(center[0], center[1], steps, jitter);
+    } else {
+      var lng = center[0], lat = center[1];
+      newPts = [];
+      var dLng = (Math.random() - 0.5) * 0.08;
+      var dLat = (Math.random() - 0.5) * 0.08;
+      for (var i = 0; i < steps; i++) {
+        newPts.push([lng, lat]);
+        lng += dLng + (Math.random() - 0.5) * jitter;
+        lat += dLat + (Math.random() - 0.5) * jitter;
+        dLng *= 0.98; dLat *= 0.98;
+      }
     }
     if (!SHIP_PLAY) SHIP_PLAY = {};
     SHIP_PLAY.fullTrack = newPts;
@@ -1441,13 +2264,8 @@
     var hdg = headingBetween(pPrev, p);
     if (SHIP_PLAY.shipMarker) {
       SHIP_PLAY.shipMarker.setPosition(p);
-      try {
-        var dom = SHIP_PLAY.shipMarker.getDom();
-        if (dom) {
-          var inner = dom.firstElementChild || dom;
-          if (inner) inner.style.transform = 'rotate(' + hdg.toFixed(1) + 'deg)';
-        }
-      } catch (e) {}
+      // 使用高德原生 setAngle 方法旋转船舶图标,箭头方向跟随轨迹变动
+      try { SHIP_PLAY.shipMarker.setAngle(hdg); } catch (e) {}
     }
     if (SHIP_PLAY.playLine && SHIP_PLAY.samples) {
       var n = SHIP_PLAY.samples.length;
@@ -1459,11 +2277,25 @@
     }
   }
 
-  function initShipTrackMap(AMap, item) {
+  function initShipTrackMap(AMap, item, forceType) {
     var mapEl = document.getElementById('shipMap');
     if (!mapEl) return;
     var trackRaw = (item.track && item.track.length) ? item.track.slice() : [item.pos || [121.5, 31.0]];
-    while (trackRaw.length < 30) trackRaw = trackRaw.concat(trackRaw.slice(0, 20));
+    // 后端真实数据不进行兜底处理(不复制轨迹点、不做海域吸附)
+    var fromBackend = !!(item && item.fromBackend);
+    if (!fromBackend) {
+      while (trackRaw.length < 30) trackRaw = trackRaw.concat(trackRaw.slice(0, 20));
+      // 船舶轨迹兜底修正：即使是旧缓存/外部传入的轨迹，也把所有不在海域内的点吸附回海里
+      // 强制判定：URL type=ship 或 item 含有船舶专属字段
+      var isShip = (forceType === 'ship') || !!(item && (item.shipType || item.mmsi || item.imo ||
+        (item.type && /船|舰|艇|货|油|散|客|渔|勘|军/i.test(item.type))));
+      if (isShip && typeof _snapShipPointToSea === 'function') {
+        for (var i = 0; i < trackRaw.length; i++) {
+          if (!trackRaw[i] || trackRaw[i].length < 2) continue;
+          trackRaw[i] = _snapShipPointToSea(trackRaw[i][0], trackRaw[i][1]);
+        }
+      }
+    }
 
     var center = trackRaw[Math.floor(trackRaw.length / 2)];
     var sat = new AMap.TileLayer.Satellite();
@@ -1813,17 +2645,82 @@
   }
 
   // ========= Page entry =========
+  // 从后端加载船舶真实数据(ais_track_huang 表历史轨迹)
+  function loadShipFromBackend(mmsi) {
+    return fetch('/api/ais/history?mmsi=' + encodeURIComponent(mmsi))
+      .then(function (r) { return r.json(); })
+      .then(function (res) {
+        if (!res || !res.ok || !res.data || !res.data.length) return null;
+        var latest = res.data[res.data.length - 1]; // 最后一条为最新位置
+        var track = res.data.map(function (r) {
+          var lng = parseFloat(r.lon);
+          var lat = parseFloat(r.lat);
+          return [lng, lat];
+        }).filter(function (p) { return !isNaN(p[0]) && !isNaN(p[1]); });
+        return {
+          id: mmsi,
+          name: latest.ship_name || ('MMSI:' + mmsi),
+          type: latest.ship_type || '船舶',
+          mmsi: mmsi,
+          imo: latest.imo || '-',
+          callSign: latest.callsign || '-',
+          shipType: latest.ship_type || '-',
+          pos: [parseFloat(latest.lon), parseFloat(latest.lat)],
+          heading: latest.heading != null ? parseFloat(latest.heading) : 0,
+          speed: latest.sog != null ? parseFloat(latest.sog) : 0,
+          track: track,
+          destination: latest.destination || '-',
+          draught: latest.draught != null ? latest.draught : '-',
+          navStatus: latest.nav_status != null ? latest.nav_status : '-',
+          dataUpdateTime: latest.last_update,
+          fromBackend: true  // 标记数据来自后端,跳过 mock 兜底处理
+        };
+      });
+  }
+
   (function pageInit() {
     var root = document.getElementById('app-root');
     var type = getQueryParam('type') || 'ship';
     var id = getQueryParam('id') || '';
-    var data = getTacticalData();
-    var item = findTarget(data, type, id);
+    // 清旧版本缓存（含陆地轨迹），强制用新算法重新生成
+    try {
+      var ver = window.localStorage.getItem('ts_tac_ver');
+      if (ver !== 'v2') {
+        window.localStorage.removeItem('ts_tac_data_v1');
+        window.localStorage.setItem('ts_tac_ver', 'v2');
+      }
+    } catch (e) {}
 
-    if (type === 'ship' && item) {
-      renderShipLayout(type, item, root);
+    // 船舶详情:优先从后端加载真实历史轨迹数据
+    if (type === 'ship' && id) {
+      loadShipFromBackend(id).then(function (item) {
+        if (item) {
+          renderShipLayout(type, item, root);
+        } else {
+          // 后端无数据,fallback 到本地 mock 数据
+          var data = getTacticalData();
+          var fbItem = findTarget(data, type, id) || {
+            id: id, name: 'MMSI:' + id, mmsi: id,
+            pos: [121.5, 31.0], track: [], type: '船舶'
+          };
+          renderShipLayout(type, fbItem, root);
+        }
+      }).catch(function () {
+        var data = getTacticalData();
+        var fbItem = findTarget(data, type, id) || {
+          id: id, name: 'MMSI:' + id, mmsi: id,
+          pos: [121.5, 31.0], track: [], type: '船舶'
+        };
+        renderShipLayout(type, fbItem, root);
+      });
     } else {
-      renderGenericCard(type, item, root);
+      var data = getTacticalData();
+      var item = findTarget(data, type, id);
+      if (type === 'ship' && item) {
+        renderShipLayout(type, item, root);
+      } else {
+        renderGenericCard(type, item, root);
+      }
     }
   })();
 </script>
