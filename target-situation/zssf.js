@@ -399,8 +399,144 @@ async function runAlgorithm(dryRun) {
     console.log('[zssf] 已入库 %d 条记录到 risk_zousi 表', inserted);
   }
 
+  // ====== 船舶类型补全 ======
+  if (!dryRun) {
+    await fillVesselType(conn);
+  }
+
   await conn.end();
   return results;
+}
+
+/**
+ * 船舶类型补全算法
+ *
+ * 策略(优先级从高到低):
+ *   1. 从 ais_origin_record 查该 MMSI 最常见的 vessel_type (取众数)
+ *   2. 从 ais_record 查该 MMSI 的 vessel_type
+ *   3. 根据 MMSI 结构推断:
+ *      - 前2位 00: 岸台/沿海电台
+ *      - 前1位 0 且非00: 船队/管理站
+ *      - 前3位 111: 搜救飞机
+ *      - 前4位 1111: 搜救直升机
+ *      - 前5位 11111: EPIRB(应急示位标)
+ *      - 前2位 99: AIS基站
+ *      - 前2位 8: 潜水员电台
+ *      - 其余 9 位标准 MMSI: 按 MID(前3位) 查国家, 无法定类型 -> '商船'
+ *   4. 仍无法判断: vessel_type_name_cn = ''
+ *
+ * 执行: UPDATE risk_zousi SET vessel_type=?, vessel_type_name=?, vessel_type_name_cn=?
+ *       WHERE mmsi=? AND (vessel_type IS NULL OR vessel_type='')
+ */
+async function fillVesselType(conn) {
+  console.log('[zssf] 开始船舶类型补全...');
+
+  // 1) 从 ais_origin_record 查每个 MMSI 的 vessel_type 众数
+  //    注意: ais_origin_record 可能没有 vessel_type_name_cn 列, 先探测
+  let originHasCn = false;
+  try {
+    const [cols] = await conn.query("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='ais_origin_record'");
+    originHasCn = cols.some(c => c.COLUMN_NAME === 'vessel_type_name_cn');
+  } catch (e) {}
+  const originSelectCols = originHasCn
+    ? 'mmsi, vessel_type, vessel_type_name, vessel_type_name_cn'
+    : 'mmsi, vessel_type, vessel_type_name';
+  const [originTypes] = await conn.query(`
+    SELECT ${originSelectCols}, COUNT(*) as cnt
+    FROM ais_origin_record
+    WHERE vessel_type IS NOT NULL AND vessel_type != ''
+    GROUP BY mmsi, vessel_type
+    ORDER BY mmsi, cnt DESC
+  `);
+  // 每个 MMSI 取第一条(众数)
+  const originMap = new Map();
+  for (const row of originTypes) {
+    if (!originMap.has(row.mmsi)) {
+      originMap.set(row.mmsi, {
+        vessel_type: row.vessel_type,
+        vessel_type_name: row.vessel_type_name || '',
+        vessel_type_name_cn: (originHasCn ? row.vessel_type_name_cn : '') || vesselTypeCn(row.vessel_type)
+      });
+    }
+  }
+  console.log('[zssf] ais_origin_record 中有 %d 个 MMSI 的 vessel_type 可用', originMap.size);
+
+  // 2) 从 ais_record 查(作为兜底)
+  let recordMap = new Map();
+  try {
+    let recordHasCn = false;
+    try {
+      const [cols] = await conn.query("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='ais_record'");
+      recordHasCn = cols.some(c => c.COLUMN_NAME === 'vessel_type_name_cn');
+    } catch (e) {}
+    const recordSelectCols = recordHasCn
+      ? 'DISTINCT mmsi, vessel_type, vessel_type_name, vessel_type_name_cn'
+      : 'DISTINCT mmsi, vessel_type, vessel_type_name';
+    const [recordTypes] = await conn.query(`
+      SELECT ${recordSelectCols}
+      FROM ais_record
+      WHERE vessel_type IS NOT NULL AND vessel_type != ''
+    `);
+    for (const row of recordTypes) {
+      if (!recordMap.has(row.mmsi)) {
+        recordMap.set(row.mmsi, {
+          vessel_type: row.vessel_type,
+          vessel_type_name: row.vessel_type_name || '',
+          vessel_type_name_cn: (recordHasCn ? row.vessel_type_name_cn : '') || vesselTypeCn(row.vessel_type)
+        });
+      }
+    }
+    console.log('[zssf] ais_record 中有 %d 个 MMSI 的 vessel_type 可用(兜底)', recordMap.size);
+  } catch (e) {
+    console.log('[zssf] ais_record 查询失败(表可能不存在), 跳过:', e.message);
+  }
+
+  // 3) MMSI 结构推断
+  function inferFromMmsi(mmsi) {
+    const s = String(mmsi);
+    const len = s.length;
+    if (len < 9) return null;
+    // 特殊前缀
+    if (s.startsWith('00')) return { vessel_type: '90', vessel_type_name: 'Station', vessel_type_name_cn: '岸台/电台' };
+    if (s.startsWith('0'))  return { vessel_type: '90', vessel_type_name: 'Group', vessel_type_name_cn: '船队管理站' };
+    if (s.startsWith('11111')) return { vessel_type: '96', vessel_type_name: 'EPIRB', vessel_type_name_cn: '应急示位标' };
+    if (s.startsWith('1111'))  return { vessel_type: '96', vessel_type_name: 'SAR Heli', vessel_type_name_cn: '搜救直升机' };
+    if (s.startsWith('111'))   return { vessel_type: '96', vessel_type_name: 'SAR Aircraft', vessel_type_name_cn: '搜救飞机' };
+    if (s.startsWith('99'))    return { vessel_type: '90', vessel_type_name: 'Base Station', vessel_type_name_cn: 'AIS基站' };
+    if (s.startsWith('8'))     return { vessel_type: '90', vessel_type_name: 'Diver Radio', vessel_type_name_cn: '潜水员电台' };
+    // 标准 9 位 MMSI: 商船
+    return { vessel_type: '70', vessel_type_name: 'Cargo (inferred)', vessel_type_name_cn: '商船(推断)' };
+  }
+
+  // 4) 查所有需要补全的 risk_zousi 记录
+  const [needFill] = await conn.query(`
+    SELECT DISTINCT mmsi FROM risk_zousi
+    WHERE vessel_type IS NULL OR vessel_type = ''
+  `);
+  console.log('[zssf] 需要补全 vessel_type 的 MMSI 数: %d', needFill.length);
+
+  let updated = 0, byOrigin = 0, byRecord = 0, byMmsi = 0, stillEmpty = 0;
+  for (const { mmsi } of needFill) {
+    let info = originMap.get(mmsi) || recordMap.get(mmsi);
+    if (info) {
+      if (originMap.has(mmsi)) byOrigin++; else byRecord++;
+    } else {
+      info = inferFromMmsi(mmsi);
+      if (info) byMmsi++;
+      else { stillEmpty++; continue; }
+    }
+    await conn.query(
+      `UPDATE risk_zousi SET vessel_type=?, vessel_type_name=?, vessel_type_name_cn=? WHERE mmsi=? AND (vessel_type IS NULL OR vessel_type='')`,
+      [info.vessel_type, info.vessel_type_name, info.vessel_type_name_cn, mmsi]
+    );
+    updated++;
+  }
+  console.log('[zssf] 船舶类型补全完成: 更新 %d 条 (来源: origin=%d, record=%d, mmsi推断=%d, 仍空=%d)',
+    updated, byOrigin, byRecord, byMmsi, stillEmpty);
+
+  // 统计补全后空值
+  const [stats] = await conn.query("SELECT COUNT(*) total, SUM(CASE WHEN vessel_type_name_cn IS NULL OR vessel_type_name_cn='' THEN 1 ELSE 0 END) empty_cn FROM risk_zousi");
+  console.log('[zssf] 补全后: 总 %d 条, vessel_type_name_cn 为空 %d 条', stats[0].total, stats[0].empty_cn);
 }
 
 // ====== 入口 ======
