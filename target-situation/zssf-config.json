@@ -6,7 +6,7 @@
     "coastlineDistanceKm": 5,
     "silenceDurationMin": 45,
     "restartDisplacementKm": 10,
-    "minPortDistanceKm": 3,
+    "minPortDistanceKm": 0,
     "silenceTimeWindow": {
       "start": "18:00",
       "end": "06:00"
